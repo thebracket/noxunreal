@@ -103,7 +103,7 @@ void ANoxLinkTest::InitialLights() {
 			Light->g = light.g;
 			Light->b = light.b;
 			Light->FinishSpawning(trans);
-			DynamicLights.Emplace(Light);
+			DynamicLights.Add(light.entity_id, Light);
 		}
 	}
 }

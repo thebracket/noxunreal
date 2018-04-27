@@ -32,7 +32,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	TArray<ANoxRegionChunk *> RegionChunks;
 	TArray<ANoxStaticModel *> VoxModels;
-	TArray<ANoxDynamicLight *> DynamicLights;
+	TMap<int, ANoxDynamicLight *> DynamicLights;
 
 	UPROPERTY(BlueprintReadOnly)
 	float PowerPercent;
