@@ -60,7 +60,7 @@ void ANoxLinkTest::AddModel(const nf::dynamic_model_t &model, TMap<int, ANoxStat
 		my += 1;
 	}
 
-	FRotator rot = FRotator(model.axis1 * model.rot_angle, model.axis2 * model.rot_angle, model.axis3 * model.rot_angle);
+	FRotator rot = FRotator(model.axis1 * model.rot_angle, model.axis2 * model.rot_angle, model.axis3 * model.rot_angle + 90.0f);
 	FVector loc = FVector(mx * WORLD_SCALE, my * WORLD_SCALE, mz * WORLD_SCALE);
 	FTransform trans = FTransform(rot, loc);
 	auto newModel = GetWorld()->SpawnActorDeferred<ANoxStaticModel>(ANoxStaticModel::StaticClass(), trans);
@@ -72,6 +72,7 @@ void ANoxLinkTest::AddModel(const nf::dynamic_model_t &model, TMap<int, ANoxStat
 	newModel->g = model.tint_g;
 	newModel->b = model.tint_b;
 	newModel->FinishSpawning(trans);
+	newModel->SetActorRotation(rot);
 	container->Add(model.idx, newModel);
 }
 
@@ -127,6 +128,7 @@ void ANoxLinkTest::UpdateModels() {
 					float my = model.y + 0.5f;
 					const float mz = model.z;
 
+					// Special case for large model
 					if (model.idx == 6) {
 						mx += 1;
 						my += 1;
