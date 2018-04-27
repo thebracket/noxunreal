@@ -178,16 +178,21 @@ void ANoxLinkTest::Tick(float DeltaTime)
 	CashDisplay.Append(TEXT(" Mcr"));
 
 	DateDisplay = TEXT("");
+	if (hudLink.month + 1 < 10) DateDisplay.Append(TEXT("0"));
 	DateDisplay.AppendInt(hudLink.month+1);
 	DateDisplay.Append(TEXT("/"));
+	if (hudLink.day + 1 < 10) DateDisplay.Append(TEXT("0"));
 	DateDisplay.AppendInt(hudLink.day+1);
 	DateDisplay.Append(TEXT("/"));
 	DateDisplay.AppendInt(hudLink.year);
 	DateDisplay.Append(TEXT(" "));
+	if (hudLink.hour < 10) DateDisplay.Append(TEXT("0"));
 	DateDisplay.AppendInt(hudLink.hour);
 	DateDisplay.Append(TEXT(":"));
+	if (hudLink.minute < 10) DateDisplay.Append(TEXT("0"));
 	DateDisplay.AppendInt(hudLink.minute);
 	DateDisplay.Append(TEXT(":"));
+	if (hudLink.second < 10) DateDisplay.Append(TEXT("0"));
 	DateDisplay.AppendInt(hudLink.second);
 
 	float hourAsFloat = (float)hudLink.hour + ((float)hudLink.minute / 60.0f);
