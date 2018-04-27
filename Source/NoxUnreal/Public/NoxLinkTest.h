@@ -32,7 +32,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	TArray<ANoxRegionChunk *> RegionChunks;
-	TArray<ANoxStaticModel *> VoxModels;
+	TMap<int, TMap<int, ANoxStaticModel *>> VoxModels;
 	TMap<int, ANoxDynamicLight *> DynamicLights;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -69,6 +69,8 @@ private:
 	void SetupNF();
 	void SpawnChunks();
 	void InitialModels();
+	void UpdateModels();
+	void AddModel(const nf::dynamic_model_t &model, TMap<int, ANoxStaticModel *> * container);
 	void InitialLights();
 	void UpdateLights();
 	void AddLight(const nf::dynamic_lightsource_t &light);

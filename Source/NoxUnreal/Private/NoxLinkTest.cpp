@@ -50,6 +50,31 @@ void ANoxLinkTest::SpawnChunks() {
 	}
 }
 
+void ANoxLinkTest::AddModel(const nf::dynamic_model_t &model, TMap<int, ANoxStaticModel *> * container) {
+	float mx = model.x + 0.5f;
+	float my = model.y + 0.5f;
+	const float mz = model.z;
+
+	if (model.idx == 6) {
+		mx += 1;
+		my += 1;
+	}
+
+	FRotator rot = FRotator(model.axis1 * model.rot_angle, model.axis2 * model.rot_angle, model.axis3 * model.rot_angle);
+	FVector loc = FVector(mx * WORLD_SCALE, my * WORLD_SCALE, mz * WORLD_SCALE);
+	FTransform trans = FTransform(rot, loc);
+	auto newModel = GetWorld()->SpawnActorDeferred<ANoxStaticModel>(ANoxStaticModel::StaticClass(), trans);
+	newModel->modelId = model.idx;
+	newModel->x = model.x;
+	newModel->y = model.y;
+	newModel->z = model.z;
+	newModel->r = model.tint_r;
+	newModel->g = model.tint_g;
+	newModel->b = model.tint_b;
+	newModel->FinishSpawning(trans);
+	container->Add(model.idx, newModel);
+}
+
 void ANoxLinkTest::InitialModels()
 {
 	size_t size;
@@ -60,28 +85,66 @@ void ANoxLinkTest::InitialModels()
 		for (size_t i = 0; i < size; ++i) {
 			nf::dynamic_model_t model = model_ptr[i];
 
-			float mx = model.x + 0.5f;
-			float my = model.y + 0.5f;
-			const float mz = model.z;
-
-			if (model.idx == 6) {
-				mx += 1;
-				my += 1;
+			if (!VoxModels.Contains(model.entity_id)) {
+				VoxModels.Add(model.entity_id, TMap<int, ANoxStaticModel *>());
 			}
+			TMap<int, ANoxStaticModel *> * container = VoxModels.Find(model.entity_id);
+			AddModel(model, container);			
+		}
+	}
+}
 
-			FRotator rot = FRotator(model.axis1 * model.rot_angle, model.axis2 * model.rot_angle, model.axis3 * model.rot_angle);
-			FVector loc = FVector(mx * WORLD_SCALE, my * WORLD_SCALE, mz * WORLD_SCALE);
-			FTransform trans = FTransform(rot, loc);
-			auto newModel = GetWorld()->SpawnActorDeferred<ANoxStaticModel>(ANoxStaticModel::StaticClass(), trans);
-			newModel->modelId = model.idx;
-			newModel->x = model.x;
-			newModel->y = model.y;
-			newModel->z = model.z;
-			newModel->r = model.tint_r;
-			newModel->g = model.tint_g;
-			newModel->b = model.tint_b;
-			newModel->FinishSpawning(trans);
-			VoxModels.Emplace(newModel);
+void ANoxLinkTest::UpdateModels() {
+	size_t size;
+	nf::dynamic_model_t * model_ptr;
+	nf::voxel_render_list(size, model_ptr);
+
+	if (size == 0) {
+		VoxModels.Empty();
+	}
+	else {
+		for (size_t i = 0; i < size; ++i) {
+			nf::dynamic_model_t model = model_ptr[i];
+
+			if (!VoxModels.Contains(model.entity_id)) {
+				// It's a brand new model entity!
+				VoxModels.Add(model.entity_id, TMap<int, ANoxStaticModel *>());
+				TMap<int, ANoxStaticModel *> * container = VoxModels.Find(model.entity_id);
+				AddModel(model, container);
+			}
+			else {
+				// It needs updating
+				TMap<int, ANoxStaticModel *> * container = VoxModels.Find(model.entity_id);
+				if (!container->Contains(model.idx)) {
+					// It's a new subentry
+					AddModel(model, container);
+				}
+				else {
+					// Update an existing item
+					ANoxStaticModel * target = *container->Find(model.idx);
+
+					float mx = model.x + 0.5f;
+					float my = model.y + 0.5f;
+					const float mz = model.z;
+
+					if (model.idx == 6) {
+						mx += 1;
+						my += 1;
+					}
+					FRotator rot = FRotator(model.axis1 * model.rot_angle, model.axis2 * model.rot_angle, model.axis3 * model.rot_angle);
+					FVector loc = FVector(mx * WORLD_SCALE, my * WORLD_SCALE, mz * WORLD_SCALE);
+					FTransform trans = FTransform(rot, loc);
+
+					target->modelId = model.idx;
+					target->x = model.x;
+					target->y = model.y;
+					target->z = model.z;
+					target->r = model.tint_r;
+					target->g = model.tint_g;
+					target->b = model.tint_b;
+					target->SetActorTransform(trans);
+				}
+			}
 		}
 	}
 }
@@ -255,6 +318,7 @@ void ANoxLinkTest::Tick(float DeltaTime)
 		SetupWater();
 		nf::water_dirty = false; 
 	}
+	UpdateModels();
 	UpdateLights();
 }
 
