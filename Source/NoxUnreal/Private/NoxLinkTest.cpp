@@ -178,12 +178,23 @@ void ANoxLinkTest::Tick(float DeltaTime)
 	CashDisplay.Append(TEXT(" Mcr"));
 
 	DateDisplay = TEXT("");
-	if (hudLink.month + 1 < 10) DateDisplay.Append(TEXT("0"));
-	DateDisplay.AppendInt(hudLink.month+1);
-	DateDisplay.Append(TEXT("/"));
+	switch (hudLink.month) {
+	case 0: DateDisplay.Append("JAN "); break;
+	case 1: DateDisplay.Append("FEB "); break;
+	case 2: DateDisplay.Append("MAR "); break;
+	case 3: DateDisplay.Append("APR "); break;
+	case 4: DateDisplay.Append("MAY "); break;
+	case 5: DateDisplay.Append("JUN "); break;
+	case 6: DateDisplay.Append("JUL "); break;
+	case 7: DateDisplay.Append("AUG "); break;
+	case 8: DateDisplay.Append("SEP "); break;
+	case 9: DateDisplay.Append("OCT "); break;
+	case 10: DateDisplay.Append("NOV "); break;
+	case 11: DateDisplay.Append("DEC "); break;
+	}
 	if (hudLink.day + 1 < 10) DateDisplay.Append(TEXT("0"));
 	DateDisplay.AppendInt(hudLink.day+1);
-	DateDisplay.Append(TEXT("/"));
+	DateDisplay.Append(TEXT(", "));
 	DateDisplay.AppendInt(hudLink.year);
 	DateDisplay.Append(TEXT(" "));
 	if (hudLink.hour < 10) DateDisplay.Append(TEXT("0"));
