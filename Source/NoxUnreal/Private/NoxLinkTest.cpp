@@ -169,6 +169,7 @@ void ANoxLinkTest::BeginPlay()
 	InitialModels();
 	InitialLights();
 	SetupWater();
+	nf::set_pause_mode(2); // Run one single step on start
 }
 
 void ANoxLinkTest::PostLoad() {
