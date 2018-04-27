@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "NoxLinkTest.h"
-#include "../../ThirdParty/libnox/Includes/libnox.h"
 
 // Sets default values
 ANoxLinkTest::ANoxLinkTest()
@@ -87,6 +86,18 @@ void ANoxLinkTest::InitialModels()
 	}
 }
 
+void ANoxLinkTest::AddLight(const nf::dynamic_lightsource_t &light) {
+	FVector loc = FVector((light.x + 0.5f) * WORLD_SCALE, (light.y + 0.5f) * WORLD_SCALE, (light.z + 0.7f) * WORLD_SCALE);
+	FTransform trans = FTransform(loc);
+	auto Light = GetWorld()->SpawnActorDeferred<ANoxDynamicLight>(ANoxDynamicLight::StaticClass(), trans);
+	Light->radius = light.radius;
+	Light->r = light.r;
+	Light->g = light.g;
+	Light->b = light.b;
+	Light->FinishSpawning(trans);
+	DynamicLights.Add(light.entity_id, Light);
+}
+
 void ANoxLinkTest::InitialLights() {
 	size_t size;
 	nf::dynamic_lightsource_t * light_ptr;
@@ -95,16 +106,37 @@ void ANoxLinkTest::InitialLights() {
 	if (size > 0) {
 		for (size_t i = 0; i < size; ++i) {
 			nf::dynamic_lightsource_t light = light_ptr[i];
-			FVector loc = FVector((light.x + 0.5f) * WORLD_SCALE, (light.y + 0.5f) * WORLD_SCALE, (light.z + 0.7f) * WORLD_SCALE);
-			FTransform trans = FTransform(loc);
-			auto Light = GetWorld()->SpawnActorDeferred<ANoxDynamicLight>(ANoxDynamicLight::StaticClass(), trans);
-			Light->radius = light.radius;
-			Light->r = light.r;
-			Light->g = light.g;
-			Light->b = light.b;
-			Light->FinishSpawning(trans);
-			DynamicLights.Add(light.entity_id, Light);
+			AddLight(light);
 		}
+	}
+}
+
+void ANoxLinkTest::UpdateLights() {
+	size_t size;
+	nf::dynamic_lightsource_t * light_ptr;
+	nf::lightsource_list(size, light_ptr);
+
+	if (size == 0) {
+		DynamicLights.Empty();
+	}
+	else {
+		for (size_t i = 0; i < size; ++i) {
+			nf::dynamic_lightsource_t light = light_ptr[i];
+			if (DynamicLights.Contains(light.entity_id)) {
+				// Update the light
+				ANoxDynamicLight * Light = *DynamicLights.Find(light.entity_id);
+				Light->radius = light.radius;
+				Light->r = light.r;
+				Light->g = light.g;
+				Light->b = light.b;
+				Light->pointlight->SetLightColor(FLinearColor(light.r, light.g, light.b));
+			}
+			else {
+				AddLight(light);
+			}
+		}
+
+		// TODO: Delete stale lights
 	}
 }
 
@@ -222,6 +254,7 @@ void ANoxLinkTest::Tick(float DeltaTime)
 		SetupWater();
 		nf::water_dirty = false; 
 	}
+	UpdateLights();
 }
 
 void ANoxLinkTest::PauseGame() {

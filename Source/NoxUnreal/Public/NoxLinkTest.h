@@ -7,6 +7,7 @@
 #include "NoxRegionChunk.h"
 #include "NoxDynamicLight.h"
 #include "ProceduralMeshComponent.h"
+#include "../../ThirdParty/libnox/Includes/libnox.h"
 #include "NoxLinkTest.generated.h"
 
 UCLASS()
@@ -69,6 +70,8 @@ private:
 	void SpawnChunks();
 	void InitialModels();
 	void InitialLights();
+	void UpdateLights();
+	void AddLight(const nf::dynamic_lightsource_t &light);
 
 	geometry_chunk water_geometry;
 	void SetupWater();
