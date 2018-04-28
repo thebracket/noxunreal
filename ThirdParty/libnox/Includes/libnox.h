@@ -42,6 +42,8 @@ namespace nf {
 	void set_pause_mode(int mode);
 	void on_tick(const double duration_ms);
 	extern bool water_dirty;
+	bool is_world_loadable();
+	const char * get_game_subtitle();
 }
 
 #endif
