@@ -34,7 +34,9 @@ void ANoxStaticModel::BeginPlay()
 	case 23: voxAddress = "StaticMesh'/Game/Models/stairs-up.stairs-up'"; break;
 	case 24: voxAddress = "StaticMesh'/Game/Models/stairs-down.stairs-down'"; break;
 	case 25: voxAddress = "StaticMesh'/Game/Models/stairs-updown.stairs-updown'"; break;
+	case 35: voxAddress = "StaticMesh'/Game/Models/deer.deer'"; break;
 	case 36: voxAddress = "StaticMesh'/Game/Models/horse.horse'"; break;
+	case 38: voxAddress = "StaticMesh'/Game/Models/badger.badger'"; break;
 	case 49: voxAddress = "StaticMesh'/Game/Models/person_base.person_base'"; break;
 	case 50: voxAddress = "StaticMesh'/Game/Models/person_hair_short.person_hair_short'"; break;
 	case 51: voxAddress = "StaticMesh'/Game/Models/person_hair_long.person_hair_long'"; break;
