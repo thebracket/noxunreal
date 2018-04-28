@@ -22,6 +22,7 @@ void ANoxLinkTest::SetupNF() {
 	ThePath.Append("world_defs/");
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, nf::get_version());
 	nf::setup_raws();
+	nf::setup_planet();
 	nf::load_game();
 
 	nf::chunks_init();
