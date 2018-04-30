@@ -42,6 +42,9 @@ void ACameraDirector::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 
 	PlayerInputComponent->BindAction("CameraMode", IE_Pressed, this, &ACameraDirector::CameraMode);
 	PlayerInputComponent->BindAction("CameraPerspective", IE_Pressed, this, &ACameraDirector::CameraPerspective);
+
+	PlayerInputComponent->BindAction("PauseToggler", IE_Pressed, this, &ACameraDirector::PauseToggler);
+	PlayerInputComponent->BindAction("PauseOneStep", IE_Pressed, this, &ACameraDirector::PauseOneStep);
 }
 
 // Called every frame
@@ -135,4 +138,18 @@ void ACameraDirector::CameraMode() {
 
 void ACameraDirector::CameraPerspective() {
 	nf::toggle_camera_perspective();
+}
+
+void ACameraDirector::PauseToggler() {
+	int mode = nf::get_pause_mode();
+	if (mode == 0) {
+		nf::set_pause_mode(1);
+	}
+	else {
+		nf::set_pause_mode(0);
+	}
+}
+
+void ACameraDirector::PauseOneStep() {
+	nf::set_pause_mode(2);
 }

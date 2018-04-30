@@ -46,4 +46,6 @@ public:
 	void CameraOff();
 	void CameraMode();
 	void CameraPerspective();
+	void PauseToggler();
+	void PauseOneStep();
 };
