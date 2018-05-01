@@ -10,6 +10,54 @@
 #include "../../ThirdParty/libnox/Includes/libnox.h"
 #include "NoxLinkTest.generated.h"
 
+USTRUCT(BlueprintType)
+struct FNoxSettlerListEntry
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FString name;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString gender;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString profession;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString task;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString hp;
+
+	UPROPERTY(BlueprintReadOnly)
+	float hp_percent;
+
+	UPROPERTY(BlueprintReadOnly)
+	int id;
+};
+
+USTRUCT(BlueprintType)
+struct FTooltipBlock 
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FString line1;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString line2;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString line3;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString line4;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString line5;
+};
+
 UCLASS()
 class NOXUNREAL_API ANoxLinkTest : public AActor
 {
@@ -61,6 +109,29 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SingleStepGame();
+
+	// To handle tooltips
+	UFUNCTION(BlueprintCallable)
+	void SetWorldPositionFromMouse(FVector vec);
+
+	UFUNCTION(BlueprintCallable)
+	void PopulateTooltip();
+
+	UPROPERTY(BlueprintReadOnly)
+	FTooltipBlock TooltipBlock;
+
+	UFUNCTION(BlueprintCallable)
+	void GetUnitLists();
+
+	// For the settler unit list box
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FNoxSettlerListEntry> SettlerList;
+
+	UFUNCTION(BlueprintCallable)
+	void ZoomSettler(int id);
+
+	UFUNCTION(BlueprintCallable)
+	void FollowSettler(int id);
 
 private:
 

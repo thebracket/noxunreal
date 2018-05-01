@@ -336,3 +336,50 @@ void ANoxLinkTest::RunGame() {
 void ANoxLinkTest::SingleStepGame() {
 	nf::set_pause_mode(2);
 }
+
+
+void ANoxLinkTest::GetUnitLists() {
+	size_t sz;
+	nf::unit_list_settler_t * sl;
+	nf::get_unit_list_settlers(sz, sl);
+
+	SettlerList.Empty();
+	for (size_t i = 0; i < sz; ++i) {
+		nf::unit_list_settler_t s = sl[i];
+
+		FNoxSettlerListEntry n;
+		n.name = FString(ANSI_TO_TCHAR(s.name));
+		n.gender = FString(ANSI_TO_TCHAR(s.gender));
+		n.profession = FString(ANSI_TO_TCHAR(s.profession));
+		n.task = FString(ANSI_TO_TCHAR(s.task));
+		n.hp = FString(ANSI_TO_TCHAR(s.hp));
+		n.hp_percent = s.health_percent;
+		n.id = s.id;
+
+		SettlerList.Emplace(n);
+	}
+}
+
+void ANoxLinkTest::ZoomSettler(int id) {
+	nf::zoom_settler(id);
+}
+
+void ANoxLinkTest::FollowSettler(int id) {
+	nf::follow_settler(id);
+}
+
+void ANoxLinkTest::SetWorldPositionFromMouse(FVector vec) {
+	int x = vec.X / 200.0f;
+	int y = vec.Y / 200.0f;
+	int z = vec.Z / 200.0f;
+	nf::set_world_pos_from_mouse(x, y, z);
+}
+
+void ANoxLinkTest::PopulateTooltip() {
+	nf::tooltip_info_t tips = nf::get_tooltip_info();
+	TooltipBlock.line1 = FString(ANSI_TO_TCHAR(tips.line1));
+	TooltipBlock.line2 = FString(ANSI_TO_TCHAR(tips.line2));
+	TooltipBlock.line3 = FString(ANSI_TO_TCHAR(tips.line3));
+	TooltipBlock.line4 = FString(ANSI_TO_TCHAR(tips.line4));
+	TooltipBlock.line5 = FString(ANSI_TO_TCHAR(tips.line5));
+}

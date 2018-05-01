@@ -46,9 +46,11 @@ void ANoxRegionLayer::Tick(float DeltaTime)
 	const int my_layer = base_z + local_z;
 	if (my_layer <= z && my_layer >= z-20) {
 		mesh->SetVisibility(true);
+		mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	}
 	else {
 		mesh->SetVisibility(false);
+		mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	}
 }
 
@@ -163,7 +165,7 @@ void ANoxRegionLayer::ChunkBuilder() {
 	}
 
 	// Enable collision data
-	mesh->ContainsPhysicsTriMeshData(false);
+	mesh->ContainsPhysicsTriMeshData(true);
 }
 
 void geometry_chunk::CreateFloor(int x, int y, int z, int w, int h) {

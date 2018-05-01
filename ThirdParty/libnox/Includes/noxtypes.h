@@ -64,6 +64,24 @@ namespace nf {
 	struct water_t {
 		float x, y, z, depth;
 	};
+
+	struct unit_list_settler_t {
+		char name[254];
+		char gender[8];
+		char profession[254];
+		char task[254];
+		float health_percent;
+		char hp[254];
+		int id;
+	};
+
+	struct tooltip_info_t {
+		char line1[254];
+		char line2[254];
+		char line3[254];
+		char line4[254];
+		char line5[254];
+	};
 }
 
 #endif

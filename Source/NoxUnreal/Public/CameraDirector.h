@@ -26,7 +26,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	AActor* CameraOne;
-	
+
 	const int WORLD_SCALE = 200;
 	
 	int zooming = 0;
