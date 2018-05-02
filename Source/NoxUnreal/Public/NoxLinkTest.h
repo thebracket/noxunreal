@@ -127,6 +127,12 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FNoxSettlerListEntry> SettlerList;
 
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FNoxSettlerListEntry> NativeList;
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FNoxSettlerListEntry> WildlifeList;
+
 	UFUNCTION(BlueprintCallable)
 	void ZoomSettler(int id);
 

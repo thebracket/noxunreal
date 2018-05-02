@@ -45,10 +45,14 @@ namespace nf {
 	bool is_world_loadable();
 	const char * get_game_subtitle();
 	void get_unit_list_settlers(size_t &size, unit_list_settler_t *& settler_ptr);
+	void get_unit_list_natives(size_t &size, unit_list_settler_t *& settler_ptr);
+	void get_unit_list_wildlife(size_t &size, unit_list_settler_t *& settler_ptr);
 	void zoom_settler(int id);
 	void follow_settler(int id);
 	void set_world_pos_from_mouse(int x, int y, int z);
 	tooltip_info_t get_tooltip_info();
+	void get_game_mode(int &major, int &minor);
+	void set_game_mode(int major, int minor);
 }
 
 #endif

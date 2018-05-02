@@ -358,6 +358,40 @@ void ANoxLinkTest::GetUnitLists() {
 
 		SettlerList.Emplace(n);
 	}
+
+	nf::get_unit_list_natives(sz, sl);
+	NativeList.Empty();
+	for (size_t i = 0; i < sz; ++i) {
+		nf::unit_list_settler_t s = sl[i];
+
+		FNoxSettlerListEntry n;
+		n.name = FString(ANSI_TO_TCHAR(s.name));
+		n.gender = FString(ANSI_TO_TCHAR(s.gender));
+		n.profession = FString(ANSI_TO_TCHAR(s.profession));
+		n.task = FString(ANSI_TO_TCHAR(s.task));
+		n.hp = FString(ANSI_TO_TCHAR(s.hp));
+		n.hp_percent = s.health_percent;
+		n.id = s.id;
+
+		NativeList.Emplace(n);
+	}
+
+	nf::get_unit_list_wildlife(sz, sl);
+	WildlifeList.Empty();
+	for (size_t i = 0; i < sz; ++i) {
+		nf::unit_list_settler_t s = sl[i];
+
+		FNoxSettlerListEntry n;
+		n.name = FString(ANSI_TO_TCHAR(s.name));
+		n.gender = FString(ANSI_TO_TCHAR(s.gender));
+		n.profession = FString(ANSI_TO_TCHAR(s.profession));
+		n.task = FString(ANSI_TO_TCHAR(s.task));
+		n.hp = FString(ANSI_TO_TCHAR(s.hp));
+		n.hp_percent = s.health_percent;
+		n.id = s.id;
+
+		WildlifeList.Emplace(n);
+	}
 }
 
 void ANoxLinkTest::ZoomSettler(int id) {
