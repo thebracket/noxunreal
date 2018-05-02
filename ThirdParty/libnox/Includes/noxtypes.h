@@ -82,6 +82,15 @@ namespace nf {
 		char line4[254];
 		char line5[254];
 	};
+
+	struct settler_job_t {
+		char name[254];
+		char profession[254];
+		bool is_miner;
+		bool is_lumberjack;
+		bool is_farmer;
+		int id;
+	};
 }
 
 #endif

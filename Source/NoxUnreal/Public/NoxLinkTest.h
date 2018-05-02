@@ -58,6 +58,30 @@ struct FTooltipBlock
 	FString line5;
 };
 
+USTRUCT(BlueprintType)
+struct FSettlerJob
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+		FString name;
+
+	UPROPERTY(BlueprintReadOnly)
+		FString profession;
+
+	UPROPERTY(BlueprintReadOnly)
+		bool isMiner;
+
+	UPROPERTY(BlueprintReadOnly)
+		bool isLumberjack;
+
+	UPROPERTY(BlueprintReadOnly)
+		bool isFarmer;
+
+	UPROPERTY(BlueprintReadOnly)
+		int id;
+};
+
 UCLASS()
 class NOXUNREAL_API ANoxLinkTest : public AActor
 {
@@ -133,11 +157,35 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FNoxSettlerListEntry> WildlifeList;
 
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FSettlerJob> SettlerJobList;
+
 	UFUNCTION(BlueprintCallable)
 	void ZoomSettler(int id);
 
 	UFUNCTION(BlueprintCallable)
 	void FollowSettler(int id);
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateSettlerJobList();
+
+	UFUNCTION(BlueprintCallable)
+	void MakeMiner(int id);
+
+	UFUNCTION(BlueprintCallable)
+	void MakeFarmer(int id);
+
+	UFUNCTION(BlueprintCallable)
+	void MakeLumberjack(int id);
+
+	UFUNCTION(BlueprintCallable)
+	void FireMiner(int id);
+
+	UFUNCTION(BlueprintCallable)
+	void FireFarmer(int id);
+
+	UFUNCTION(BlueprintCallable)
+	void FireLumberjack(int id);
 
 private:
 

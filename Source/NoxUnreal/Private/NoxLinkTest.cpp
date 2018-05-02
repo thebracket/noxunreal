@@ -417,3 +417,49 @@ void ANoxLinkTest::PopulateTooltip() {
 	TooltipBlock.line4 = FString(ANSI_TO_TCHAR(tips.line4));
 	TooltipBlock.line5 = FString(ANSI_TO_TCHAR(tips.line5));
 }
+
+void ANoxLinkTest::UpdateSettlerJobList() {
+	size_t sz;
+	nf::settler_job_t * jl;
+
+	nf::get_settler_job_list(sz, jl);
+
+	SettlerJobList.Empty();
+	for (size_t i = 0; i < sz; ++i) {
+		nf::settler_job_t j = jl[i];
+
+		FSettlerJob settler;
+		settler.name = FString(ANSI_TO_TCHAR(j.name));
+		settler.profession = FString(ANSI_TO_TCHAR(j.profession));
+		settler.isMiner = j.is_miner;
+		settler.isLumberjack = j.is_lumberjack;
+		settler.isFarmer = j.is_farmer;
+		settler.id = j.id;
+
+		SettlerJobList.Emplace(settler);
+	}
+}
+
+void ANoxLinkTest::MakeFarmer(int id) {
+	nf::make_farmer(id);
+}
+
+void ANoxLinkTest::MakeLumberjack(int id) {
+	nf::make_lumberjack(id);
+}
+
+void ANoxLinkTest::MakeMiner(int id) {
+	nf::make_miner(id);
+}
+
+void ANoxLinkTest::FireFarmer(int id) {
+	nf::fire_farmer(id);
+}
+
+void ANoxLinkTest::FireLumberjack(int id) {
+	nf::fire_lumberjack(id);
+}
+
+void ANoxLinkTest::FireMiner(int id) {
+	nf::fire_miner(id);
+}

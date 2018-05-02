@@ -53,6 +53,13 @@ namespace nf {
 	tooltip_info_t get_tooltip_info();
 	void get_game_mode(int &major, int &minor);
 	void set_game_mode(int major, int minor);
+	void get_settler_job_list(size_t &size, settler_job_t *& job_ptr);
+	void make_miner(int id);
+	void make_farmer(int id);
+	void make_lumberjack(int id);
+	void fire_miner(int id);
+	void fire_lumberjack(int id);
+	void fire_farmer(int id);
 }
 
 #endif
