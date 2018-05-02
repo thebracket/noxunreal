@@ -153,3 +153,4 @@ void ACameraDirector::PauseToggler() {
 void ACameraDirector::PauseOneStep() {
 	nf::set_pause_mode(2);
 }
+
