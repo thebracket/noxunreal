@@ -475,3 +475,11 @@ void ANoxLinkTest::GuardModeSet() {
 void ANoxLinkTest::GuardModeClear() {
 	nf::guardmode_clear();
 }
+
+void ANoxLinkTest::LumberjackModeSet() {
+	nf::lumberjack_set();
+}
+
+void ANoxLinkTest::LumberjackModeClear() {
+	nf::lumberjack_clear();
+}

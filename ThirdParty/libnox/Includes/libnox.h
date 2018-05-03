@@ -63,6 +63,8 @@ namespace nf {
 	void cursor_list(size_t &size, cube_t *& cube_ptr);
 	void guardmode_set();
 	void guardmode_clear();
+	void lumberjack_set();
+	void lumberjack_clear();
 }
 
 #endif

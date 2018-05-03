@@ -196,6 +196,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void GuardModeClear();
 
+	UFUNCTION(BlueprintCallable)
+	void LumberjackModeSet();
+
+	UFUNCTION(BlueprintCallable)
+	void LumberjackModeClear();
+
 private:
 
 	const int WORLD_SCALE = 200;
