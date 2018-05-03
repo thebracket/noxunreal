@@ -19,7 +19,7 @@ ANoxLinkTest::ANoxLinkTest()
 
 void ANoxLinkTest::SetupNF() {
 	FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::GameContentDir());
-	ThePath.Append("world_defs/");
+	//ThePath.Append("world_defs/");
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, nf::get_version());
 	nf::setup_raws();
 	nf::setup_planet();
