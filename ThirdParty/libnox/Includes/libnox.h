@@ -61,6 +61,8 @@ namespace nf {
 	void fire_lumberjack(int id);
 	void fire_farmer(int id);
 	void cursor_list(size_t &size, cube_t *& cube_ptr);
+	void guardmode_set();
+	void guardmode_clear();
 }
 
 #endif

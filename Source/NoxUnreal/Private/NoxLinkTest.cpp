@@ -463,3 +463,15 @@ void ANoxLinkTest::FireLumberjack(int id) {
 void ANoxLinkTest::FireMiner(int id) {
 	nf::fire_miner(id);
 }
+
+void ANoxLinkTest::SetGameMode(int major, int minor) {
+	nf::set_game_mode(major, minor);
+}
+
+void ANoxLinkTest::GuardModeSet() {
+	nf::guardmode_set();
+}
+
+void ANoxLinkTest::GuardModeClear() {
+	nf::guardmode_clear();
+}

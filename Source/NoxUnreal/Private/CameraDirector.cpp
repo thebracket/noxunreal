@@ -16,6 +16,9 @@ ACameraDirector::ACameraDirector()
 	RootComponent = mesh;
 	// New in UE 4.17, multi-threaded PhysX cooking.
 	mesh->bUseAsyncCooking = true;
+
+	LeftClicked = false;
+	RightClicked = false;
 }
 
 // Called when the game starts or when spawned
@@ -49,6 +52,11 @@ void ACameraDirector::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 
 	PlayerInputComponent->BindAction("PauseToggler", IE_Pressed, this, &ACameraDirector::PauseToggler);
 	PlayerInputComponent->BindAction("PauseOneStep", IE_Pressed, this, &ACameraDirector::PauseOneStep);
+
+	PlayerInputComponent->BindAction("MouseLeftClick", IE_Pressed, this, &ACameraDirector::LeftClickOn);
+	PlayerInputComponent->BindAction("MouseLeftClick", IE_Released, this, &ACameraDirector::LeftClickOff);
+	PlayerInputComponent->BindAction("MouseRightClick", IE_Pressed, this, &ACameraDirector::RightClickOn);
+	PlayerInputComponent->BindAction("MouseRightClick", IE_Released, this, &ACameraDirector::RightClickOff);
 }
 
 // Called every frame
@@ -160,6 +168,22 @@ void ACameraDirector::PauseOneStep() {
 	nf::set_pause_mode(2);
 }
 
+void ACameraDirector::LeftClickOn() {
+	LeftClicked = true;
+}
+
+void ACameraDirector::LeftClickOff() {
+	LeftClicked = false;
+}
+
+void ACameraDirector::RightClickOn() {
+	RightClicked = true;
+}
+
+void ACameraDirector::RightClickOff() {
+	RightClicked = false;
+}
+
 void ACameraDirector::Cursors() {
 	mesh->ClearAllMeshSections();
 	geometry_by_material.Empty();
@@ -187,7 +211,9 @@ void ACameraDirector::Cursors() {
 			FString MaterialAddress;
 
 			switch (gm.Key) {
-			case 1: MaterialAddress = "Material'/Game/Cursors/base_cursor_mat.base_cursor_mat'"; break;
+			case 1: MaterialAddress = "Material'/Game/Cursors/base_cursor_mat.base_cursor_mat'"; break; // Normal
+			case 2: MaterialAddress = "Material'/Game/Cursors/tree_cursor_mat.tree_cursor_mat'"; break; // Tree chopping
+			case 3: MaterialAddress = "Material'/Game/Cursors/guard_cursor_mat.guard_cursor_mat'"; break; // Guarding
 			default: MaterialAddress = "Material'/Game/Cursors/base_cursor_mat.base_cursor_mat'"; break;
 			}
 

@@ -32,6 +32,12 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	UProceduralMeshComponent * mesh;
 
+	UPROPERTY(BlueprintReadOnly)
+	bool LeftClicked;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool RightClicked;
+
 	const int WORLD_SCALE = 200;
 	
 	int zooming = 0;
@@ -53,6 +59,10 @@ public:
 	void CameraPerspective();
 	void PauseToggler();
 	void PauseOneStep();
+	void LeftClickOn();
+	void LeftClickOff();
+	void RightClickOn();
+	void RightClickOff();
 
 	// Cursor handling
 	TMap<int, geometry_chunk> geometry_by_material;

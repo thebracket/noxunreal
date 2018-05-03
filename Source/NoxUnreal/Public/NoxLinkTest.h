@@ -187,6 +187,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void FireLumberjack(int id);
 
+	UFUNCTION(BlueprintCallable)
+	void SetGameMode(int major, int minor);
+
+	UFUNCTION(BlueprintCallable)
+	void GuardModeSet();
+
+	UFUNCTION(BlueprintCallable)
+	void GuardModeClear();
+
 private:
 
 	const int WORLD_SCALE = 200;
