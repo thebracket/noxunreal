@@ -12,6 +12,10 @@ ACameraDirector::ACameraDirector()
 	PrimaryActorTick.bCanEverTick = true;
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
+	mesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("CursorMesh"));
+	RootComponent = mesh;
+	// New in UE 4.17, multi-threaded PhysX cooking.
+	mesh->bUseAsyncCooking = true;
 }
 
 // Called when the game starts or when spawned
@@ -88,6 +92,8 @@ void ACameraDirector::Tick(float DeltaTime)
 
 	CameraOne->SetActorLocation(camera_position);
 	CameraOne->SetActorRotation(camrot);
+
+	Cursors();
 }
 
 void ACameraDirector::ZoomIn() {
@@ -152,5 +158,47 @@ void ACameraDirector::PauseToggler() {
 
 void ACameraDirector::PauseOneStep() {
 	nf::set_pause_mode(2);
+}
+
+void ACameraDirector::Cursors() {
+	mesh->ClearAllMeshSections();
+	geometry_by_material.Empty();
+
+	size_t sz;
+	nf::cube_t * cube_ptr;
+	nf::cursor_list(sz, cube_ptr);
+
+	if (sz > 0) {
+		for (size_t i = 0; i < sz; ++i) {
+			nf::cube_t cube = cube_ptr[i];
+
+			geometry_chunk * g = nullptr;
+			if (!geometry_by_material.Contains(cube.tex)) {
+				geometry_by_material.Add(cube.tex, geometry_chunk());
+			}
+			g = geometry_by_material.Find(cube.tex);
+
+			//geometry.CreateCube(cube.x * WORLD_SCALE, cube.y * WORLD_SCALE, cube.z * WORLD_SCALE, cube.w * WORLD_SCALE, cube.h * WORLD_SCALE, cube.d * WORLD_SCALE);
+			g->CreateCube(cube.x * WORLD_SCALE, cube.y * WORLD_SCALE, cube.z * WORLD_SCALE, cube.w * WORLD_SCALE, cube.h * WORLD_SCALE, cube.d * WORLD_SCALE);
+		}
+
+		int sectionCount = 0;
+		for (auto &gm : geometry_by_material) {
+			FString MaterialAddress;
+
+			switch (gm.Key) {
+			case 1: MaterialAddress = "Material'/Game/Cursors/base_cursor_mat.base_cursor_mat'"; break;
+			default: MaterialAddress = "Material'/Game/Cursors/base_cursor_mat.base_cursor_mat'"; break;
+			}
+
+			UMaterial* material;
+			material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, *MaterialAddress, nullptr, LOAD_None, nullptr));
+			mesh->SetMaterial(sectionCount, material);
+
+			mesh->CreateMeshSection_LinearColor(sectionCount, gm.Value.vertices, gm.Value.Triangles, gm.Value.normals, gm.Value.UV0, gm.Value.vertexColors, gm.Value.tangents, true);
+
+			++sectionCount;
+		}
+	}
 }
 
