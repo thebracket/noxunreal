@@ -82,6 +82,18 @@ struct FSettlerJob
 		int id;
 };
 
+USTRUCT(BlueprintType)
+struct FAvailableBuilding
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FString name;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString tag;
+};
+
 UCLASS()
 class NOXUNREAL_API ANoxLinkTest : public AActor
 {
@@ -201,6 +213,18 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void LumberjackModeClear();
+
+	UFUNCTION(BlueprintCallable)
+	void RefreshBuildableList();
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FAvailableBuilding> AvailableBuildings;
+
+	UFUNCTION(BlueprintCallable)
+	void SetBuildingTarget(FString name);
+
+	UFUNCTION(BlueprintCallable)
+	void PlaceBuilding();
 
 private:
 

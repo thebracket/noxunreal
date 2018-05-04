@@ -65,6 +65,15 @@ namespace nf {
 	void guardmode_clear();
 	void lumberjack_set();
 	void lumberjack_clear();
+
+	struct buildable_building_t {
+		char tag[254];
+		char displayName[254];
+	};
+
+	void available_buildings(size_t &size, buildable_building_t *& build_ptr);
+	void set_selected_building(int list_index);
+	void place_selected_building();
 }
 
 #endif

@@ -483,3 +483,38 @@ void ANoxLinkTest::LumberjackModeSet() {
 void ANoxLinkTest::LumberjackModeClear() {
 	nf::lumberjack_clear();
 }
+
+void ANoxLinkTest::RefreshBuildableList() {
+	size_t sz;
+	nf::buildable_building_t * build_ptr;
+
+	AvailableBuildings.Empty();
+	nf::available_buildings(sz, build_ptr);
+
+	if (sz > 0) {
+		for (size_t i = 0; i < sz; ++i) {
+			nf::buildable_building_t b = build_ptr[i];
+
+			FAvailableBuilding bld;
+			bld.name = FString(ANSI_TO_TCHAR(b.displayName));
+			bld.tag = FString(ANSI_TO_TCHAR(b.tag));
+			AvailableBuildings.Emplace(bld);
+		}
+	}
+
+}
+
+void ANoxLinkTest::SetBuildingTarget(FString name) {
+	size_t i = 0;
+	size_t selected = 0;
+	for (const auto &b : AvailableBuildings) {
+		if (b.name == name) selected = i;
+		++i;
+	}
+
+	nf::set_selected_building(selected);
+}
+
+void ANoxLinkTest::PlaceBuilding() {
+	nf::place_selected_building();
+}
