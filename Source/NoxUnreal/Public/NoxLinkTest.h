@@ -220,6 +220,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FAvailableBuilding> AvailableBuildings;
 
+	UPROPERTY(BlueprintReadOnly)
+	bool HasSelectedBuilding;
+
 	UFUNCTION(BlueprintCallable)
 	void SetBuildingTarget(FString name);
 

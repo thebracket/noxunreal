@@ -15,6 +15,8 @@ ANoxLinkTest::ANoxLinkTest()
 	// New in UE 4.17, multi-threaded PhysX cooking.
 	mesh->bUseAsyncCooking = true;
 	mesh->bCastHiddenShadow = true;
+
+	HasSelectedBuilding = false;
 }
 
 void ANoxLinkTest::SetupNF() {
@@ -105,8 +107,12 @@ void ANoxLinkTest::UpdateModels() {
 		VoxModels.Empty();
 	}
 	else {
+		TSet<int> model_set;
+
 		for (size_t i = 0; i < size; ++i) {
 			nf::dynamic_model_t model = model_ptr[i];
+
+			model_set.Add(model.entity_id);
 
 			if (!VoxModels.Contains(model.entity_id)) {
 				// It's a brand new model entity!
@@ -145,8 +151,19 @@ void ANoxLinkTest::UpdateModels() {
 					target->r = model.tint_r;
 					target->g = model.tint_g;
 					target->b = model.tint_b;
-					target->SetActorTransform(trans);
+					target->SetActorTransform(trans, true);
 				}
+			}
+		}
+
+		// Delete stale lights
+		for (auto &i : VoxModels) {
+			if (!model_set.Contains(i.Key)) {
+				for (auto &j : i.Value) {
+					j.Value->K2_DestroyActor();
+				}
+				i.Value.Empty();
+				VoxModels.Remove(i.Key);
 			}
 		}
 	}
@@ -501,7 +518,7 @@ void ANoxLinkTest::RefreshBuildableList() {
 			AvailableBuildings.Emplace(bld);
 		}
 	}
-
+	HasSelectedBuilding = false;
 }
 
 void ANoxLinkTest::SetBuildingTarget(FString name) {
@@ -513,8 +530,10 @@ void ANoxLinkTest::SetBuildingTarget(FString name) {
 	}
 
 	nf::set_selected_building(selected);
+	HasSelectedBuilding = true;
 }
 
 void ANoxLinkTest::PlaceBuilding() {
-	nf::place_selected_building();
+	if (HasSelectedBuilding) nf::place_selected_building();
+	HasSelectedBuilding = false;
 }
