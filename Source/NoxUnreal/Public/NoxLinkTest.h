@@ -220,7 +220,7 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FAvailableBuilding> AvailableBuildings;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadWrite)
 	bool HasSelectedBuilding;
 
 	UFUNCTION(BlueprintCallable)
