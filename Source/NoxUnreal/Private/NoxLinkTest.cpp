@@ -74,8 +74,14 @@ void ANoxLinkTest::AddModel(const nf::dynamic_model_t &model, TMap<int, ANoxStat
 	newModel->r = model.tint_r;
 	newModel->g = model.tint_g;
 	newModel->b = model.tint_b;
+	newModel->scaleX = model.x_scale;
+	newModel->scaleY = model.y_scale;
+	newModel->scaleZ = model.z_scale;
+	newModel->SetActorScale3D(FVector(newModel->scaleX, newModel->scaleY, newModel->scaleZ));
+	newModel->SetActorRotation(rot);
 	newModel->FinishSpawning(trans);
 	newModel->SetActorRotation(rot);
+	newModel->SetActorScale3D(FVector(newModel->scaleX, newModel->scaleY, newModel->scaleZ));
 	container->Add(model.idx, newModel);
 }
 
@@ -152,6 +158,19 @@ void ANoxLinkTest::UpdateModels() {
 					target->g = model.tint_g;
 					target->b = model.tint_b;
 					target->SetActorTransform(trans, true);
+
+					float r = target->r;
+					float g = target->g;
+					float b = target->b;
+
+					if (r != 1.0f || g != 1.0f || b != 1.0f) {
+						UMaterial * Material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/Models/VoxMat/VoxelMaterial.VoxelMaterial'"), nullptr, LOAD_None, nullptr));
+						UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
+						DynMaterial->SetVectorParameterValue("TintRGB", FLinearColor(r, g, b));
+						target->StaticMeshComponent->SetMaterial(0, DynMaterial);
+						target->StaticMeshComponent->MarkRenderStateDirty();
+						target->Modify();
+					}
 				}
 			}
 		}
@@ -522,6 +541,11 @@ void ANoxLinkTest::RefreshBuildableList() {
 }
 
 void ANoxLinkTest::SetBuildingTarget(FString name) {
+	if (name.Compare(TEXT("NONE")) == 0) {
+		HasSelectedBuilding = false;
+		nf::set_selected_building(-1);
+	}
+
 	size_t i = 0;
 	size_t selected = 0;
 	for (const auto &b : AvailableBuildings) {

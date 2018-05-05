@@ -28,5 +28,8 @@ public:
 	int modelId;
 	int x, y, z;
 	float r = 1.0f, g = 1.0f, b = 1.0f;
+	float scaleX = 1.0f;
+	float scaleY = 1.0f;
+	float scaleZ = 1.0f;
 	
 };

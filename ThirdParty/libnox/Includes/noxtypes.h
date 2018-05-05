@@ -42,6 +42,7 @@ namespace nf {
 		float x, y, z;
 		float axis1, axis2, axis3, rot_angle;
 		float tint_r, tint_g, tint_b;
+		float x_scale, y_scale, z_scale;
 	};
 
 	struct dynamic_lightsource_t {
