@@ -79,6 +79,9 @@ struct FSettlerJob
 		bool isFarmer;
 
 	UPROPERTY(BlueprintReadOnly)
+		bool isHunter;
+
+	UPROPERTY(BlueprintReadOnly)
 		int id;
 };
 
@@ -198,6 +201,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void FireLumberjack(int id);
+
+	UFUNCTION(BlueprintCallable)
+	void MakeHunter(int id);
+
+	UFUNCTION(BlueprintCallable)
+	void FireHunter(int id);
 
 	UFUNCTION(BlueprintCallable)
 	void SetGameMode(int major, int minor);

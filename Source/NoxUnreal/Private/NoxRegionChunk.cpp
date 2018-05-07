@@ -2,6 +2,7 @@
 
 #include "NoxRegionChunk.h"
 #include "../../ThirdParty/libnox/Includes/libnox.h"
+#include "../../ThirdParty/libnox/Includes/noxconsts.h"
 
 // Sets default values
 ANoxRegionChunk::ANoxRegionChunk()

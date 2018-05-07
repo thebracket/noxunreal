@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "NoxLinkTest.h"
+#include "../../ThirdParty/libnox/Includes/noxconsts.h"
 
 // Sets default values
 ANoxLinkTest::ANoxLinkTest()
@@ -35,7 +36,6 @@ void ANoxLinkTest::SetupNF() {
 
 void ANoxLinkTest::SpawnChunks() {
 	if (GEngine) {		
-
 		for (int idx = 0; idx < nf::CHUNKS_TOTAL; ++idx) {
 			int x, y, z;
 			nf::chunk_world_coordinates(idx, x, y, z);
@@ -150,6 +150,10 @@ void ANoxLinkTest::UpdateModels() {
 					FVector loc = FVector(mx * WORLD_SCALE, my * WORLD_SCALE, mz * WORLD_SCALE);
 					FTransform trans = FTransform(rot, loc);
 
+					float r = target->r;
+					float g = target->g;
+					float b = target->b;
+
 					target->modelId = model.idx;
 					target->x = model.x;
 					target->y = model.y;
@@ -159,11 +163,7 @@ void ANoxLinkTest::UpdateModels() {
 					target->b = model.tint_b;
 					target->SetActorTransform(trans, true);
 
-					float r = target->r;
-					float g = target->g;
-					float b = target->b;
-
-					if (r != 1.0f || g != 1.0f || b != 1.0f) {
+					if (r != model.tint_r || g != model.tint_g || b != model.tint_b) {
 						UMaterial * Material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/Models/VoxMat/VoxelMaterial.VoxelMaterial'"), nullptr, LOAD_None, nullptr));
 						UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
 						DynMaterial->SetVectorParameterValue("TintRGB", FLinearColor(r, g, b));
@@ -470,6 +470,7 @@ void ANoxLinkTest::UpdateSettlerJobList() {
 		settler.isMiner = j.is_miner;
 		settler.isLumberjack = j.is_lumberjack;
 		settler.isFarmer = j.is_farmer;
+		settler.isHunter = j.is_hunter;
 		settler.id = j.id;
 
 		SettlerJobList.Emplace(settler);
@@ -498,6 +499,14 @@ void ANoxLinkTest::FireLumberjack(int id) {
 
 void ANoxLinkTest::FireMiner(int id) {
 	nf::fire_miner(id);
+}
+
+void ANoxLinkTest::MakeHunter(int id) {
+	nf::make_hunter(id);
+}
+
+void ANoxLinkTest::FireHunter(int id) {
+	nf::fire_hunter(id);
 }
 
 void ANoxLinkTest::SetGameMode(int major, int minor) {
