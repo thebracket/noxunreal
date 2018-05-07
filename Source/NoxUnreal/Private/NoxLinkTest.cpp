@@ -23,7 +23,7 @@ ANoxLinkTest::ANoxLinkTest()
 void ANoxLinkTest::SetupNF() {
 	FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::GameContentDir());
 	//ThePath.Append("world_defs/");
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, nf::get_version());
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, nf::get_version());
 	nf::setup_raws();
 	nf::setup_planet();
 	nf::load_game();
@@ -447,11 +447,7 @@ void ANoxLinkTest::SetWorldPositionFromMouse(FVector vec) {
 
 void ANoxLinkTest::PopulateTooltip() {
 	nf::tooltip_info_t tips = nf::get_tooltip_info();
-	TooltipBlock.line1 = FString(ANSI_TO_TCHAR(tips.line1));
-	TooltipBlock.line2 = FString(ANSI_TO_TCHAR(tips.line2));
-	TooltipBlock.line3 = FString(ANSI_TO_TCHAR(tips.line3));
-	TooltipBlock.line4 = FString(ANSI_TO_TCHAR(tips.line4));
-	TooltipBlock.line5 = FString(ANSI_TO_TCHAR(tips.line5));
+	TooltipBlock.tooltip = FString(ANSI_TO_TCHAR(tips.tooltip_data));
 }
 
 void ANoxLinkTest::UpdateSettlerJobList() {

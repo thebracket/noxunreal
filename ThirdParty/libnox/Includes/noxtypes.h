@@ -58,11 +58,7 @@ namespace nf {
 	};
 
 	struct tooltip_info_t {
-		char line1[254];
-		char line2[254];
-		char line3[254];
-		char line4[254];
-		char line5[254];
+		char tooltip_data[2048];
 	};
 
 	struct settler_job_t {

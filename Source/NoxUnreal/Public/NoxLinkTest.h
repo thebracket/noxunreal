@@ -43,19 +43,7 @@ struct FTooltipBlock
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(BlueprintReadOnly)
-	FString line1;
-
-	UPROPERTY(BlueprintReadOnly)
-	FString line2;
-
-	UPROPERTY(BlueprintReadOnly)
-	FString line3;
-
-	UPROPERTY(BlueprintReadOnly)
-	FString line4;
-
-	UPROPERTY(BlueprintReadOnly)
-	FString line5;
+	FString tooltip;
 };
 
 USTRUCT(BlueprintType)
