@@ -303,12 +303,12 @@ void ANoxLinkTest::Tick(float DeltaTime)
 	auto hudLink = nf::get_hud_info();
 	PowerPercent = (float)hudLink.current_power / (float)hudLink.max_power;
 
-	PowerDisplay = TEXT("Power: ");
+	PowerDisplay = TEXT("");
 	PowerDisplay.AppendInt(hudLink.current_power);
 	PowerDisplay.Append(TEXT(" / "));
 	PowerDisplay.AppendInt(hudLink.max_power);
 
-	CashDisplay = TEXT("Cash: ");
+	CashDisplay = TEXT("");
 	CashDisplay.AppendInt(hudLink.cash);
 	CashDisplay.Append(TEXT(" Mcr"));
 
