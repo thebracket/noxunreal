@@ -147,6 +147,9 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	FTooltipBlock TooltipBlock;
 
+	UPROPERTY(BlueprintReadOnly)
+	FTooltipBlock FarmYield;
+
 	UFUNCTION(BlueprintCallable)
 	void GetUnitLists();
 
@@ -225,6 +228,15 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void PlaceBuilding();
+
+	UFUNCTION(BlueprintCallable)
+	void PopulateFarmYield();
+
+	UFUNCTION(BlueprintCallable)
+	void HarvestModeSet();
+
+	UFUNCTION(BlueprintCallable)
+	void HarvestModeClear();
 
 private:
 

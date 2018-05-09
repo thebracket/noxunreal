@@ -566,3 +566,16 @@ void ANoxLinkTest::PlaceBuilding() {
 	if (HasSelectedBuilding) nf::place_selected_building();
 	HasSelectedBuilding = false;
 }
+
+void ANoxLinkTest::PopulateFarmYield() {
+	nf::tooltip_info_t tips = nf::get_farm_yield();
+	FarmYield.tooltip = FString(ANSI_TO_TCHAR(tips.tooltip_data));
+}
+
+void ANoxLinkTest::HarvestModeSet() {
+	nf::harvest_set();
+}
+
+void ANoxLinkTest::HarvestModeClear() {
+	nf::harvest_clear();
+}

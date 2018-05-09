@@ -214,6 +214,7 @@ void ACameraDirector::Cursors() {
 			case 1: MaterialAddress = "Material'/Game/Cursors/base_cursor_mat.base_cursor_mat'"; break; // Normal
 			case 2: MaterialAddress = "Material'/Game/Cursors/tree_cursor_mat.tree_cursor_mat'"; break; // Tree chopping
 			case 3: MaterialAddress = "Material'/Game/Cursors/guard_cursor_mat.guard_cursor_mat'"; break; // Guarding
+			case 4: MaterialAddress = "Material'/Game/Cursors/farm_cursor_mat.farm_cursor_mat'"; break; // Harvest
 			default: MaterialAddress = "Material'/Game/Cursors/base_cursor_mat.base_cursor_mat'"; break;
 			}
 

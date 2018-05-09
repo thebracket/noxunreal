@@ -286,6 +286,10 @@ namespace nf {
 	* Orders the creation of the current building.
 	*/
 	void place_selected_building();
+
+	tooltip_info_t get_farm_yield();
+	void harvest_set();
+	void harvest_clear();
 }
 
 #endif
