@@ -579,3 +579,40 @@ void ANoxLinkTest::HarvestModeSet() {
 void ANoxLinkTest::HarvestModeClear() {
 	nf::harvest_clear();
 }
+
+void ANoxLinkTest::RefreshPlantableList() {
+	PlantableSeeds.Empty();
+
+	size_t size;
+	nf::plantable_seed_t * seed_ptr;
+
+	nf::plantable_seeds(size, seed_ptr);
+	if (size > 0) {
+		for (size_t i = 0; i < size; ++i) {
+			nf::plantable_seed_t s = seed_ptr[i];
+			FPlantableSeed seed;
+			seed.number = s.number;
+			seed.name = FString(ANSI_TO_TCHAR(s.name));
+			seed.grows_into = FString(ANSI_TO_TCHAR(s.grows_into));
+			PlantableSeeds.Emplace(seed);
+		}
+	}
+}
+
+void ANoxLinkTest::SetPlantingTarget(FString name) {
+	int idx = 0;
+	for (auto &s : PlantableSeeds) {
+		if (name == s.grows_into) {
+			nf::set_selected_seed(idx);
+		}
+		++idx;
+	}
+}
+
+void ANoxLinkTest::SetPlanting() {
+	nf::plant_set();
+}
+
+void ANoxLinkTest::ClearPlanting() {
+	nf::plant_clear();
+}

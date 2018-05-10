@@ -12,7 +12,7 @@ ACameraDirector::ACameraDirector()
 	PrimaryActorTick.bCanEverTick = true;
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 
-	mesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("CursorMesh"));
+	mesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("CursorsMesh"));
 	RootComponent = mesh;
 	// New in UE 4.17, multi-threaded PhysX cooking.
 	mesh->bUseAsyncCooking = true;
@@ -185,8 +185,16 @@ void ACameraDirector::RightClickOff() {
 }
 
 void ACameraDirector::Cursors() {
+	if (!mesh) {
+		return;
+	}
 	mesh->ClearAllMeshSections();
-	geometry_by_material.Empty();
+	try {
+		geometry_by_material.Empty();
+	}
+	catch (...) {
+
+	}
 
 	size_t sz;
 	nf::cube_t * cube_ptr;

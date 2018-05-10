@@ -17,6 +17,10 @@ namespace nf {
 		int idx, x, y, z;
 	};
 
+	struct veg_t {
+		int plant, lifecycle, x, y, z;
+	};
+
 	struct dynamic_model_t {
 		int idx;
 		int entity_id;
@@ -74,6 +78,12 @@ namespace nf {
 	struct buildable_building_t {
 		char tag[254];
 		char displayName[254];
+	};
+
+	struct plantable_seed_t {
+		int number;
+		char name[254];
+		char grows_into[254];
 	};
 }
 

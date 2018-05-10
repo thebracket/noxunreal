@@ -7,6 +7,10 @@
 #include "ProceduralMeshComponent.h"
 #include "NoxRegionLayer.h"
 #include "NoxStaticModel.h"
+#include "NoxStaticFoliage.h"
+#include "Runtime/Engine/Classes/Components/HierarchicalInstancedStaticMeshComponent.h"
+#include "../../ThirdParty/libnox/Includes/libnox.h"
+#include "../../ThirdParty/libnox/Includes/noxconsts.h"
 #include "NoxRegionChunk.generated.h"
 
 UCLASS()
@@ -38,4 +42,15 @@ public:
 
 	TArray<ANoxStaticModel *> Models;
 	void StaticModels();
+
+	UHierarchicalInstancedStaticMeshComponent * grass1 = nullptr;
+	UHierarchicalInstancedStaticMeshComponent * grass2 = nullptr;
+	UHierarchicalInstancedStaticMeshComponent * flower1 = nullptr;
+	UHierarchicalInstancedStaticMeshComponent * bush1 = nullptr;
+	UHierarchicalInstancedStaticMeshComponent * bush2 = nullptr;
+	void InitializeFoliageContainers();
+	void FoliageInit(FString &voxAddress, UHierarchicalInstancedStaticMeshComponent *& target);
+	void FoliageClear();
+	void FoliageSieve(nf::veg_t &model);
+	void StaticFoliage();
 };

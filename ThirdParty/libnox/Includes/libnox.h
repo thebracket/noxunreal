@@ -77,6 +77,8 @@ namespace nf {
 	*/
 	void chunk_models(const int &chunk_idx, size_t &size, static_model_t *& model_ptr);
 
+	void chunk_veg(const int &chunk_idx, size_t &size, veg_t *& veg_ptr);
+
 	/*
 	* Gets the current camera position
 	*/
@@ -290,6 +292,11 @@ namespace nf {
 	tooltip_info_t get_farm_yield();
 	void harvest_set();
 	void harvest_clear();
+
+	void plantable_seeds(size_t &size, plantable_seed_t *& seed_ptr);
+	void set_selected_seed(int list_index);
+	void plant_set();
+	void plant_clear();
 }
 
 #endif

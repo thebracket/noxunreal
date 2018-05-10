@@ -85,6 +85,21 @@ struct FAvailableBuilding
 	FString tag;
 };
 
+USTRUCT(BlueprintType)
+struct FPlantableSeed
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	int number;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString name;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString grows_into;
+};
+
 UCLASS()
 class NOXUNREAL_API ANoxLinkTest : public AActor
 {
@@ -237,6 +252,21 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void HarvestModeClear();
+
+	UFUNCTION(BlueprintCallable)
+	void RefreshPlantableList();
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FPlantableSeed> PlantableSeeds;
+
+	UFUNCTION(BlueprintCallable)
+	void SetPlantingTarget(FString name);
+
+	UFUNCTION(BlueprintCallable)
+	void SetPlanting();
+
+	UFUNCTION(BlueprintCallable)
+	void ClearPlanting();
 
 private:
 
