@@ -131,6 +131,11 @@ FVector GetFoliageScale(const int &plant, const int &lifecycle) {
 	case 0: return FVector(2.0f, 2.0f, 0.6f); // Artichoke
 	case 1: return FVector(6.25f, 5.6f, 1.0f); // Asparagus
 	case 2: return FVector(2.0f, 2.0f, 0.4f); // Bambara
+	case 3: return FVector(6.25f, 5.6f, 0.1f); // Beetroot
+	case 4: return FVector(2.0f, 2.0f, 0.3f); // Broad Bean
+	case 6: return FVector(1.5f, 1.5f, 0.3f); // Cabbage
+	case 7: return FVector(1.7f, 1.7f, 0.4f); // Caper
+	case 9: return FVector(2.0f, 2.0f, 0.8f); // Cassava
 	case 47: return FVector(2.0f, 2.0f, 1.0f); // Sage
 	case 54: return FVector(6.25f, 5.6f, 1.0f); // Tomatillo
 	case 55: return FVector(6.25f, 5.6f, 2.0f); // Tomato
@@ -158,7 +163,13 @@ void ANoxRegionChunk::FoliageSieve(nf::veg_t &model) {
 
 	switch (model.plant) {
 	case 0: target = bush2; break; // Artichoke
-	case 2: target = bush2; break; // Artichoke
+	case 2: target = bush2; break; // Bambara
+	case 3: target = flower1; break; // Beetroot
+	case 4: target = bush2; break; // Broad bean
+	case 6: target = bush1; break; // Cabbage
+	case 7: target = bush1; break; // Caper
+	case 8: target = grass2; break; // Carrot
+	case 9: target = bush2; break; // Cassava
 	case 17: target = flower1; break; // Daisy
 	case 23: target = grass1; break;
 	case 43: target = grass2; break; // Reeds

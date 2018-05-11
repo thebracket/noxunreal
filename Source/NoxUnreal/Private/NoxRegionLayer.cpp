@@ -593,6 +593,7 @@ void geometry_chunk::CreateWater(int x, int y, int z, int w, int h, float d) {
 	vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 	vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 
+	
 	// Floor
 	const float ds = d - 0.05f;
 	vertices.Add(FVector(x + w, y + h, z + ds));
@@ -638,6 +639,7 @@ void geometry_chunk::CreateWater(int x, int y, int z, int w, int h, float d) {
 	vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 	vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 
+	/*
 	// Left face
 	vertices.Add(FVector(x, y + h, z + ds));
 	vertices.Add(FVector(x, y, z + ds));
@@ -813,4 +815,5 @@ void geometry_chunk::CreateWater(int x, int y, int z, int w, int h, float d) {
 	vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 	vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 	vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
+	*/
 }
