@@ -51,6 +51,11 @@ void ANoxLinkTest::SpawnChunks() {
 		}
 
 	}
+
+	FVector loc = FVector(0, 0, 0);
+	FTransform trans = FTransform(loc);
+	Cursors = GetWorld()->SpawnActorDeferred<ANoxCursors>(ANoxCursors::StaticClass(), trans);
+	Cursors->FinishSpawning(trans);
 }
 
 void ANoxLinkTest::AddModel(const nf::dynamic_model_t &model, TMap<int, ANoxStaticModel *> * container) {

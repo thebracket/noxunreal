@@ -21,6 +21,7 @@ void ANoxStaticModel::BeginPlay()
 	// TODO: Clean this up!
 	FString voxAddress;
 	switch (modelId) {
+	case -1: voxAddress = "StaticMesh'/Game/Foliage/Meshes/Trees/SM_tree1.SM_tree1'"; break;
 	case 1: voxAddress = "StaticMesh'/Game/Models/cryobed32.cryobed32'"; break;
 	case 2: voxAddress = "StaticMesh'/Game/Models/floorlight.floorlight'"; break;
 	case 3: voxAddress = "StaticMesh'/Game/Models/rtg.rtg'"; break;

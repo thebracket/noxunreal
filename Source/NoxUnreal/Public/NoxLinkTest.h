@@ -8,6 +8,7 @@
 #include "NoxDynamicLight.h"
 #include "ProceduralMeshComponent.h"
 #include "../../ThirdParty/libnox/Includes/libnox.h"
+#include "NoxCursors.h"
 #include "NoxLinkTest.generated.h"
 
 USTRUCT(BlueprintType)
@@ -124,6 +125,7 @@ public:
 	TArray<ANoxRegionChunk *> RegionChunks;
 	TMap<int, TMap<int, ANoxStaticModel *>> VoxModels;
 	TMap<int, ANoxDynamicLight *> DynamicLights;
+	ANoxCursors * Cursors;
 
 	UPROPERTY(BlueprintReadOnly)
 	float PowerPercent;

@@ -10,12 +10,7 @@ ACameraDirector::ACameraDirector()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	AutoPossessPlayer = EAutoReceiveInput::Player0;
-
-	mesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("CursorsMesh"));
-	RootComponent = mesh;
-	// New in UE 4.17, multi-threaded PhysX cooking.
-	mesh->bUseAsyncCooking = true;
+	AutoPossessPlayer = EAutoReceiveInput::Player0;	
 
 	LeftClicked = false;
 	RightClicked = false;
@@ -100,8 +95,6 @@ void ACameraDirector::Tick(float DeltaTime)
 
 	CameraOne->SetActorLocation(camera_position);
 	CameraOne->SetActorRotation(camrot);
-
-	Cursors();
 }
 
 void ACameraDirector::ZoomIn() {
@@ -182,58 +175,5 @@ void ACameraDirector::RightClickOn() {
 
 void ACameraDirector::RightClickOff() {
 	RightClicked = false;
-}
-
-void ACameraDirector::Cursors() {
-	if (!mesh) {
-		return;
-	}
-	mesh->ClearAllMeshSections();
-	try {
-		geometry_by_material.Empty();
-	}
-	catch (...) {
-
-	}
-
-	size_t sz;
-	nf::cube_t * cube_ptr;
-	nf::cursor_list(sz, cube_ptr);
-
-	if (sz > 0) {
-		for (size_t i = 0; i < sz; ++i) {
-			nf::cube_t cube = cube_ptr[i];
-
-			geometry_chunk * g = nullptr;
-			if (!geometry_by_material.Contains(cube.tex)) {
-				geometry_by_material.Add(cube.tex, geometry_chunk());
-			}
-			g = geometry_by_material.Find(cube.tex);
-
-			//geometry.CreateCube(cube.x * WORLD_SCALE, cube.y * WORLD_SCALE, cube.z * WORLD_SCALE, cube.w * WORLD_SCALE, cube.h * WORLD_SCALE, cube.d * WORLD_SCALE);
-			g->CreateCube(cube.x * WORLD_SCALE, cube.y * WORLD_SCALE, cube.z * WORLD_SCALE, cube.w * WORLD_SCALE, cube.h * WORLD_SCALE, cube.d * WORLD_SCALE);
-		}
-
-		int sectionCount = 0;
-		for (auto &gm : geometry_by_material) {
-			FString MaterialAddress;
-
-			switch (gm.Key) {
-			case 1: MaterialAddress = "Material'/Game/Cursors/base_cursor_mat.base_cursor_mat'"; break; // Normal
-			case 2: MaterialAddress = "Material'/Game/Cursors/tree_cursor_mat.tree_cursor_mat'"; break; // Tree chopping
-			case 3: MaterialAddress = "Material'/Game/Cursors/guard_cursor_mat.guard_cursor_mat'"; break; // Guarding
-			case 4: MaterialAddress = "Material'/Game/Cursors/farm_cursor_mat.farm_cursor_mat'"; break; // Harvest
-			default: MaterialAddress = "Material'/Game/Cursors/base_cursor_mat.base_cursor_mat'"; break;
-			}
-
-			UMaterial* material;
-			material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, *MaterialAddress, nullptr, LOAD_None, nullptr));
-			mesh->SetMaterial(sectionCount, material);
-
-			mesh->CreateMeshSection_LinearColor(sectionCount, gm.Value.vertices, gm.Value.Triangles, gm.Value.normals, gm.Value.UV0, gm.Value.vertexColors, gm.Value.tangents, true);
-
-			++sectionCount;
-		}
-	}
 }
 

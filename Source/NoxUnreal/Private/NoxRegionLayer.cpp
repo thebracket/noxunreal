@@ -47,10 +47,12 @@ void ANoxRegionLayer::Tick(float DeltaTime)
 	if (my_layer <= z && my_layer >= z-20) {
 		mesh->SetVisibility(true);
 		mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+		FoliageVisibility(true);
 	}
 	else {
 		mesh->SetVisibility(false);
 		mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		FoliageVisibility(false);
 	}
 }
 
@@ -816,4 +818,141 @@ void geometry_chunk::CreateWater(int x, int y, int z, int w, int h, float d) {
 	vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 	vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 	*/
+}
+
+void ANoxRegionLayer::FoliageInit(FString &voxAddress, UHierarchicalInstancedStaticMeshComponent *& target) {
+	if (target == nullptr) {
+		UStaticMesh* stairs;
+		stairs = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, *voxAddress, nullptr, LOAD_None, nullptr));
+
+		target = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
+		target->RegisterComponent();
+		target->SetStaticMesh(stairs);
+		//target->SetFlags(RF_Transactional);
+		AddInstanceComponent(target);
+	}
+}
+
+
+void ANoxRegionLayer::FoliageVisibility(const bool &vis) {
+	grass1->SetVisibility(vis);
+	flower1->SetVisibility(vis);
+	bush1->SetVisibility(vis);
+	bush2->SetVisibility(vis);
+	grass2->SetVisibility(vis);
+	tree1->SetVisibility(vis);
+}
+
+void ANoxRegionLayer::InitializeFoliageContainers() {
+	FString grassPatch = FString("StaticMesh'/Game/Foliage/Meshes/Grass/SM_grass_patch1.SM_grass_patch1'");
+	FString flowerPatch = FString("StaticMesh'/Game/Foliage/Meshes/Flowers/SM_grass_patch_flower1.SM_grass_patch_flower1'");
+	FString bushPatch = FString("StaticMesh'/Game/Foliage/Meshes/Bush/SM_bush1.SM_bush1'");
+	FString fatBush = FString("StaticMesh'/Game/Foliage/Meshes/Bush/SM_bush4.SM_bush4'");
+	FString grassPatch2 = FString("StaticMesh'/Game/Foliage/Meshes/Grass/SM_grass_patch6.SM_grass_patch6'");
+	FString treeModel = FString("StaticMesh'/Game/Foliage/Meshes/Trees/SM_tree1.SM_tree1'");
+
+	FoliageInit(grassPatch, grass1);
+	FoliageInit(flowerPatch, flower1);
+	FoliageInit(bushPatch, bush1);
+	FoliageInit(fatBush, bush2);
+	FoliageInit(grassPatch2, grass2);
+	FoliageInit(treeModel, tree1);
+
+	UMaterial * mat1 = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/Materials/06Bark.06Bark'"), nullptr, LOAD_None, nullptr));
+	UMaterial * mat2 = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/Materials/09Leaf.09Leaf'"), nullptr, LOAD_None, nullptr));
+
+	tree1->SetMaterial(0, mat1);
+	tree1->SetMaterial(1, mat2);
+}
+
+void ANoxRegionLayer::FoliageClear() {
+	grass1->ClearInstances();
+}
+
+namespace impl {
+	FRotator rot = FRotator();
+	FVector grass_scale_normal = FVector(6.25f, 5.6f, 6.25f);
+	FVector grass_scale_tall = FVector(6.25f, 5.6f, 10.0f);
+	FVector grass_scale_small = FVector(6.25f, 5.6f, 3.0f);
+	FVector grass_scale_tiny = FVector(6.25f, 5.6f, 1.0f);
+}
+
+void AddFoliageInstance(UHierarchicalInstancedStaticMeshComponent * target, FTransform &trans) {
+	target->AddInstance(trans);
+}
+
+FVector GetFoliageScale(const int &plant, const int &lifecycle) {
+	switch (plant) {
+	case -1: return FVector(1.0f, 1.0f, 1.0f); // Tree
+	case 0: return FVector(2.0f, 2.0f, 0.6f); // Artichoke
+	case 1: return FVector(6.25f, 5.6f, 1.0f); // Asparagus
+	case 2: return FVector(2.0f, 2.0f, 0.4f); // Bambara
+	case 3: return FVector(6.25f, 5.6f, 0.1f); // Beetroot
+	case 4: return FVector(2.0f, 2.0f, 0.3f); // Broad Bean
+	case 6: return FVector(1.5f, 1.5f, 0.3f); // Cabbage
+	case 7: return FVector(1.7f, 1.7f, 0.4f); // Caper
+	case 9: return FVector(2.0f, 2.0f, 0.8f); // Cassava
+	case 47: return FVector(2.0f, 2.0f, 1.0f); // Sage
+	case 54: return FVector(6.25f, 5.6f, 1.0f); // Tomatillo
+	case 55: return FVector(6.25f, 5.6f, 2.0f); // Tomato
+	}
+
+	switch (lifecycle) {
+	case 0: return impl::grass_scale_tiny;
+	case 1: return impl::grass_scale_small;
+	case 2: return impl::grass_scale_normal;
+	case 3: return impl::grass_scale_tall;
+	}
+
+	return impl::grass_scale_normal;
+}
+
+void ANoxRegionLayer::FoliageSieve(nf::veg_t &model) {
+	using namespace impl;
+	const float mx = model.x + 0.5f;
+	const float my = model.y + 0.5f;
+	const float mz = model.z;
+
+	FVector loc = FVector(mx * 200, my * 200, mz * 200);
+
+	UHierarchicalInstancedStaticMeshComponent * target;
+
+	switch (model.plant) {
+	case -1: target = tree1; break; // Special case for trees
+	case 0: target = bush2; break; // Artichoke
+	case 2: target = bush2; break; // Bambara
+	case 3: target = flower1; break; // Beetroot
+	case 4: target = bush2; break; // Broad bean
+	case 6: target = bush1; break; // Cabbage
+	case 7: target = bush1; break; // Caper
+	case 8: target = grass2; break; // Carrot
+	case 9: target = bush2; break; // Cassava
+	case 17: target = flower1; break; // Daisy
+	case 23: target = grass1; break;
+	case 43: target = grass2; break; // Reeds
+	case 47: target = bush1; break; // Sage
+	case 54: target = flower1; break; // Tomatillo
+	case 55: target = flower1; break; // Tomato
+	default: target = grass1;
+	}
+
+	FTransform trans = FTransform(rot, loc, GetFoliageScale(model.plant, model.lifecycle));
+
+	AddFoliageInstance(target, trans);
+}
+
+void ANoxRegionLayer::StaticFoliage(size_t &size, nf::veg_t *& veg_ptr)
+{
+	InitializeFoliageContainers();
+
+	FoliageClear();
+
+	if (size > 0) {
+		for (size_t i = 0; i < size; ++i) {
+			nf::veg_t model = veg_ptr[i];
+			if (model.z == local_z+base_z) {
+				FoliageSieve(model);
+			}
+		}
+	}
 }

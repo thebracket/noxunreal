@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
+#include "Runtime/Engine/Classes/Components/HierarchicalInstancedStaticMeshComponent.h"
+#include "../../ThirdParty/libnox/Includes/libnox.h"
+#include "../../ThirdParty/libnox/Includes/noxconsts.h"
 #include "NoxRegionLayer.generated.h"
 
 struct geometry_chunk {
@@ -58,4 +61,17 @@ public:
 	void ChunkBuilder();
 	void Rebuild();
 	
+	// Foliage
+	UHierarchicalInstancedStaticMeshComponent * grass1 = nullptr;
+	UHierarchicalInstancedStaticMeshComponent * grass2 = nullptr;
+	UHierarchicalInstancedStaticMeshComponent * flower1 = nullptr;
+	UHierarchicalInstancedStaticMeshComponent * bush1 = nullptr;
+	UHierarchicalInstancedStaticMeshComponent * bush2 = nullptr;
+	UHierarchicalInstancedStaticMeshComponent * tree1 = nullptr;
+	void InitializeFoliageContainers();
+	void FoliageInit(FString &voxAddress, UHierarchicalInstancedStaticMeshComponent *& target);
+	void FoliageClear();
+	void FoliageVisibility(const bool &vis);
+	void FoliageSieve(nf::veg_t &model);
+	void StaticFoliage(size_t &size, nf::veg_t *& veg_ptr);
 };

@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "ProceduralMeshComponent.h"
 #include "NoxRegionLayer.h"
 #include "CameraDirector.generated.h"
 
@@ -27,10 +26,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere)
-	AActor* CameraOne;
-
-	UPROPERTY(VisibleAnywhere)
-	UProceduralMeshComponent * mesh;
+	AActor* CameraOne;	
 
 	UPROPERTY(BlueprintReadOnly)
 	bool LeftClicked;
@@ -63,8 +59,4 @@ public:
 	void LeftClickOff();
 	void RightClickOn();
 	void RightClickOff();
-
-	// Cursor handling
-	TMap<int, geometry_chunk> geometry_by_material;
-	void Cursors();
 };

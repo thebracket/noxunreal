@@ -36,6 +36,8 @@ void ANoxRegionChunk::Rebuild() {
 	for (int i = 0; i < nf::CHUNK_SIZE; ++i) {
 		RegionLayers[i]->Rebuild();
 	}
+	StaticModels();
+	StaticFoliage();
 }
 
 // Called when the game starts or when spawned
@@ -83,122 +85,13 @@ void ANoxRegionChunk::Tick(float DeltaTime)
 
 }
 
-void ANoxRegionChunk::FoliageInit(FString &voxAddress, UHierarchicalInstancedStaticMeshComponent *& target) {
-	if (target == nullptr) {
-		UStaticMesh* stairs;
-		stairs = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, *voxAddress, nullptr, LOAD_None, nullptr));
-
-		target = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
-		target->RegisterComponent();
-		target->SetStaticMesh(stairs);
-		//target->SetFlags(RF_Transactional);
-		AddInstanceComponent(target);
-	}
-}
-
-void ANoxRegionChunk::InitializeFoliageContainers() {
-	FString grassPatch = FString("StaticMesh'/Game/Foliage/Meshes/Grass/SM_grass_patch1.SM_grass_patch1'");
-	FString flowerPatch = FString("StaticMesh'/Game/Foliage/Meshes/Flowers/SM_grass_patch_flower1.SM_grass_patch_flower1'");
-	FString bushPatch = FString("StaticMesh'/Game/Foliage/Meshes/Bush/SM_bush1.SM_bush1'");
-	FString fatBush = FString("StaticMesh'/Game/Foliage/Meshes/Bush/SM_bush4.SM_bush4'");
-	FString grassPatch2 = FString("StaticMesh'/Game/Foliage/Meshes/Grass/SM_grass_patch6.SM_grass_patch6'");
-
-	FoliageInit(grassPatch, grass1);
-	FoliageInit(flowerPatch, flower1);
-	FoliageInit(bushPatch, bush1);
-	FoliageInit(fatBush, bush2);
-	FoliageInit(grassPatch2, grass2);
-}
-
-void ANoxRegionChunk::FoliageClear() {
-	grass1->ClearInstances();
-}
-
-namespace impl {
-	FRotator rot = FRotator();
-	FVector grass_scale_normal = FVector(6.25f, 5.6f, 6.25f);
-	FVector grass_scale_tall = FVector(6.25f, 5.6f, 10.0f);
-	FVector grass_scale_small = FVector(6.25f, 5.6f, 3.0f);
-	FVector grass_scale_tiny = FVector(6.25f, 5.6f, 1.0f);
-}
-
-void AddFoliageInstance(UHierarchicalInstancedStaticMeshComponent * target, FTransform &trans) {
-	target->AddInstance(trans);
-}
-
-FVector GetFoliageScale(const int &plant, const int &lifecycle) {
-	switch (plant) {
-	case 0: return FVector(2.0f, 2.0f, 0.6f); // Artichoke
-	case 1: return FVector(6.25f, 5.6f, 1.0f); // Asparagus
-	case 2: return FVector(2.0f, 2.0f, 0.4f); // Bambara
-	case 3: return FVector(6.25f, 5.6f, 0.1f); // Beetroot
-	case 4: return FVector(2.0f, 2.0f, 0.3f); // Broad Bean
-	case 6: return FVector(1.5f, 1.5f, 0.3f); // Cabbage
-	case 7: return FVector(1.7f, 1.7f, 0.4f); // Caper
-	case 9: return FVector(2.0f, 2.0f, 0.8f); // Cassava
-	case 47: return FVector(2.0f, 2.0f, 1.0f); // Sage
-	case 54: return FVector(6.25f, 5.6f, 1.0f); // Tomatillo
-	case 55: return FVector(6.25f, 5.6f, 2.0f); // Tomato
-	}
-
-	switch (lifecycle) {
-	case 0: return impl::grass_scale_tiny;
-	case 1: return impl::grass_scale_small;
-	case 2: return impl::grass_scale_normal;
-	case 3: return impl::grass_scale_tall;
-	}
-
-	return impl::grass_scale_normal;
-}
-
-void ANoxRegionChunk::FoliageSieve(nf::veg_t &model) {
-	using namespace impl;
-	const float mx = model.x + 0.5f;
-	const float my = model.y + 0.5f;
-	const float mz = model.z;
-
-	FVector loc = FVector(mx * 200, my * 200, mz * 200);
-
-	UHierarchicalInstancedStaticMeshComponent * target;
-
-	switch (model.plant) {
-	case 0: target = bush2; break; // Artichoke
-	case 2: target = bush2; break; // Bambara
-	case 3: target = flower1; break; // Beetroot
-	case 4: target = bush2; break; // Broad bean
-	case 6: target = bush1; break; // Cabbage
-	case 7: target = bush1; break; // Caper
-	case 8: target = grass2; break; // Carrot
-	case 9: target = bush2; break; // Cassava
-	case 17: target = flower1; break; // Daisy
-	case 23: target = grass1; break;
-	case 43: target = grass2; break; // Reeds
-	case 47: target = bush1; break; // Sage
-	case 54: target = flower1; break; // Tomatillo
-	case 55: target = flower1; break; // Tomato
-	default: target = grass1;
-	}
-
-	FTransform trans = FTransform(rot, loc, GetFoliageScale(model.plant, model.lifecycle));	
-
-	AddFoliageInstance(target, trans);
-}
-
-void ANoxRegionChunk::StaticFoliage() 
-{
-	InitializeFoliageContainers();
-
+void ANoxRegionChunk::StaticFoliage() {
 	size_t size;
 	nf::veg_t * veg_ptr;
 	nf::chunk_veg(chunk_idx, size, veg_ptr);
-
-	FoliageClear();
-
-	if (size > 0) {
-		for (size_t i = 0; i < size; ++i) {
-			nf::veg_t model = veg_ptr[i];
-			FoliageSieve(model);
-		}
+	for (int i = 0; i < nf::CHUNK_SIZE; ++i) {
+		RegionLayers[i]->StaticFoliage(size, veg_ptr);
 	}
 }
+
 
