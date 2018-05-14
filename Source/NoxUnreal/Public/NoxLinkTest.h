@@ -270,6 +270,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ClearPlanting();
 
+	UFUNCTION(BlueprintCallable)
+	int GetMiningMode();
+
+	UFUNCTION(BlueprintCallable)
+	void SetMiningMode(int n);
+
+	UFUNCTION(BlueprintCallable)
+	void PlaceMine();
+
+	UFUNCTION(BlueprintCallable)
+	void ClearMine();
+
 private:
 
 	const int WORLD_SCALE = 200;

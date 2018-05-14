@@ -621,3 +621,19 @@ void ANoxLinkTest::SetPlanting() {
 void ANoxLinkTest::ClearPlanting() {
 	nf::plant_clear();
 }
+
+int ANoxLinkTest::GetMiningMode() {
+	return nf::get_mining_mode();
+}
+
+void ANoxLinkTest::SetMiningMode(int n) {
+	nf::set_mining_mode(n);
+}
+
+void ANoxLinkTest::PlaceMine() {
+	nf::mine_set();
+}
+
+void ANoxLinkTest::ClearMine() {
+	nf::mine_clear();
+}

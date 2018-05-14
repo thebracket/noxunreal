@@ -297,6 +297,16 @@ namespace nf {
 	void set_selected_seed(int list_index);
 	void plant_set();
 	void plant_clear();
+
+	void set_mining_mode(int mode);
+	int get_mining_mode();
+	void mine_set();
+	void mine_clear();
+
+	void set_architecture_mode(int mode);
+	int get_architecture_mode();
+	void architecture_set();
+	void architecture_clear();
 }
 
 #endif

@@ -21,7 +21,7 @@ struct geometry_chunk {
 
 	void clear();
 	void CreateFloor(int x, int y, int z, int w, int h);
-	void CreateCube(int x, int y, int z, int w, int h, int d);
+	void CreateCube(int x, int y, int z, int w, int h, float d);
 	void CreateWater(int x, int y, int z, int w, int h, float d);
 
 	const int WORLD_SCALE = 200;

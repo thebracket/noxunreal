@@ -37,6 +37,15 @@ void ANoxRegionLayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	int maj, min;
+	nf::get_game_mode(maj, min);
+	if (maj != 0) {
+		mesh->SetVisibility(false);
+		mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		FoliageVisibility(false);
+		return;
+	}
+
 	float x, y, z, zoom;
 	bool perspective;
 	int mode;
@@ -271,7 +280,7 @@ void geometry_chunk::CreateFloor(int x, int y, int z, int w, int h) {
 	vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 }
 
-void geometry_chunk::CreateCube(int x, int y, int z, int w, int h, int d) {
+void geometry_chunk::CreateCube(int x, int y, int z, int w, int h, float d) {
 	const float tw = (float)w / WORLD_SCALE;
 	const float th = (float)h / WORLD_SCALE;
 

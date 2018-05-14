@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
 #include "NoxRegionLayer.h"
+#include "NoxRegionLayerDesign.h"
 #include "NoxStaticModel.h"
 #include "NoxStaticFoliage.h"
 #include "../../ThirdParty/libnox/Includes/libnox.h"
@@ -36,6 +37,7 @@ public:
 	int base_z;
 	int chunk_idx;
 	TArray<ANoxRegionLayer *> RegionLayers;
+	TArray<ANoxRegionLayerDesign *> RegionDesignLayers;
 	void ChunkBuilder();
 	void Rebuild();
 

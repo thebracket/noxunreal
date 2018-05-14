@@ -19,7 +19,9 @@ ANoxCursors::ANoxCursors()
 void ANoxCursors::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	// Stop cursors from receiving mouse-over events
+	mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 }
 
 // Called every frame
@@ -65,6 +67,12 @@ void ANoxCursors::Cursors() {
 			case 2: MaterialAddress = "Material'/Game/Cursors/tree_cursor_mat.tree_cursor_mat'"; break; // Tree chopping
 			case 3: MaterialAddress = "Material'/Game/Cursors/guard_cursor_mat.guard_cursor_mat'"; break; // Guarding
 			case 4: MaterialAddress = "Material'/Game/Cursors/farm_cursor_mat.farm_cursor_mat'"; break; // Harvest
+			case 5: MaterialAddress = "Material'/Game/Cursors/dig_cursor_mat.dig_cursor_mat'"; break; // Dig
+			case 6: MaterialAddress = "Material'/Game/Cursors/channel_cursor_mat.channel_cursor_mat'"; break; // Channel
+			case 7: MaterialAddress = "Material'/Game/Cursors/ramp_cursor_mat.ramp_cursor_mat'"; break; // Ramp
+			case 8: MaterialAddress = "Material'/Game/Cursors/upstairs_cursor_mat.upstairs_cursor_mat'"; break; // Up
+			case 9: MaterialAddress = "Material'/Game/Cursors/downstairs_cursor_mat.downstairs_cursor_mat'"; break; // Down
+			case 10: MaterialAddress = "Material'/Game/Cursors/updownstairs_cursor_mat.updownstairs_cursor_mat'"; break; // UpDown
 			default: MaterialAddress = "Material'/Game/Cursors/base_cursor_mat.base_cursor_mat'"; break;
 			}
 
