@@ -3,6 +3,7 @@
 #include "CameraDirector.h"
 #include "../../ThirdParty/libnox/Includes/libnox.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
+#include "Runtime/Engine/Classes/Camera/CameraComponent.h"
 #include "Components/InputComponent.h"
 
 // Sets default values
@@ -95,6 +96,11 @@ void ACameraDirector::Tick(float DeltaTime)
 
 	CameraOne->SetActorLocation(camera_position);
 	CameraOne->SetActorRotation(camrot);
+
+	TArray<UActorComponent *> children = CameraOne->GetComponentsByClass(UCameraComponent::StaticClass());
+	for (int32 i = 0; i < children.Num(); ++i) {
+		Cast<UCameraComponent>(children[i])->SetOrthoWidth(zoom * 1000.0f);
+	}
 }
 
 void ACameraDirector::ZoomIn() {
