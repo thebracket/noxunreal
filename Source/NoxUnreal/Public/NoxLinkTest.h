@@ -282,6 +282,24 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ClearMine();
 
+	UFUNCTION(BlueprintCallable)
+	int GetArchitectureMode();
+
+	UFUNCTION(BlueprintCallable)
+	void SetArchitectureMode(int n);
+
+	UFUNCTION(BlueprintCallable)
+	void PlaceArchitecture();
+
+	UFUNCTION(BlueprintCallable)
+	void ClearArchitecture();
+
+	UFUNCTION(BlueprintCallable)
+	int AvailableArchBlocks();
+
+	UFUNCTION(BlueprintCallable)
+	int RequiredArchBlocks();
+
 private:
 
 	const int WORLD_SCALE = 200;

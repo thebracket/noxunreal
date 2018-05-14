@@ -73,6 +73,9 @@ void ANoxCursors::Cursors() {
 			case 8: MaterialAddress = "Material'/Game/Cursors/upstairs_cursor_mat.upstairs_cursor_mat'"; break; // Up
 			case 9: MaterialAddress = "Material'/Game/Cursors/downstairs_cursor_mat.downstairs_cursor_mat'"; break; // Down
 			case 10: MaterialAddress = "Material'/Game/Cursors/updownstairs_cursor_mat.updownstairs_cursor_mat'"; break; // UpDown
+			case 11: MaterialAddress = "Material'/Game/Cursors/wall_cursor_mat.wall_cursor_mat'"; break; // Wall
+			case 12: MaterialAddress = "Material'/Game/Cursors/floor_cursor_mat.floor_cursor_mat'"; break; // Floor
+			case 13: MaterialAddress = "Material'/Game/Cursors/bridge_cursor_mat.bridge_cursor_mat'"; break; // Bridge
 			default: MaterialAddress = "Material'/Game/Cursors/base_cursor_mat.base_cursor_mat'"; break;
 			}
 

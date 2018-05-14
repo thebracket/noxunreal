@@ -637,3 +637,27 @@ void ANoxLinkTest::PlaceMine() {
 void ANoxLinkTest::ClearMine() {
 	nf::mine_clear();
 }
+
+int ANoxLinkTest::GetArchitectureMode() {
+	return nf::get_architecture_mode();
+}
+
+void ANoxLinkTest::SetArchitectureMode(int n) {
+	nf::set_architecture_mode(n);
+}
+
+void ANoxLinkTest::PlaceArchitecture() {
+	nf::architecture_set();
+}
+
+void ANoxLinkTest::ClearArchitecture() {
+	nf::architecture_clear();
+}
+
+int ANoxLinkTest::AvailableArchBlocks() {
+	return nf::get_available_block_count();
+}
+
+int ANoxLinkTest::RequiredArchBlocks() {
+	return nf::get_required_block_count();
+}

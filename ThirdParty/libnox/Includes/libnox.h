@@ -307,6 +307,8 @@ namespace nf {
 	int get_architecture_mode();
 	void architecture_set();
 	void architecture_clear();
+	int get_available_block_count();
+	int get_required_block_count();
 }
 
 #endif
