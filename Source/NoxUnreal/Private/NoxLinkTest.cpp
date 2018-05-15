@@ -2,6 +2,8 @@
 
 #include "NoxLinkTest.h"
 #include "../../ThirdParty/libnox/Includes/noxconsts.h"
+#include "Kismet/GameplayStatics.h"
+#include "CameraDirector.h"
 
 // Sets default values
 ANoxLinkTest::ANoxLinkTest()
@@ -386,7 +388,18 @@ void ANoxLinkTest::Tick(float DeltaTime)
 		nf::water_dirty = false; 
 	}
 	UpdateModels();
-	UpdateLights();	
+	UpdateLights();
+
+	if (firstTick) {
+		firstTick = false;
+
+		TArray<AActor*> FoundActors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraDirector::StaticClass(), FoundActors);
+		for (int i = 0; i < FoundActors.Num(); ++i) {
+			ACameraDirector * cd = Cast<ACameraDirector>(FoundActors[i]);
+			cd->ZLevelChanged.Broadcast();
+		}
+	}
 }
 
 void ANoxLinkTest::PauseGame() {

@@ -133,6 +133,7 @@ protected:
 	int LastPowerC = -1;
 	int LastPowerM = -1;
 	int LastMinute = -1;
+	bool firstTick = true;
 
 public:	
 	// Called every frame
