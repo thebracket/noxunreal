@@ -74,4 +74,7 @@ public:
 	void FoliageVisibility(const bool &vis);
 	void FoliageSieve(nf::veg_t &model);
 	void StaticFoliage(size_t &size, nf::veg_t *& veg_ptr);
+
+	UFUNCTION()
+	void onZChange();
 };

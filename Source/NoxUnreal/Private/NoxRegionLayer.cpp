@@ -17,7 +17,7 @@ void geometry_chunk::clear() {
 ANoxRegionLayer::ANoxRegionLayer()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	mesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh"));
 	RootComponent = mesh;
 	// New in UE 4.17, multi-threaded PhysX cooking.
@@ -29,14 +29,10 @@ ANoxRegionLayer::ANoxRegionLayer()
 void ANoxRegionLayer::BeginPlay()
 {
 	Super::BeginPlay();
-	ChunkBuilder();
+	ChunkBuilder();	
 }
 
-// Called every frame
-void ANoxRegionLayer::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+void ANoxRegionLayer::onZChange() {
 	int maj, min;
 	nf::get_game_mode(maj, min);
 	if (maj != 0) {
@@ -53,7 +49,7 @@ void ANoxRegionLayer::Tick(float DeltaTime)
 
 	// Determine visibility
 	const int my_layer = base_z + local_z;
-	if (my_layer <= z && my_layer >= z-20) {
+	if (my_layer <= z && my_layer >= z - 20) {
 		mesh->SetVisibility(true);
 		mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 		FoliageVisibility(true);
@@ -63,6 +59,12 @@ void ANoxRegionLayer::Tick(float DeltaTime)
 		mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		FoliageVisibility(false);
 	}
+}
+
+// Called every frame
+void ANoxRegionLayer::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);		
 }
 
 void ANoxRegionLayer::Rebuild() {

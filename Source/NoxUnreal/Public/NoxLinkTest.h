@@ -11,6 +11,11 @@
 #include "NoxCursors.h"
 #include "NoxLinkTest.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPowerChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCashChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDateChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPauseModeChanged);
+
 USTRUCT(BlueprintType)
 struct FNoxSettlerListEntry
 {
@@ -118,6 +123,16 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void PostLoad() override;
 	virtual void PostActorCreated() override;
+
+
+	void UpdateCashDisplay(const nf::hud_info_t &hudLink);
+	void UpdatePowerDisplay(const nf::hud_info_t &hudLink);
+	void UpdateCalendar(const nf::hud_info_t &hudLink);
+	int LastPauseMode = -1;
+	int LastCash = -1;
+	int LastPowerC = -1;
+	int LastPowerM = -1;
+	int LastMinute = -1;
 
 public:	
 	// Called every frame
@@ -299,6 +314,20 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int RequiredArchBlocks();
+
+	// Events
+	UPROPERTY(BlueprintAssignable, Category = "HUD")
+	FOnPowerChanged PowerChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "HUD")
+	FOnCashChanged CashChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "HUD")
+	FOnDateChanged DateChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "HUD")
+	FOnPauseModeChanged PauseModeChanged;
+
 
 private:
 

@@ -32,4 +32,6 @@ public:
 	float scaleY = 1.0f;
 	float scaleZ = 1.0f;
 	
+	UFUNCTION()
+	void onZChange();
 };

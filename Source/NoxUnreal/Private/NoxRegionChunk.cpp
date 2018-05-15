@@ -1,14 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "NoxRegionChunk.h"
+#include "Kismet/GameplayStatics.h"
+#include "CameraDirector.h"
 
 // Sets default values
 ANoxRegionChunk::ANoxRegionChunk()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	RegionLayers.SetNumUninitialized(nf::CHUNK_SIZE);
-	RegionDesignLayers.SetNumUninitialized(nf::CHUNK_SIZE);
 }
 
 void ANoxRegionChunk::PostLoad() {
@@ -28,14 +29,6 @@ void ANoxRegionChunk::ChunkBuilder() {
 		RegionLayers[i]->base_z = base_z;
 		RegionLayers[i]->local_z = i;
 		RegionLayers[i]->FinishSpawning(trans);
-
-		RegionDesignLayers[i] = GetWorld()->SpawnActorDeferred<ANoxRegionLayerDesign>(ANoxRegionLayerDesign::StaticClass(), trans);
-		RegionDesignLayers[i]->chunk_idx = chunk_idx;
-		RegionDesignLayers[i]->base_x = base_x;
-		RegionDesignLayers[i]->base_y = base_y;
-		RegionDesignLayers[i]->base_z = base_z;
-		RegionDesignLayers[i]->local_z = i;
-		RegionDesignLayers[i]->FinishSpawning(trans);
 	}
 	StaticModels();
 	StaticFoliage();
@@ -44,7 +37,6 @@ void ANoxRegionChunk::ChunkBuilder() {
 void ANoxRegionChunk::Rebuild() {
 	for (int i = 0; i < nf::CHUNK_SIZE; ++i) {
 		RegionLayers[i]->Rebuild();
-		RegionDesignLayers[i]->Rebuild();
 	}
 	StaticModels();
 	StaticFoliage();
@@ -57,6 +49,20 @@ void ANoxRegionChunk::BeginPlay()
 	ChunkBuilder();
 	StaticModels();
 	StaticFoliage();
+
+	// Wire up events
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraDirector::StaticClass(), FoundActors);
+	for (int i = 0; i < FoundActors.Num(); ++i) {
+		ACameraDirector * cd = Cast<ACameraDirector>(FoundActors[i]);
+		cd->ZLevelChanged.AddDynamic(this, &ANoxRegionChunk::onZChange);
+	}
+}
+
+void ANoxRegionChunk::onZChange() {
+	for (int i = 0; i < nf::CHUNK_SIZE; ++i) {
+		RegionLayers[i]->onZChange();
+	}
 }
 
 void ANoxRegionChunk::StaticModels() 

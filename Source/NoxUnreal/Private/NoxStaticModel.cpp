@@ -3,12 +3,14 @@
 #include "NoxStaticModel.h"
 #include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
 #include "../../ThirdParty/libnox/Includes/libnox.h"
+#include "CameraDirector.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ANoxStaticModel::ANoxStaticModel()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	RootComponent = StaticMeshComponent;
 }
@@ -188,24 +190,46 @@ void ANoxStaticModel::BeginPlay()
 		StaticMeshComponent->SetMaterial(0, DynMaterial);
 		StaticMeshComponent->MarkRenderStateDirty();
 	}
+
+	// Wire up events
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraDirector::StaticClass(), FoundActors);
+	for (int i = 0; i < FoundActors.Num(); ++i) {
+		ACameraDirector * cd = Cast<ACameraDirector>(FoundActors[i]);
+		cd->ZLevelChanged.AddDynamic(this, &ANoxStaticModel::onZChange);
+	}
 }
 
 // Called every frame
 void ANoxStaticModel::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick(DeltaTime);	
+}
 
+void ANoxStaticModel::onZChange() {
 	float cx, cy, cz, zoom;
 	bool perspective;
 	int mode;
 	nf::get_camera_position(cx, cy, cz, zoom, perspective, mode);
 
-	if (z <= cz) {
-		StaticMeshComponent->SetVisibility(true);
+	int gmode, gminor;
+	nf::get_game_mode(gmode, gminor);
+
+	if (gmode != 1) {
+		if (z <= cz) {
+			StaticMeshComponent->SetVisibility(true);
+		}
+		else
+		{
+			StaticMeshComponent->SetVisibility(false);
+		}
 	}
-	else 
-	{
-		StaticMeshComponent->SetVisibility(false);
+	else {
+		if (z == cz) {
+			StaticMeshComponent->SetVisibility(true);
+		}
+		else {
+			StaticMeshComponent->SetVisibility(false);
+		}
 	}
 }
-

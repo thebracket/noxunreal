@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "NoxRegionLayer.h"
 #include "CameraDirector.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnZChange);
 
 UCLASS()
 class NOXUNREAL_API ACameraDirector : public APawn
@@ -33,6 +34,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool RightClicked;
+
+	UPROPERTY(BlueprintAssignable, Category = "CameraControl")
+	FOnZChange ZLevelChanged;
 
 	const int WORLD_SCALE = 200;
 	

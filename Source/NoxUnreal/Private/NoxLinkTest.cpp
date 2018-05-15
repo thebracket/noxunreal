@@ -288,6 +288,63 @@ void ANoxLinkTest::PostActorCreated() {
 	Super::PostActorCreated();
 }
 
+void ANoxLinkTest::UpdateCashDisplay(const nf::hud_info_t &hudLink) {
+	CashDisplay = TEXT("");
+	CashDisplay.AppendInt(hudLink.cash);
+	CashDisplay.Append(TEXT(" Mcr"));
+	LastCash = hudLink.cash;
+	CashChanged.Broadcast();
+}
+
+void ANoxLinkTest::UpdatePowerDisplay(const nf::hud_info_t &hudLink) {
+	PowerPercent = (float)hudLink.current_power / (float)hudLink.max_power;
+	PowerDisplay = TEXT("");
+	PowerDisplay.AppendInt(hudLink.current_power);
+	PowerDisplay.Append(TEXT(" / "));
+	PowerDisplay.AppendInt(hudLink.max_power);
+	LastPowerC = hudLink.current_power;
+	LastPowerM = hudLink.max_power;
+	PowerChanged.Broadcast();
+}
+
+void ANoxLinkTest::UpdateCalendar(const nf::hud_info_t &hudLink) {
+	DateDisplay = TEXT("");
+	switch (hudLink.month) {
+	case 0: DateDisplay.Append("JAN "); break;
+	case 1: DateDisplay.Append("FEB "); break;
+	case 2: DateDisplay.Append("MAR "); break;
+	case 3: DateDisplay.Append("APR "); break;
+	case 4: DateDisplay.Append("MAY "); break;
+	case 5: DateDisplay.Append("JUN "); break;
+	case 6: DateDisplay.Append("JUL "); break;
+	case 7: DateDisplay.Append("AUG "); break;
+	case 8: DateDisplay.Append("SEP "); break;
+	case 9: DateDisplay.Append("OCT "); break;
+	case 10: DateDisplay.Append("NOV "); break;
+	case 11: DateDisplay.Append("DEC "); break;
+	}
+	if (hudLink.day + 1 < 10) DateDisplay.Append(TEXT("0"));
+	DateDisplay.AppendInt(hudLink.day + 1);
+	DateDisplay.Append(TEXT(", "));
+	DateDisplay.AppendInt(hudLink.year);
+	DateDisplay.Append(TEXT(" "));
+	if (hudLink.hour < 10) DateDisplay.Append(TEXT("0"));
+	DateDisplay.AppendInt(hudLink.hour);
+	DateDisplay.Append(TEXT(":"));
+	if (hudLink.minute < 10) DateDisplay.Append(TEXT("0"));
+	DateDisplay.AppendInt(hudLink.minute);
+	DateDisplay.Append(TEXT(":"));
+	if (hudLink.second < 10) DateDisplay.Append(TEXT("0"));
+	DateDisplay.AppendInt(hudLink.second);
+
+	float hourAsFloat = (float)hudLink.hour + ((float)hudLink.minute / 60.0f);
+	float TimeAsFloat = hourAsFloat / 24.0f; // Gets 0 - 1 range
+	SunRotation = TimeAsFloat;
+
+	LastMinute = hudLink.minute;
+	DateChanged.Broadcast();
+}
+
 // Called every frame
 void ANoxLinkTest::Tick(float DeltaTime)
 {
@@ -305,65 +362,31 @@ void ANoxLinkTest::Tick(float DeltaTime)
 		}
 	}
 
-	auto hudLink = nf::get_hud_info();
-	PowerPercent = (float)hudLink.current_power / (float)hudLink.max_power;
+	auto hudLink = nf::get_hud_info();	
 
-	PowerDisplay = TEXT("");
-	PowerDisplay.AppendInt(hudLink.current_power);
-	PowerDisplay.Append(TEXT(" / "));
-	PowerDisplay.AppendInt(hudLink.max_power);
-
-	CashDisplay = TEXT("");
-	CashDisplay.AppendInt(hudLink.cash);
-	CashDisplay.Append(TEXT(" Mcr"));
-
-	DateDisplay = TEXT("");
-	switch (hudLink.month) {
-	case 0: DateDisplay.Append("JAN "); break;
-	case 1: DateDisplay.Append("FEB "); break;
-	case 2: DateDisplay.Append("MAR "); break;
-	case 3: DateDisplay.Append("APR "); break;
-	case 4: DateDisplay.Append("MAY "); break;
-	case 5: DateDisplay.Append("JUN "); break;
-	case 6: DateDisplay.Append("JUL "); break;
-	case 7: DateDisplay.Append("AUG "); break;
-	case 8: DateDisplay.Append("SEP "); break;
-	case 9: DateDisplay.Append("OCT "); break;
-	case 10: DateDisplay.Append("NOV "); break;
-	case 11: DateDisplay.Append("DEC "); break;
-	}
-	if (hudLink.day + 1 < 10) DateDisplay.Append(TEXT("0"));
-	DateDisplay.AppendInt(hudLink.day+1);
-	DateDisplay.Append(TEXT(", "));
-	DateDisplay.AppendInt(hudLink.year);
-	DateDisplay.Append(TEXT(" "));
-	if (hudLink.hour < 10) DateDisplay.Append(TEXT("0"));
-	DateDisplay.AppendInt(hudLink.hour);
-	DateDisplay.Append(TEXT(":"));
-	if (hudLink.minute < 10) DateDisplay.Append(TEXT("0"));
-	DateDisplay.AppendInt(hudLink.minute);
-	DateDisplay.Append(TEXT(":"));
-	if (hudLink.second < 10) DateDisplay.Append(TEXT("0"));
-	DateDisplay.AppendInt(hudLink.second);
-
-	float hourAsFloat = (float)hudLink.hour + ((float)hudLink.minute / 60.0f);
-	float TimeAsFloat = hourAsFloat / 24.0f; // Gets 0 - 1 range
-	SunRotation = TimeAsFloat;
+	if (LastCash != hudLink.cash) UpdateCashDisplay(hudLink);
+	if (LastPowerC != hudLink.current_power || LastPowerM != hudLink.max_power) UpdatePowerDisplay(hudLink);
+	if (LastMinute != hudLink.minute) UpdateCalendar(hudLink);	
 
 	auto pauseMode = nf::get_pause_mode();
-	switch (pauseMode) {
-	case 0: GameRunMode = TEXT("Running"); break;
-	case 1: GameRunMode = TEXT("Paused"); break;
-	case 2: GameRunMode = TEXT("Single Step"); break;
+	if (pauseMode != LastPauseMode) {
+		switch (pauseMode) {
+		case 0: GameRunMode = TEXT("Running"); break;
+		case 1: GameRunMode = TEXT("Paused"); break;
+		case 2: GameRunMode = TEXT("Single Step"); break;
+		}
+		LastPauseMode = pauseMode;
+		PauseModeChanged.Broadcast();
 	}
 
+	FString time;
 	nf::on_tick(DeltaTime);
 	if (nf::water_dirty) {
 		SetupWater();
 		nf::water_dirty = false; 
 	}
 	UpdateModels();
-	UpdateLights();
+	UpdateLights();	
 }
 
 void ANoxLinkTest::PauseGame() {

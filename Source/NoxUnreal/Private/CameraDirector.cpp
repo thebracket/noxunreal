@@ -21,7 +21,6 @@ ACameraDirector::ACameraDirector()
 void ACameraDirector::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void ACameraDirector::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) {
@@ -53,6 +52,8 @@ void ACameraDirector::SetupPlayerInputComponent(class UInputComponent* PlayerInp
 	PlayerInputComponent->BindAction("MouseLeftClick", IE_Released, this, &ACameraDirector::LeftClickOff);
 	PlayerInputComponent->BindAction("MouseRightClick", IE_Pressed, this, &ACameraDirector::RightClickOn);
 	PlayerInputComponent->BindAction("MouseRightClick", IE_Released, this, &ACameraDirector::RightClickOff);
+
+
 }
 
 // Called every frame
@@ -61,16 +62,20 @@ void ACameraDirector::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Input Support
-
 	if (zooming == 1) {
 		nf::camera_zoom_in();
+		ZLevelChanged.Broadcast();
 	}
 	else if (zooming == 2) {
 		nf::camera_zoom_out();
+		ZLevelChanged.Broadcast();
 	}
 
 	if (xMove != 0 || yMove != 0 || zMove != 0) {
 		nf::camera_move(xMove, yMove, zMove);
+		if (zMove != 0) {
+			ZLevelChanged.Broadcast();
+		}
 		zMove = 0;
 	}
 
