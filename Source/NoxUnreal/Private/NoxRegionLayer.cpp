@@ -20,10 +20,10 @@ ANoxRegionLayer::ANoxRegionLayer()
 	PrimaryActorTick.bCanEverTick = false;
 	mesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh"));
 	RootComponent = mesh;
-	// New in UE 4.17, multi-threaded PhysX cooking.
 	mesh->bUseAsyncCooking = true;
 	mesh->bCastHiddenShadow = true;
 
+	// Create the design mesh
 	designMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh2"));
 	designMesh->bUseAsyncCooking = true;
 	designMesh->bCastHiddenShadow = false;
