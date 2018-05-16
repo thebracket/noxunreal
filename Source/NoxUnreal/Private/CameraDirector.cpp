@@ -90,11 +90,11 @@ void ACameraDirector::Tick(float DeltaTime)
 
 	switch (mode) {
 	case 0: camera_position = FVector(x * WORLD_SCALE, (y + (zoom / 3.0f)) * WORLD_SCALE, (z + zoom) * WORLD_SCALE); break;
-	case 1: camera_position = FVector(x * WORLD_SCALE, (y + zoom) * WORLD_SCALE, z * WORLD_SCALE); break;
+	case 1: camera_position = FVector(x * WORLD_SCALE, y * WORLD_SCALE, (z + zoom) * WORLD_SCALE); break;
 	case 2: camera_position = FVector((x + zoom) * WORLD_SCALE, (y + zoom) * WORLD_SCALE, (z+zoom) * WORLD_SCALE); break;
 	case 3: camera_position = FVector((x - zoom) * WORLD_SCALE, (y + zoom) * WORLD_SCALE, (z+zoom) * WORLD_SCALE); break;
-	case 4: camera_position = FVector((x + zoom) * WORLD_SCALE, (y + zoom) * WORLD_SCALE, (z-zoom) * WORLD_SCALE); break;
-	case 5: camera_position = FVector((x - zoom) * WORLD_SCALE, (y + zoom) * WORLD_SCALE, (z - zoom) * WORLD_SCALE); break;
+	case 4: camera_position = FVector((x + zoom) * WORLD_SCALE, (y - zoom) * WORLD_SCALE, (z+zoom) * WORLD_SCALE); break;
+	case 5: camera_position = FVector((x - zoom) * WORLD_SCALE, (y - zoom) * WORLD_SCALE, (z+zoom) * WORLD_SCALE); break;
 	}
 
 	FRotator camrot = UKismetMathLibrary::FindLookAtRotation(camera_position, camera_target);

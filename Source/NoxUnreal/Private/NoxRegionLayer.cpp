@@ -173,7 +173,6 @@ void ANoxRegionLayer::ChunkBuilder() {
 		mesh->SetMaterial(sectionCount, material);
 
 		mesh->CreateMeshSection_LinearColor(sectionCount, gm.Value.vertices, gm.Value.Triangles, gm.Value.normals, gm.Value.UV0, gm.Value.vertexColors, gm.Value.tangents, true);
-
 		++sectionCount;
 	}
 
