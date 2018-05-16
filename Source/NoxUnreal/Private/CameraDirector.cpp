@@ -188,3 +188,6 @@ void ACameraDirector::RightClickOff() {
 	RightClicked = false;
 }
 
+void ACameraDirector::TriggerZLevelChange() {
+	ZLevelChanged.Broadcast();
+}

@@ -63,4 +63,7 @@ public:
 	void LeftClickOff();
 	void RightClickOn();
 	void RightClickOff();
+
+	UFUNCTION(BlueprintCallable)
+	void TriggerZLevelChange();
 };

@@ -79,6 +79,8 @@ namespace nf {
 
 	void chunk_veg(const int &chunk_idx, size_t &size, veg_t *& veg_ptr);
 
+	void chunk_design_mode(const int &chunk_idx, const int &chunk_z, size_t &size, floor_t *& floor_ptr);
+
 	/*
 	* Gets the current camera position
 	*/

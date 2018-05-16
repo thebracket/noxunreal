@@ -48,7 +48,11 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	UProceduralMeshComponent * mesh;
 
+	UPROPERTY(VisibleAnywhere)
+	UProceduralMeshComponent * designMesh;
+
 	TMap<int, geometry_chunk> geometry_by_material;
+	TMap<int, geometry_chunk> design_geometry_by_material;
 
 	const int WORLD_SCALE = 200;
 	const float TEXTURE_SCALE = 2000.0f;

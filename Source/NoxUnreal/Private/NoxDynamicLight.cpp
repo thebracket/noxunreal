@@ -20,7 +20,7 @@ void ANoxDynamicLight::BeginPlay()
 	pointlight->SetActive(true);
 	pointlight->SetCastShadows(true);
 	pointlight->SetMobility(EComponentMobility::Movable);
-	pointlight->SetIntensity(50000.0f);
+	pointlight->SetIntensity(5000.0f);
 }
 
 // Called every frame
