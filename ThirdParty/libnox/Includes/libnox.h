@@ -311,6 +311,12 @@ namespace nf {
 	void architecture_clear();
 	int get_available_block_count();
 	int get_required_block_count();
+
+	void workflow_menu(size_t &queue_size, queued_work_t *& queued_work_ptr, size_t &available_size, available_work_t *& available_work_ptr, size_t &standing_order_size, active_standing_order_t *& standing_order_ptr);
+	void workflow_remove_from_queue(int index);
+	void workflow_enqueue(int index);
+	void workflow_add_so(int index);
+	void workflow_remove_so(int index);
 }
 
 #endif

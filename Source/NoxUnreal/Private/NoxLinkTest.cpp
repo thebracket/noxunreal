@@ -697,3 +697,62 @@ int ANoxLinkTest::AvailableArchBlocks() {
 int ANoxLinkTest::RequiredArchBlocks() {
 	return nf::get_required_block_count();
 }
+
+void ANoxLinkTest::UpdateWorkOrderLists() {
+	QueuedWork.Empty();
+	AvailableReactions.Empty();
+	StandingWorkOrders.Empty();
+
+	size_t QueueSize, AvailableSize, StandingSize;
+	nf::queued_work_t * queue_ptr;
+	nf::available_work_t * available_ptr;
+	nf::active_standing_order_t * so_ptr;
+
+	nf::workflow_menu(QueueSize, queue_ptr, AvailableSize, available_ptr, StandingSize, so_ptr);
+
+	for (size_t i = 0; i < QueueSize; ++i) {
+		nf::queued_work_t q = queue_ptr[i];
+		FQueuedWork w;
+		w.Qty = q.qty;
+		w.ReactionName = FString(ANSI_TO_TCHAR(q.reaction_name));
+		w.ReactionDef = FString(ANSI_TO_TCHAR(q.reaction_def));
+		QueuedWork.Emplace(w);
+	}
+
+	for (size_t i = 0; i < AvailableSize; ++i) {
+		nf::available_work_t q = available_ptr[i];
+		FAvailableWork w;
+		w.BuildingName = FString(ANSI_TO_TCHAR(q.building_name));
+		w.Inputs = FString(ANSI_TO_TCHAR(q.inputs));
+		w.Outputs = FString(ANSI_TO_TCHAR(q.outputs));
+		w.ReactionDef = FString(ANSI_TO_TCHAR(q.reaction_def));
+		w.ReactionName = FString(ANSI_TO_TCHAR(q.reaction_name));
+		AvailableReactions.Emplace(w);
+	}
+
+	for (size_t i = 0; i < StandingSize; ++i) {
+		nf::active_standing_order_t q = so_ptr[i];
+		FStandingOrder w;
+		w.ItemName = FString(ANSI_TO_TCHAR(q.item_name));
+		w.Qty = q.min_qty;
+		w.ReactionName = FString(ANSI_TO_TCHAR(q.reaction_name));
+		w.ItemTag = FString(ANSI_TO_TCHAR(q.item_tag));
+		StandingWorkOrders.Emplace(w);
+	}
+}
+
+void ANoxLinkTest::WorkOrderEnqueue(int index) {
+	nf::workflow_enqueue(index);
+}
+
+void ANoxLinkTest::WorkOrderRemove(int index) {
+	nf::workflow_remove_from_queue(index);
+}
+
+void ANoxLinkTest::WorkOrderAddSO(int index) {
+	nf::workflow_add_so(index);
+}
+
+void ANoxLinkTest::WorkOrderRemoveSO(int index) {
+	nf::workflow_remove_so(index);
+}

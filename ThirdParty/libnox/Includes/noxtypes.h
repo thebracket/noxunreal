@@ -85,6 +85,27 @@ namespace nf {
 		char name[254];
 		char grows_into[254];
 	};
+
+	struct queued_work_t {
+		int qty;
+		char reaction_def[254];
+		char reaction_name[254];
+	};
+
+	struct available_work_t {
+		char reaction_def[254];
+		char reaction_name[254];
+		char building_name[254];
+		char inputs[1024];
+		char outputs[1024];
+	};
+
+	struct active_standing_order_t {
+		char item_name[254];
+		int min_qty;
+		char reaction_name[254];
+		char item_tag[254];
+	};
 }
 
 #endif

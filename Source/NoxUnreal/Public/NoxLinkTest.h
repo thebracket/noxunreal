@@ -106,6 +106,60 @@ struct FPlantableSeed
 	FString grows_into;
 };
 
+USTRUCT(BlueprintType)
+struct FQueuedWork
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	int Qty;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString ReactionDef;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString ReactionName;
+};
+
+USTRUCT(BlueprintType)
+struct FAvailableWork
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FString ReactionDef;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString ReactionName;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString BuildingName;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString Inputs;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString Outputs;
+};
+
+USTRUCT(BlueprintType)
+struct FStandingOrder
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	int Qty;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString ItemName;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString ReactionName;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString ItemTag;
+};
+
 UCLASS()
 class NOXUNREAL_API ANoxLinkTest : public AActor
 {
@@ -329,6 +383,30 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "HUD")
 	FOnPauseModeChanged PauseModeChanged;
 
+	// Workflow list
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FQueuedWork> QueuedWork;
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FAvailableWork> AvailableReactions;
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FStandingOrder> StandingWorkOrders;
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateWorkOrderLists();
+
+	UFUNCTION(BlueprintCallable)
+	void WorkOrderEnqueue(int index);
+
+	UFUNCTION(BlueprintCallable)
+	void WorkOrderRemove(int index);
+
+	UFUNCTION(BlueprintCallable)
+	void WorkOrderAddSO(int index);
+
+	UFUNCTION(BlueprintCallable)
+	void WorkOrderRemoveSO(int index);
 
 private:
 
