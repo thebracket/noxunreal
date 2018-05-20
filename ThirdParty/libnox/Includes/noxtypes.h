@@ -3,6 +3,10 @@
 
 namespace nf {
 
+	struct material_map_t {
+		char UnrealPath[254];
+	};
+
 	struct cube_t {
 		int x, y, z, w, h, d;
 		unsigned int tex;

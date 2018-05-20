@@ -198,6 +198,9 @@ public:
 	ANoxCursors * Cursors;
 
 	UPROPERTY(BlueprintReadOnly)
+	TMap<int, FString> MaterialAtlas;
+
+	UPROPERTY(BlueprintReadOnly)
 	float PowerPercent;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -425,3 +428,5 @@ private:
 	void SetupWater();
 	
 };
+
+extern ANoxLinkTest * link_ptr;

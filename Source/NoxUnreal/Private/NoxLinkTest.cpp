@@ -5,6 +5,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "CameraDirector.h"
 
+ANoxLinkTest * link_ptr;
+
 // Sets default values
 ANoxLinkTest::ANoxLinkTest()
 {
@@ -23,12 +25,31 @@ ANoxLinkTest::ANoxLinkTest()
 }
 
 void ANoxLinkTest::SetupNF() {
+	link_ptr = this;
 	FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::GameContentDir());
+	char * path_c_str = TCHAR_TO_ANSI(*ThePath);
+	nf::set_game_def_path(path_c_str);
 	//ThePath.Append("world_defs/");
 	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, nf::get_version());
 	nf::setup_raws();
+
 	nf::setup_planet();
 	nf::load_game();
+
+	MaterialAtlas.Empty();
+	size_t texSize;
+	nf::material_map_t * CurrentTexture;
+	nf::get_materials_map(texSize, CurrentTexture);
+	for (size_t i = 0; i < texSize; ++i) {
+		nf::material_map_t Tex = CurrentTexture[i];
+		FString matPath = FString(ANSI_TO_TCHAR(Tex.UnrealPath));
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, matPath);
+		MaterialAtlas.Add(i, matPath);
+
+		FString d = MaterialAtlas[i];
+		d.AppendInt(i);
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, d);
+	}
 
 	nf::chunks_init();
 	nf::chunks_update();

@@ -43,6 +43,11 @@ namespace nf {
 	void load_game();
 
 	/*
+	 * Loads the materials map
+	 */
+	void get_materials_map(size_t &size, material_map_t *& mat_ptr);
+
+	/*
 	* Initializes the in-memory structures handling chunks.
 	*/
 	void chunks_init();
