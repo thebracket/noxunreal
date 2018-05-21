@@ -50,7 +50,9 @@ void ANoxLinkTest::SetupNF() {
 		d.AppendInt(i);
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, d);
 	}
-
+	MaterialAtlas.Add(-1, TEXT("MaterialInstanceConstant'/Game/TileMaterials/Instances/MZ_Grass.MZ_Grass'"));
+	MaterialAtlas.Add(-2, TEXT("MaterialInstanceConstant'/Game/TileMaterials/Instances/MZ_Plastic.MZ_Plastic'"));
+	MaterialAtlas.Add(-3, TEXT("MaterialInstanceConstant'/Game/TileMaterials/Instances/MB_Window.MB_Window'"));
 	nf::chunks_init();
 	nf::chunks_update();
 

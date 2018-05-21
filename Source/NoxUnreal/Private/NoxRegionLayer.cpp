@@ -97,7 +97,7 @@ FString GetMaterialTexture(const int &Key) {
 		return link_ptr->MaterialAtlas[Key];
 	}
 	else {
-		return FString(TEXT("MaterialInstanceConstant'/Game/TileMaterials/Instances/M_Alabaster_FloorRough.M_Alabaster_FloorRough'"));
+		return link_ptr->MaterialAtlas[-2];
 	}
 }
 
