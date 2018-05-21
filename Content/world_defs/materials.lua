@@ -783,10 +783,10 @@ materials = {
     plasteel = { name = "Plasteel", type="synthetic", 
         glyph = glyphs['one_quarter_solid'], fg=colors['white'], bg=colors['black'],
         hit_points = 200,
-        FloorRough = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MB_Plasteel_Floor.MB_Plasteel_Floor'",
-        FloorSmooth = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MB_Plasteel_Floor.MB_Plasteel_Floor'",
-        WallRough = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MB_Plasteel_Floor.MB_Plasteel_Floor'",
-        WallSmooth = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MB_Plasteel_Floor.MB_Plasteel_Floor'"
+        FloorRough = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MB_BathTile.MB_BathTile'",
+        FloorSmooth = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MB_BathTile.MB_BathTile'",
+        WallRough = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MB_Plasteel_Wall.MB_Plasteel_Wall'",
+        WallSmooth = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MB_Plasteel_Wall.MB_Plasteel_Wall'"
     },
     cloth = { name = "Cloth", type="organic", 
         glyph = glyphs['one_quarter_solid'], fg=colors['red'], bg=colors['black'],

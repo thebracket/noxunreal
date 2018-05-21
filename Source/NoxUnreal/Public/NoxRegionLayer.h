@@ -72,6 +72,7 @@ public:
 	UHierarchicalInstancedStaticMeshComponent * bush1 = nullptr;
 	UHierarchicalInstancedStaticMeshComponent * bush2 = nullptr;
 	UHierarchicalInstancedStaticMeshComponent * tree1 = nullptr;
+	UHierarchicalInstancedStaticMeshComponent * tree2 = nullptr;
 	void InitializeFoliageContainers();
 	void FoliageInit(FString &voxAddress, UHierarchicalInstancedStaticMeshComponent *& target);
 	void FoliageClear();

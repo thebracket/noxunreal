@@ -43,12 +43,12 @@ void ANoxLinkTest::SetupNF() {
 	for (size_t i = 0; i < texSize; ++i) {
 		nf::material_map_t Tex = CurrentTexture[i];
 		FString matPath = FString(ANSI_TO_TCHAR(Tex.UnrealPath));
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, matPath);
+		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, matPath);
 		MaterialAtlas.Add(i, matPath);
 
 		FString d = MaterialAtlas[i];
 		d.AppendInt(i);
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, d);
+		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, d);
 	}
 	MaterialAtlas.Add(-1, TEXT("MaterialInstanceConstant'/Game/TileMaterials/Instances/MZ_Grass.MZ_Grass'"));
 	MaterialAtlas.Add(-2, TEXT("MaterialInstanceConstant'/Game/TileMaterials/Instances/MZ_Plastic.MZ_Plastic'"));
