@@ -12,6 +12,7 @@ ANoxStaticModel::ANoxStaticModel()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
+	StaticMeshComponent->SetMobility(EComponentMobility::Movable);
 	RootComponent = StaticMeshComponent;
 }
 
@@ -182,7 +183,11 @@ void ANoxStaticModel::BeginPlay()
 
 	UStaticMesh* stairs;
 	stairs = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, *voxAddress, nullptr, LOAD_None, nullptr));
-	StaticMeshComponent->SetStaticMesh(stairs);	
+	StaticMeshComponent->SetStaticMesh(stairs);
+	if (scaleX != 1.0f || scaleY != 1.0f || scaleZ != 1.0f) {
+		// Set the scale
+		StaticMeshComponent->SetWorldScale3D(FVector(20.0f, 20.0f, 20.0f));
+	}
 	if (r != 1.0f || g != 1.0f || b != 1.0f) {
 		UMaterial * Material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/Models/VoxMat/VoxelMaterial.VoxelMaterial'"), nullptr, LOAD_None, nullptr));
 		UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(Material, this);

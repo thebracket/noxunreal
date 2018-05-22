@@ -26,7 +26,8 @@ ANoxLinkTest::ANoxLinkTest()
 
 void ANoxLinkTest::SetupNF() {
 	link_ptr = this;
-	FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::GameContentDir());
+	//FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::GameContentDir());
+	FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir());
 	char * path_c_str = TCHAR_TO_ANSI(*ThePath);
 	nf::set_game_def_path(path_c_str);
 	//ThePath.Append("world_defs/");
@@ -95,7 +96,7 @@ void ANoxLinkTest::AddModel(const nf::dynamic_model_t &model, TMap<int, ANoxStat
 
 	FRotator rot = FRotator(model.axis1 * model.rot_angle, model.axis2 * model.rot_angle, model.axis3 * model.rot_angle + 90.0f);
 	FVector loc = FVector(mx * WORLD_SCALE, my * WORLD_SCALE, mz * WORLD_SCALE);
-	FTransform trans = FTransform(rot, loc);
+	FTransform trans = FTransform(rot, loc, FVector(model.x_scale, model.y_scale, 20.0f));
 	auto newModel = GetWorld()->SpawnActorDeferred<ANoxStaticModel>(ANoxStaticModel::StaticClass(), trans);
 	newModel->modelId = model.idx;
 	newModel->x = model.x;
@@ -107,11 +108,7 @@ void ANoxLinkTest::AddModel(const nf::dynamic_model_t &model, TMap<int, ANoxStat
 	newModel->scaleX = model.x_scale;
 	newModel->scaleY = model.y_scale;
 	newModel->scaleZ = model.z_scale;
-	newModel->SetActorScale3D(FVector(newModel->scaleX, newModel->scaleY, newModel->scaleZ));
-	newModel->SetActorRotation(rot);
 	newModel->FinishSpawning(trans);
-	newModel->SetActorRotation(rot);
-	newModel->SetActorScale3D(FVector(newModel->scaleX, newModel->scaleY, newModel->scaleZ));
 	container->Add(model.idx, newModel);
 }
 
@@ -191,6 +188,9 @@ void ANoxLinkTest::UpdateModels() {
 					target->r = model.tint_r;
 					target->g = model.tint_g;
 					target->b = model.tint_b;
+					target->scaleX = model.x_scale;
+					target->scaleY = model.y_scale;
+					target->scaleZ = model.z_scale;
 					target->SetActorTransform(trans, true);
 
 					if (r != model.tint_r || g != model.tint_g || b != model.tint_b) {
@@ -198,6 +198,7 @@ void ANoxLinkTest::UpdateModels() {
 						UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
 						DynMaterial->SetVectorParameterValue("TintRGB", FLinearColor(r, g, b));
 						target->StaticMeshComponent->SetMaterial(0, DynMaterial);
+						target->StaticMeshComponent->SetWorldScale3D(FVector(model.x_scale, model.y_scale, model.z_scale));
 						target->StaticMeshComponent->MarkRenderStateDirty();
 						target->Modify();
 					}
