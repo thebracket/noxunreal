@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "../Raws/NRaws.h"
+#include "../Planet/NPlanet.h"
 #include "NoxGameInstance.generated.h"
 
 /**
@@ -19,7 +20,13 @@ public:
 
 	NRaws * GetRaws();
 
+	UFUNCTION(BlueprintCallable)
+	UNPlanet * GetPlanet();
+
 private:
 	NRaws * raws_instance = nullptr;
+
+	UPROPERTY()
+	UNPlanet * planet_instance = nullptr;
 	
 };

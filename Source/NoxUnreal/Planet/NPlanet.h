@@ -6,7 +6,6 @@
 #include "UObject/NoExportTypes.h"
 #include "../BEngine/RandomNumberGenerator.h"
 #include "../BEngine/FastNoise.h"
-#include "../Public/NoxGameInstance.h"
 #include "NPlanet.generated.h"
 
 namespace BlockType {
@@ -137,6 +136,9 @@ class NOXUNREAL_API UNPlanet : public UObject
 	GENERATED_BODY()
 	
 public:
+	UNPlanet() {
+	}
+
 	UPROPERTY(BlueprintReadOnly)
 	FString name = "Test World";
 
@@ -186,6 +188,7 @@ public:
 
 	constexpr inline int idx(const int x, const int y) { return y * nfu::WORLD_WIDTH + x; }
 
+	UFUNCTION(BlueprintCallable)
 	void BuildPlanet(const int &seed, const int &water_divisor, const int &plains_divisor, const int &starting_settlers, const bool &strict_beamdown);
 
 private:

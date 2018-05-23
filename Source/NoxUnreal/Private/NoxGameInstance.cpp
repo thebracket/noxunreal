@@ -11,3 +11,9 @@ NRaws * UNoxGameInstance::GetRaws() {
 	return raws_instance;
 }
 
+UNPlanet * UNoxGameInstance::GetPlanet() {
+	if (planet_instance == nullptr) {
+		planet_instance = NewObject<UNPlanet>(this);
+	}
+	return planet_instance;
+}

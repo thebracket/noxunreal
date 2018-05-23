@@ -2,6 +2,8 @@
 
 #include "NPlanet.h"
 #include "../Raws/NRaws.h"
+#include "../Public/NoxGameInstance.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
 void UNPlanet::BuildPlanet(const int &seed, const int &water_divisor, const int &plains_divisor, const int &starting_settlers, const bool &strict_beamdown) {
 	// Set incoming parameters
@@ -331,7 +333,7 @@ TMap<uint8, double> UNPlanet::BiomeMembership(const int32_t &bidx) {
 				// Increment count by cell type
 				auto finder = counts.Find(Landblocks[block_idx].type);
 				if (finder == nullptr) {
-					counts[Landblocks[block_idx].type] = 1L;
+					counts.Add(Landblocks[block_idx].type,  1L);
 				}
 				else {
 					++finder;
@@ -368,11 +370,11 @@ TMap<uint8, double> UNPlanet::BiomeMembership(const int32_t &bidx) {
 	for (auto i = 0; i <= BlockType::MAX_BLOCK_TYPE; ++i) {
 		const auto finder = counts.Find(i);
 		if (finder == nullptr) {
-			percents[i] = 0.0;
+			percents.Add(i, 0.0);
 		}
 		else {
 			const auto pct = static_cast<double>(*finder) / counter;
-			percents[i] = pct;
+			*finder = pct;
 		}
 
 	}
@@ -385,7 +387,9 @@ TArray<TPair<double, size_t>> UNPlanet::FindPossibleBiomes(TMap<uint8, double> &
 
 	std::size_t idx = 0;
 	
-	Cast<UNoxGameInstance>(GEngine->GetWorld()->GetGameInstance())->GetRaws()->each_biome([&biome, &idx, &result, &percents](rawdefs::biome_type_t *bt) {
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	NRaws * raws = game->GetRaws();
+	raws->each_biome([&biome, &idx, &result, &percents](rawdefs::biome_type_t *bt) {
 		if (biome.mean_temperature >= bt->min_temp && biome.mean_temperature <= bt->max_temp
 			&& biome.mean_rainfall >= bt->min_rain && biome.mean_rainfall <= bt->max_rain
 			&& biome.warp_mutation >= bt->min_mutation && biome.warp_mutation <= bt->max_mutation) {
