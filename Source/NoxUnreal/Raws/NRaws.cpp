@@ -14,21 +14,22 @@ NRaws::~NRaws()
 void NRaws::LoadRaws() {
 	using namespace string_tables;
 	string_tables.Empty();
-	FString raws_path = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir());
+	FString raws_path = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir()) + "world_defs/";
 	
 	// Load string tables for first names and last names
-	LoadStringTable(FIRST_NAMES_MALE, raws_path + FString("first_names_male.txt"));
-	LoadStringTable(FIRST_NAMES_FEMALE, raws_path + FString("first_names_female.txt"));
-	LoadStringTable(LAST_NAMES, raws_path + FString("last_names.txt"));
-	LoadStringTable(NEW_ARRIVAL_QUIPS, raws_path + FString("newarrival.txt"));
-	LoadStringTable(MENU_SUBTITLES, raws_path + FString("menu_text.txt"));
+	string_tables.Add(FIRST_NAMES_MALE, LoadStringTable(FIRST_NAMES_MALE, raws_path + FString("first_names_male.txt")));
+	string_tables.Add(FIRST_NAMES_FEMALE, LoadStringTable(FIRST_NAMES_FEMALE, raws_path + FString("first_names_female.txt")));
+	string_tables.Add(LAST_NAMES, LoadStringTable(LAST_NAMES, raws_path + FString("last_names.txt")));
+	string_tables.Add(NEW_ARRIVAL_QUIPS, LoadStringTable(NEW_ARRIVAL_QUIPS, raws_path + FString("newarrival.txt")));
+	string_tables.Add(MENU_SUBTITLES, LoadStringTable(MENU_SUBTITLES, raws_path + FString("menu_text.txt")));
 
 	// Setup Lua
 	InitLua();
 
 	// Load the game
-	LoadStringTable(-1, raws_path + FString("index.txt"));
-	for (const auto &filename : string_tables[-1].strings) {
+	string_tables.Add(120, LoadStringTable(120, raws_path + FString("index.txt")));
+	if (string_tables[120].strings.Num() == 0) return;
+	for (const auto &filename : string_tables[120].strings) {
 		LoadLuaScript(raws_path + filename);
 	}
 
@@ -36,6 +37,8 @@ void NRaws::LoadRaws() {
 }
 
 void NRaws::LoadGameTables() {
+	if (LoadedRaws) return;
+	LoadedRaws = true;
 	// TODO
 	ReadMaterialTypes();
 
@@ -47,10 +50,10 @@ void NRaws::LoadGameTables() {
 	ReadBuildings();
 	ReadReactions();
 	ReadPlantTypes();
-	//read_biome_types();
+	ReadBiomeTypes();
 	//read_biome_textures();
-	//read_species_types();
-	//read_creature_types();
+	ReadSpeciesTypes();
+	ReadCreatureTypes();
 }
 
 void NRaws::InitLua() {
@@ -84,6 +87,8 @@ void NRaws::LoadLuaScript(const FString &filename) {
 }
 
 void NRaws::ReadMaterialTypes() {
+	using namespace rawdefs;
+
 	lua_getglobal(lua_state, "materials");
 	lua_pushnil(lua_state);
 
@@ -94,7 +99,8 @@ void NRaws::ReadMaterialTypes() {
 		material_def_t m;
 		m.tag = key;
 
-		lua_pushstring(lua_state, TCHAR_TO_ANSI(*key));
+		char * keycstr = TCHAR_TO_ANSI(*key);
+		lua_pushstring(lua_state, keycstr);
 		lua_gettable(lua_state, -2);
 		while (lua_next(lua_state, -2) != 0) {
 			FString field = lua_tostring(lua_state, -2);
@@ -178,29 +184,32 @@ void NRaws::ReadMaterialTypes() {
 	material_defs_idx.Empty();
 	int next_id = 0;
 	for (std::size_t material_index = 0; material_index < material_defs.Num(); ++material_index) {
-		material_defs_idx[material_defs[material_index].tag] = material_index;
+		material_defs_idx.Add(material_defs[material_index].tag, material_index);
 
 		material_defs[material_index].floor_rough_id = next_id;
 		material_defs[material_index].floor_smooth_id = next_id + 1;
 		material_defs[material_index].wall_rough_id = next_id + 2;
 		material_defs[material_index].wall_smooth_id = next_id + 3;
 
-		texture_atlas[next_id] = material_defs[material_index].floor_rough;
-		texture_atlas[next_id + 1] = material_defs[material_index].floor_smooth;
-		texture_atlas[next_id + 2] = material_defs[material_index].wall_rough;
-		texture_atlas[next_id + 3] = material_defs[material_index].wall_smooth;
+		texture_atlas.Add(next_id, material_defs[material_index].floor_rough);
+		texture_atlas.Add(next_id, material_defs[material_index].floor_rough);
+		texture_atlas.Add(next_id + 1, material_defs[material_index].floor_smooth);
+		texture_atlas.Add(next_id + 2, material_defs[material_index].wall_rough);
+		texture_atlas.Add(next_id + 3, material_defs[material_index].wall_smooth);
 
 		next_id += 4;
 	}
 }
 
 void NRaws::ReadClothing() {
+	using namespace rawdefs;
+
 	FString tag;
 	clothing_t c;
 	read_lua_table("clothing",
 		[&c, &tag](const auto &key) { tag = key; c = clothing_t{}; },
 		[&c, this](const auto &key) {
-			clothing_types[key] = c;
+			clothing_types.Add(key,  c);
 		},
 		lua_parser(
 			std::initializer_list<lua_parser_inner_t>{
@@ -218,11 +227,13 @@ void NRaws::ReadClothing() {
 }
 
 void NRaws::ReadLifeEvents() {
+	using namespace rawdefs;
+
 	FString tag;
 	life_event_template le;
 	read_lua_table("life_events",
 		[&le, &tag](const auto &key) { tag = key; le = life_event_template{}; },
-		[&le, &tag, this](const auto &key) { life_event_defs[tag] = le; },
+		[&le, &tag, this](const auto &key) { life_event_defs.Add(tag, le); },
 		lua_parser(
 			std::initializer_list<lua_parser_inner_t>{
 				{ "min_age", [&le,this]() { le.min_age = lua_int(); } },
@@ -245,6 +256,8 @@ void NRaws::ReadLifeEvents() {
 }
 
 void NRaws::ReadProfessions() {
+	using namespace rawdefs;
+
 	FString tag;
 	profession_t p;
 
@@ -283,13 +296,15 @@ void NRaws::ReadProfessions() {
 }
 
 void NRaws::ReadStockpiles() {
+	using namespace rawdefs;
+
 	FString tag;
 	FString name;
 	stockpile_def_t c;
 
 	read_lua_table("stockpiles",
 		[&tag, &c](const auto &key) { tag = key; c = stockpile_def_t{}; c.tag = key; },
-		[&c,this](const auto &key) { stockpile_defs[c.index] = c; if (c.tag == "clothing") clothing_stockpile = c.index; },
+		[&c,this](const auto &key) { stockpile_defs.Add(c.index, c); if (c.tag == "clothing") clothing_stockpile = c.index; },
 		lua_parser(
 			std::initializer_list<lua_parser_inner_t>{
 				{ "name", [&c,this]() { c.name = lua_str(); } },
@@ -300,12 +315,14 @@ void NRaws::ReadStockpiles() {
 }
 
 void NRaws::ReadItems() {
+	using namespace rawdefs;
+
 	FString tag;
 	item_def_t c;
 
 	read_lua_table("items",
 		[&c, &tag](const auto &key) { tag = key; c = item_def_t{}; c.tag = tag; },
-		[&c, &tag, this](const auto &key) { item_defs[tag] = c; },
+		[&c, &tag, this](const auto &key) { item_defs.Add(tag, c); },
 			lua_parser(
 				std::initializer_list<lua_parser_inner_t>{
 					{ "name", [&c,this]() { c.name = lua_str(); } },
@@ -327,24 +344,24 @@ void NRaws::ReadItems() {
 					{ "stockpile", [&c,this]() { c.stockpile_idx = lua_int(); } },
 					{ "itemtype", [&c,this]() {
 						read_lua_table_inner("itemtype", [&c](auto type) {
-							if (type == "component") c.categories[COMPONENT] = true;
-							if (type == "tool-chopping") c.categories[TOOL_CHOPPING] = true;
-							if (type == "tool-digging") c.categories[TOOL_DIGGING] = true;
-							if (type == "weapon-melee") c.categories[WEAPON_MELEE] = true;
-							if (type == "weapon-ranged") c.categories[WEAPON_RANGED] = true;
-							if (type == "ammo") c.categories[WEAPON_AMMO] = true;
-							if (type == "food") c.categories[ITEM_FOOD] = true;
-							if (type == "spice") c.categories[ITEM_SPICE] = true;
-							if (type == "drink") c.categories[ITEM_DRINK] = true;
-							if (type == "hide") c.categories[ITEM_HIDE] = true;
-							if (type == "bone") c.categories[ITEM_BONE] = true;
-							if (type == "skull") c.categories[ITEM_SKULL] = true;
-							if (type == "leather") c.categories[ITEM_LEATHER] = true;
-							if (type == "tool-farming") c.categories[ITEM_FARMING] = true;
-							if (type == "seed") c.categories[ITEM_SEED] = true;
-							if (type == "topsoil") c.categories[ITEM_TOPSOIL] = true;
-							if (type == "fertilizer") c.categories[ITEM_FERTILIZER] = true;
-							if (type == "food-prepared") c.categories[ITEM_FOOD_PREPARED] = true;
+							if (type == "component") c.categories[rawdefs::COMPONENT] = true;
+							if (type == "tool-chopping") c.categories[rawdefs::TOOL_CHOPPING] = true;
+							if (type == "tool-digging") c.categories[rawdefs::TOOL_DIGGING] = true;
+							if (type == "weapon-melee") c.categories[rawdefs::WEAPON_MELEE] = true;
+							if (type == "weapon-ranged") c.categories[rawdefs::WEAPON_RANGED] = true;
+							if (type == "ammo") c.categories[rawdefs::WEAPON_AMMO] = true;
+							if (type == "food") c.categories[rawdefs::ITEM_FOOD] = true;
+							if (type == "spice") c.categories[rawdefs::ITEM_SPICE] = true;
+							if (type == "drink") c.categories[rawdefs::ITEM_DRINK] = true;
+							if (type == "hide") c.categories[rawdefs::ITEM_HIDE] = true;
+							if (type == "bone") c.categories[rawdefs::ITEM_BONE] = true;
+							if (type == "skull") c.categories[rawdefs::ITEM_SKULL] = true;
+							if (type == "leather") c.categories[rawdefs::ITEM_LEATHER] = true;
+							if (type == "tool-farming") c.categories[rawdefs::ITEM_FARMING] = true;
+							if (type == "seed") c.categories[rawdefs::ITEM_SEED] = true;
+							if (type == "topsoil") c.categories[rawdefs::ITEM_TOPSOIL] = true;
+							if (type == "fertilizer") c.categories[rawdefs::ITEM_FERTILIZER] = true;
+							if (type == "food-prepared") c.categories[rawdefs::ITEM_FOOD_PREPARED] = true;
 						});
 				} }
 			}
@@ -353,6 +370,8 @@ void NRaws::ReadItems() {
 }
 
 void NRaws::ReadBuildings() {
+	using namespace rawdefs;
+
 	lua_getglobal(lua_state, "buildings");
 	lua_pushnil(lua_state);
 
@@ -581,13 +600,15 @@ void NRaws::ReadBuildings() {
 
 			lua_pop(lua_state, 1);
 		}
-		building_defs[c.hashtag] = c;
+		building_defs.Add(c.hashtag, c);
 		//std::cout << "Read schematics for building: " << key << " (VOX " << building_defs[key].vox_model << ")\n";
 		lua_pop(lua_state, 1);
 	}
 }
 
 void NRaws::ReadReactions() {
+	using namespace rawdefs;
+
 	lua_getglobal(lua_state, "reactions");
 	lua_pushnil(lua_state);
 
@@ -706,14 +727,22 @@ void NRaws::ReadReactions() {
 
 			lua_pop(lua_state, 1);
 		}
-		reaction_defs[c.hashtag] = c;
-		reaction_building_defs[GetTypeHash(c.workshop)].Emplace(key);
+		reaction_defs.Add(c.hashtag, c);
+		/*if (!reaction_building_defs.Contains(GetTypeHash(c.workshop))) {
+			reaction_building_defs[GetTypeHash(c.workshop)].Emplace(key);
+		}
+		else {
+			reaction_building_defs.Add(GetTypeHash(c.workshop), TArray<FString>());
+			reaction_building_defs[GetTypeHash(c.workshop)].Emplace(key);
+		}*/
 
 		lua_pop(lua_state, 1);
 	}
 }
 
 void NRaws::ReadPlantTypes() {
+	using namespace rawdefs;
+
 	plant_t p;
 	FString tag;
 
@@ -782,7 +811,334 @@ void NRaws::ReadPlantTypes() {
 
 	plant_defs.Sort([](plant_t a, plant_t b) { return a.tag < b.tag; });
 	for (std::size_t i = 0; i<plant_defs.Num(); ++i) {
-		plant_defs_idx[plant_defs[i].tag] = i;
+		plant_defs_idx.Add(plant_defs[i].tag, i);
+	}
+}
+
+void NRaws::ReadBiomeTypes() {
+	using namespace rawdefs;
+
+	lua_getglobal(lua_state, "biomes");
+	lua_pushnil(lua_state);
+
+	while (lua_next(lua_state, -2) != 0)
+	{
+		FString key = lua_tostring(lua_state, -2);
+
+		biome_type_t b;
+
+		lua_pushstring(lua_state, TCHAR_TO_ANSI(*key));
+		lua_gettable(lua_state, -2);
+		while (lua_next(lua_state, -2) != 0) {
+			FString field = lua_tostring(lua_state, -2);
+
+			if (field == "name") b.name = lua_tostring(lua_state, -1);
+			if (field == "min_temp") b.min_temp = static_cast<int8_t>(lua_tonumber(lua_state, -1));
+			if (field == "max_temp") b.max_temp = static_cast<int8_t>(lua_tonumber(lua_state, -1));
+			if (field == "min_rain") b.min_rain = static_cast<int8_t>(lua_tonumber(lua_state, -1));
+			if (field == "max_rain") b.max_rain = static_cast<int8_t>(lua_tonumber(lua_state, -1));
+			if (field == "min_mutation") b.min_mutation = static_cast<uint8_t>(lua_tonumber(lua_state, -1));
+			if (field == "max_mutation") b.max_mutation = static_cast<uint8_t>(lua_tonumber(lua_state, -1));
+			if (field == "worldgen_texture_index") b.worldgen_texture_index = static_cast<unsigned int>(lua_tonumber(lua_state, -1));
+			if (field == "soils") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					const FString soil_type = lua_tostring(lua_state, -2);
+					if (soil_type == "soil") b.soil_pct = static_cast<uint8_t>(lua_tonumber(lua_state, -1));
+					if (soil_type == "sand") b.soil_pct = static_cast<uint8_t>(lua_tonumber(lua_state, -1));
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "occurs") {
+				// List of biome type indices
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					b.occurs.Emplace(static_cast<uint8_t>(lua_tonumber(lua_state, -1)));
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "plants") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					FString plant_name = lua_tostring(lua_state, -2);
+					auto frequency = static_cast<int>(lua_tonumber(lua_state, -1));
+					b.plants.Emplace(TPair<FString, int>(plant_name, frequency));
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "trees") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					const FString tree_type = lua_tostring(lua_state, -2);
+					const auto frequency = static_cast<int>(lua_tonumber(lua_state, -1));
+					if (tree_type == "deciduous") b.deciduous_tree_chance = frequency;
+					if (tree_type == "evergreen") b.evergreen_tree_chance = frequency;
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "wildlife") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					const FString critter = lua_tostring(lua_state, -1);
+					b.wildlife.Emplace(critter);
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "nouns") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					const FString noun = lua_tostring(lua_state, -1);
+					b.nouns.Emplace(noun);
+					lua_pop(lua_state, 1);
+				}
+			}
+
+			lua_pop(lua_state, 1);
+		}
+
+		biome_defs.Emplace(b);
+
+		lua_pop(lua_state, 1);
+	}
+}
+
+void NRaws::ReadSpeciesTypes() {
+	using namespace rawdefs;
+
+	lua_getglobal(lua_state, "species_sentient");
+	lua_pushnil(lua_state);
+
+	while (lua_next(lua_state, -2) != 0)
+	{
+		raw_species_t s;
+		FString key = lua_tostring(lua_state, -2);
+		s.tag = key;
+
+		lua_pushstring(lua_state, TCHAR_TO_ANSI(*key));
+		lua_gettable(lua_state, -2);
+		while (lua_next(lua_state, -2) != 0) {
+			FString field = lua_tostring(lua_state, -2);
+
+			if (field == "name") s.name = lua_tostring(lua_state, -1);
+			if (field == "male_name") s.male_name = lua_tostring(lua_state, -1);
+			if (field == "female_name") s.female_name = lua_tostring(lua_state, -1);
+			if (field == "group_name") s.collective_name = lua_tostring(lua_state, -1);
+			if (field == "description") s.description = lua_tostring(lua_state, -1);
+			if (field == "stat_mods") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					FString subfield = lua_tostring(lua_state, -2);
+					int value = static_cast<int>(lua_tonumber(lua_state, -1));
+					s.stat_mods.Add(subfield, value);
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "ethics") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					const FString subfield = lua_tostring(lua_state, -2);
+					if (subfield == "diet") {
+						const FString diet_type = lua_tostring(lua_state, -1);
+						if (diet_type == "omnivore") s.diet = diet_omnivore;
+						if (diet_type == "herbivore") s.diet = diet_herbivore;
+						if (diet_type == "carnivore") s.diet = diet_carnivore;
+					}
+					if (subfield == "alignment") {
+						const FString alignment_type = lua_tostring(lua_state, -1);
+						if (alignment_type == "good") s.alignment = align_good;
+						if (alignment_type == "neutral") s.alignment = align_neutral;
+						if (alignment_type == "evil") s.alignment = align_evil;
+						if (alignment_type == "devour") s.alignment = align_devour;
+					}
+					if (subfield == "blight") s.spreads_blight = lua_toboolean(lua_state, -1);
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "parts") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					FString part_name = lua_tostring(lua_state, -2);
+					body_part_t part;
+					part.name = part_name;
+					lua_pushstring(lua_state, TCHAR_TO_ANSI(*part_name));
+					lua_gettable(lua_state, -2);
+					while (lua_next(lua_state, -2) != 0) {
+						const FString part_field = lua_tostring(lua_state, -2);
+						if (part_field == "qty") part.qty = static_cast<int>(lua_tonumber(lua_state, -1));
+						if (part_field == "size") part.size = static_cast<int>(lua_tonumber(lua_state, -1));
+						lua_pop(lua_state, 1);
+					}
+					s.body_parts.Emplace(part);
+
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "max_age") s.max_age = static_cast<int>(lua_tonumber(lua_state, -1));
+			if (field == "infant_age") s.infant_age = static_cast<int>(lua_tonumber(lua_state, -1));
+			if (field == "child_age") s.child_age = static_cast<int>(lua_tonumber(lua_state, -1));
+			if (field == "glyph") s.glyph = static_cast<uint16_t>(lua_tonumber(lua_state, -1));
+			if (field == "glyph_ascii") s.glyph = static_cast<uint16_t>(lua_tonumber(lua_state, -1));
+			if (field == "worldgen_glyph") s.worldgen_glyph = static_cast<uint16_t>(lua_tonumber(lua_state, -1));
+			if (field == "composite_render") s.render_composite = lua_toboolean(lua_state, -1);
+			if (field == "vox") s.voxel_model = lua_tonumber(lua_state, -1);
+			if (field == "base_male_glyph") s.base_male_glyph = static_cast<uint16_t>(lua_tonumber(lua_state, -1));
+			if (field == "base_female_glyph") s.base_female_glyph = static_cast<uint16_t>(lua_tonumber(lua_state, -1));
+			if (field == "skin_colors") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					FString title = lua_tostring(lua_state, -2);
+					auto col = ReadLuaColor(title);
+					s.skin_colors.Emplace(TPair<FString, FNColor>(title, col));
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "hair_colors") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					FString title = lua_tostring(lua_state, -2);
+					auto col = ReadLuaColor(title);
+					s.hair_colors.Emplace(TPair<FString, FNColor>(title, col));
+					lua_pop(lua_state, 1);
+				}
+			}
+
+
+			lua_pop(lua_state, 1);
+		}
+		species_defs.Add(key, s);
+
+		lua_pop(lua_state, 1);
+	}
+}
+
+void NRaws::ReadCreatureTypes() {
+	using namespace rawdefs;
+
+	lua_getglobal(lua_state, "creatures");
+	lua_pushnil(lua_state);
+
+	while (lua_next(lua_state, -2) != 0)
+	{
+		raw_creature_t s;
+		FString key = lua_tostring(lua_state, -2);
+		s.tag = key;
+
+		lua_pushstring(lua_state, TCHAR_TO_ANSI(*key));
+		lua_gettable(lua_state, -2);
+		while (lua_next(lua_state, -2) != 0) {
+			FString field = lua_tostring(lua_state, -2);
+
+			if (field == "name") s.name = lua_tostring(lua_state, -1);
+			if (field == "male_name") s.male_name = lua_tostring(lua_state, -1);
+			if (field == "female_name") s.female_name = lua_tostring(lua_state, -1);
+			if (field == "group_name") s.collective_name = lua_tostring(lua_state, -1);
+			if (field == "description") s.description = lua_tostring(lua_state, -1);
+			if (field == "stats") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					FString subfield = lua_tostring(lua_state, -2);
+					auto value = static_cast<int>(lua_tonumber(lua_state, -1));
+					s.stats.Add(subfield, value);
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "parts") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					FString part_name = lua_tostring(lua_state, -2);
+					body_part_t part;
+					part.name = part_name;
+					lua_pushstring(lua_state, TCHAR_TO_ANSI(*part_name));
+					lua_gettable(lua_state, -2);
+					while (lua_next(lua_state, -2) != 0) {
+						const FString part_field = lua_tostring(lua_state, -2);
+						if (part_field == "qty") part.qty = static_cast<int>(lua_tonumber(lua_state, -1));
+						if (part_field == "size") part.size = static_cast<int>(lua_tonumber(lua_state, -1));
+						lua_pop(lua_state, 1);
+					}
+					s.body_parts.Emplace(part);
+
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "combat") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					FString cname = lua_tostring(lua_state, -2);
+					if (cname == "armor_class") s.armor_class = static_cast<int>(lua_tonumber(lua_state, -1));
+					if (cname == "attacks") {
+						lua_pushstring(lua_state, TCHAR_TO_ANSI(*cname));
+						lua_gettable(lua_state, -2);
+						while (lua_next(lua_state, -2) != 0) {
+							FString attack_name = lua_tostring(lua_state, -2);
+							lua_pushstring(lua_state, TCHAR_TO_ANSI(*attack_name));
+							lua_gettable(lua_state, -2);
+							creature_attack_t attack;
+							while (lua_next(lua_state, -2) != 0) {
+								const FString attack_field = lua_tostring(lua_state, -2);
+								if (attack_field == "type") attack.type = lua_tostring(lua_state, -1);
+								if (attack_field == "hit_bonus") attack.hit_bonus = static_cast<int>(lua_tonumber(lua_state, -1));
+								if (attack_field == "n_dice") attack.damage_n_dice = static_cast<int>(lua_tonumber(lua_state, -1));
+								if (attack_field == "die_type") attack.damage_dice = static_cast<int>(lua_tonumber(lua_state, -1));
+								if (attack_field == "die_mod") attack.damage_mod = static_cast<int>(lua_tonumber(lua_state, -1));
+								lua_pop(lua_state, 1);
+							}
+							//std::cout << attack.type << attack_name << "\n";
+							s.attacks.Emplace(attack);
+							lua_pop(lua_state, 1);
+						}
+					}
+
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "hunting_yield") {
+				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
+				lua_gettable(lua_state, -2);
+				while (lua_next(lua_state, -2) != 0) {
+					const FString yield_type = lua_tostring(lua_state, -2);
+					const auto value = static_cast<int>(lua_tonumber(lua_state, -1));
+					if (yield_type == "meat") s.yield_meat = value;
+					if (yield_type == "hide") s.yield_hide = value;
+					if (yield_type == "bone") s.yield_bone = value;
+					if (yield_type == "skull") s.yield_skull = value;
+					lua_pop(lua_state, 1);
+				}
+			}
+			if (field == "ai") {
+				const FString ai_type = lua_tostring(lua_state, -1);
+				if (ai_type == "grazer") s.ai = creature_grazer;
+			}
+			if (field == "glyph") s.glyph = static_cast<uint16_t>(lua_tonumber(lua_state, -1));
+			if (field == "glyph") s.glyph_ascii = static_cast<uint16_t>(lua_tonumber(lua_state, -1));
+			if (field == "vox") s.vox = static_cast<int>(lua_tonumber(lua_state, -1));
+			if (field == "hp_n") s.hp_n = static_cast<int>(lua_tonumber(lua_state, -1));
+			if (field == "hp_dice") s.hp_dice = static_cast<int>(lua_tonumber(lua_state, -1));
+			if (field == "hp_mod") s.hp_mod = static_cast<int>(lua_tonumber(lua_state, -1));
+			if (field == "group_size_n_dice") s.group_size_n_dice = static_cast<int>(lua_tonumber(lua_state, -1));
+			if (field == "group_size_dice") s.group_size_dice = static_cast<int>(lua_tonumber(lua_state, -1));
+			if (field == "group_size_mod") s.group_size_mod = static_cast<int>(lua_tonumber(lua_state, -1));
+			if (field == "color") s.fg = ReadLuaColor("color");
+
+			lua_pop(lua_state, 1);
+		}
+		creature_defs.Add(key, s);
+
+		lua_pop(lua_state, 1);
 	}
 }
 
@@ -831,5 +1187,3 @@ void NRaws::read_lua_table_inner_p(const FString &table, const TFunction<void(FS
 		lua_pop(lua_state, 1);
 	}
 }
-
-NRaws raws;

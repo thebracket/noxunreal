@@ -4,6 +4,7 @@
 #include "../../ThirdParty/libnox/Includes/noxconsts.h"
 #include "Kismet/GameplayStatics.h"
 #include "CameraDirector.h"
+#include "../Raws/NRaws.h"
 
 ANoxLinkTest * link_ptr;
 
@@ -25,13 +26,15 @@ ANoxLinkTest::ANoxLinkTest()
 }
 
 void ANoxLinkTest::SetupNF() {
+	//raws.LoadRaws();
+
 	link_ptr = this;
 	//FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::GameContentDir());
 	FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir());
 	char * path_c_str = TCHAR_TO_ANSI(*ThePath);
 	nf::set_game_def_path(path_c_str);
 	//ThePath.Append("world_defs/");
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, nf::get_version());
+	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, nf::get_version());
 	nf::setup_raws();
 
 	nf::setup_planet();

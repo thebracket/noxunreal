@@ -384,7 +384,7 @@ TArray<TPair<double, size_t>> UNPlanet::FindPossibleBiomes(TMap<uint8, double> &
 	TArray<TPair<double, size_t>> result;
 
 	std::size_t idx = 0;
-	each_biome([&biome, &idx, &result, &percents](biome_type_t *bt) {
+	raws->each_biome([&biome, &idx, &result, &percents](rawdefs::biome_type_t *bt) {
 		if (biome.mean_temperature >= bt->min_temp && biome.mean_temperature <= bt->max_temp
 			&& biome.mean_rainfall >= bt->min_rain && biome.mean_rainfall <= bt->max_rain
 			&& biome.warp_mutation >= bt->min_mutation && biome.warp_mutation <= bt->max_mutation) {
@@ -586,7 +586,7 @@ FString UNPlanet::NameBiome(RandomNumberGenerator &rng, FNBiome &biome) {
 	}
 
 	FString noun;
-	const auto bt = get_biome_def(biome.type);
+	const auto bt = raws->get_biome_def(biome.type);
 	noun = bt->nouns[rng.RollDice(1, bt->nouns.Num()) - 1];
 
 	name = noun;

@@ -6,6 +6,7 @@
 #include "UObject/NoExportTypes.h"
 #include "../BEngine/RandomNumberGenerator.h"
 #include "../BEngine/FastNoise.h"
+#include "../Raws/NRaws.h"
 #include "NPlanet.generated.h"
 
 namespace BlockType {
@@ -186,6 +187,7 @@ public:
 	constexpr inline int idx(const int x, const int y) { return y * nfu::WORLD_WIDTH + x; }
 
 	void BuildPlanet(const int &seed, const int &water_divisor, const int &plains_divisor, const int &starting_settlers, const bool &strict_beamdown);
+	NRaws * raws;
 
 private:
 	RandomNumberGenerator rng;
