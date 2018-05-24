@@ -8,7 +8,7 @@
 void UNPlanet::BuildPlanet(const int seed, const int water_divisor, const int plains_divisor, const int starting_settlers, const bool strict_beamdown) {
 	// Set incoming parameters
 	RngSeed = seed;
-	WaterDivisor = water_divisor;
+	WaterDivisor = water_divisor + 1;
 	PlaintsDivisor = plains_divisor;
 	StartingSettlers = starting_settlers;
 	StrictBeamdown = strict_beamdown;
@@ -56,7 +56,8 @@ inline uint8_t noise_to_planet_height(const float &n) {
 	return static_cast<uint8_t>((n + 1.0F) * 150.0F);
 }
 
-constexpr float NOISE_SIZE = 384.0F;
+//constexpr float NOISE_SIZE = 384.0F;
+constexpr float NOISE_SIZE = 512.0F;
 
 inline float noise_x(const int world_x, const int region_x) {
 	const auto big_x = static_cast<float>((world_x * nfu::WORLD_WIDTH) + region_x);
@@ -232,7 +233,7 @@ void UNPlanet::Rainfall() {
 
 			Landblocks[idx(x, y)].rainfall += rain_amount;
 			if (Landblocks[idx(x, y)].rainfall < 0) Landblocks[idx(x, y)].rainfall = 0;
-			if (Landblocks[idx(x, y)].rainfall > 100) Landblocks[idx(x, y)].rainfall = 100;
+			if (Landblocks[idx(x, y)].rainfall > 99) Landblocks[idx(x, y)].rainfall = 99;
 		}
 
 	}
@@ -246,8 +247,21 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 	// Randomly place biome centers
 	TArray<TPair<int32, int32>> centroids;
 	for (auto i = 0; i<n_biomes; ++i) {
-		centroids.Emplace(TPair<int32,int32>(rng.RollDice(1, WORLD_WIDTH), rng.RollDice(1, WORLD_HEIGHT)));
-		Biomes.Emplace(FNBiome{});
+		bool ok = false;
+		while (!ok) {
+			int x = rng.RollDice(1, WORLD_WIDTH);
+			int y = rng.RollDice(1, WORLD_HEIGHT);
+			bool dupe = false;
+			for (const auto &c : centroids) {
+				if (c.Key == x && c.Value == y) dupe = true;
+			}
+
+			if (!dupe) {
+				centroids.Emplace(TPair<int32, int32>(rng.RollDice(1, WORLD_WIDTH), rng.RollDice(1, WORLD_HEIGHT)));
+				Biomes.Emplace(FNBiome{});
+				ok = true;
+			}
+		}
 	}
 
 	// Assign each cell based on proximity
@@ -281,6 +295,7 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 			auto possible_types = FindPossibleBiomes(membership_count, biome);
 			if (possible_types.Num() > 0) {
 
+				/*
 				auto max_roll = 0.0;
 				for (const auto &possible : possible_types) {
 					max_roll += possible.Key;
@@ -294,6 +309,10 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 					}
 				}
 				if (biome.type == -1) biome.type = possible_types[possible_types.Num() - 1].Value;
+				*/
+				const int numAvailable = possible_types.Num();
+				const int roll = rng.RollDice(1, numAvailable) - 1;
+				biome.type = possible_types[roll].Value;
 				biome.name = NameBiome(rng, biome);
 			}
 			else {
@@ -351,7 +370,7 @@ TMap<uint8, double> UNPlanet::BiomeMembership(const int32_t &bidx) {
 	const auto counter = static_cast<double>(n_cells);
 	Biomes[bidx].mean_altitude = static_cast<uint8_t>(static_cast<double>(total_height) / counter);
 	Biomes[bidx].mean_rainfall = static_cast<uint8_t>(static_cast<double>(total_rainfall) / counter);
-	Biomes[bidx].mean_temperature = static_cast<uint8_t>(static_cast<double>(total_temperature) / counter);
+	Biomes[bidx].mean_temperature = static_cast<int32>(static_cast<double>(total_temperature) / counter);
 	Biomes[bidx].mean_variance = static_cast<uint8_t>(static_cast<double>(total_variance) / counter);
 	Biomes[bidx].center_x = total_x / n_cells;
 	Biomes[bidx].center_y = total_y / n_cells;
@@ -401,7 +420,7 @@ TArray<TPair<double, size_t>> UNPlanet::FindPossibleBiomes(TMap<uint8, double> &
 					result.Emplace(TPair<double, size_t>(*finder * 100.0, idx));
 				}
 				else {
-					result.Emplace(TPair<double, size_t>(1.0, idx));
+					//result.Emplace(TPair<double, size_t>(25.0, idx));
 				}
 			}
 		}

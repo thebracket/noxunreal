@@ -7,6 +7,7 @@
 #include "NPlanet.h"
 #include "ProceduralMeshComponent.h"
 #include "../Raws/NRaws.h"
+#include "Runtime/Engine/Classes/Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "NoxWorldMap.generated.h"
 
 UCLASS()
@@ -33,5 +34,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	UProceduralMeshComponent * mesh;
-	
+
+	UHierarchicalInstancedStaticMeshComponent * tree1 = nullptr;
+	UHierarchicalInstancedStaticMeshComponent * tree2 = nullptr;
+	UHierarchicalInstancedStaticMeshComponent * grass = nullptr;
 };

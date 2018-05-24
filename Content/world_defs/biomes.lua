@@ -375,7 +375,7 @@ biomes = {
 
     -- High-precipitation areas
     deciduous_broadleaf = {
-        name = "Deciduous Broadleaf", min_temp = 5, max_temp = 34, min_rain = 15, max_rain = 100, min_mutation = 0, max_mutation = 100,        
+        name = "Deciduous Broadleaf", min_temp = 5, max_temp = 55, min_rain = 5, max_rain = 100, min_mutation = 0, max_mutation = 100,        
         occurs = { biome_types["plains"], biome_types["hills"], biome_types["coast"] }, soils = { soil=80, sand=20 },
         plants = { none=5, grass=20, sage=1, daisy=1, reeds=2, bambara_groundnut=1, strawberry=1, cucumber=1, eggplant=1, garlic=1, tomato=1, tomatillo=1, hemp=1 },
         trees = { deciduous = 100, evergreen = 0 },
@@ -383,7 +383,7 @@ biomes = {
         nouns = { "Forest", "Backwoods", "Old Forest", "Grove", "Timberland", "Chase" }
     },
     deciduous_needleleaf = {
-        name = "Deciduous Needleleaf", min_temp = 5, max_temp = 34, min_rain = 15, max_rain = 100, min_mutation = 0, max_mutation = 100,        
+        name = "Deciduous Needleleaf", min_temp = 5, max_temp = 40, min_rain = 5, max_rain = 100, min_mutation = 0, max_mutation = 100,        
         occurs = { biome_types["highlands"], biome_types["hills"], biome_types["plateau"] }, soils = { soil=80, sand=20 },
         plants = { none=5, grass=20, sage=1, daisy=1, reeds=2, cucumber=1, garlic=1, tomato=1, tomatillo=1, hemp=1 },
         trees = { deciduous = 100, evergreen = 5 },
@@ -391,15 +391,15 @@ biomes = {
         nouns = { "Forest", "Woods", "Old WOods", "Grove", "Chase", "Weald" }
     },
     evergreen_broadleef = {
-        name = "Evergreen Broadleaf", min_temp = -5, max_temp = 20, min_rain = 15, max_rain = 100, min_mutation = 0, max_mutation = 100,        
-        occurs = { biome_types["highlands"], biome_types["hills"], biome_types["plateau"] }, soils = { soil=80, sand=20 },
+        name = "Evergreen Broadleaf", min_temp = -5, max_temp = 30, min_rain = 5, max_rain = 100, min_mutation = 0, max_mutation = 100,        
+        occurs = { biome_types["highlands"], biome_types["hills"], biome_types["plateau"], biome_types["mountains"] }, soils = { soil=80, sand=20 },
         plants = { none=5, grass=20, sage=1, daisy=1, reeds=2, garlic=1, hemp=1 },
         trees = { deciduous = 0, evergreen = 100 },
         wildlife = { "deer","badger","boar","hedgehog","horse"},
         nouns = { "Forest", "Coppice", "Chase", "Weald", "Pines" }
     },
     evergreen_needleleef = {
-        name = "Evergreen Broadleaf", min_temp = -15, max_temp = 30, min_rain = 15, max_rain = 100, min_mutation = 0, max_mutation = 100,        
+        name = "Evergreen Broadleaf", min_temp = -15, max_temp = 40, min_rain = 5, max_rain = 100, min_mutation = 0, max_mutation = 100,        
         occurs = { biome_types["highlands"], biome_types["mountains"], biome_types["plateau"] }, soils = { soil=80, sand=20 },
         plants = { none=5, grass=20, sage=1, daisy=1, reeds=2, garlic=1, hemp=1 },
         trees = { deciduous = 5, evergreen = 100 },
@@ -407,7 +407,7 @@ biomes = {
         nouns = { "Forest", "Coppice", "Chase", "Weald", "Pines", "Timber" }
     },
     rainforest = {
-        name = "Rainforest", min_temp = 20, max_temp = 34, min_rain = 25, max_rain = 100, min_mutation = 0, max_mutation = 100,        
+        name = "Rainforest", min_temp = 30, max_temp = 34, min_rain = 10, max_rain = 100, min_mutation = 0, max_mutation = 100,        
         occurs = { biome_types["plains"], biome_types["hills"], biome_types["coast"] }, soils = { soil=90, sand=10 },
         trees = { deciduous = 200, evergreen = 0 },
         wildlife = { "deer","antelope"},
