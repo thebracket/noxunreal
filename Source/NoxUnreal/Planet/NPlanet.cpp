@@ -5,7 +5,7 @@
 #include "../Public/NoxGameInstance.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
-void UNPlanet::BuildPlanet(const int &seed, const int &water_divisor, const int &plains_divisor, const int &starting_settlers, const bool &strict_beamdown) {
+void UNPlanet::BuildPlanet(const int seed, const int water_divisor, const int plains_divisor, const int starting_settlers, const bool strict_beamdown) {
 	// Set incoming parameters
 	RngSeed = seed;
 	WaterDivisor = water_divisor;
@@ -110,7 +110,7 @@ FastNoise UNPlanet::PlanetNoiseMap() {
 			Landblocks[idx(x, y)].type = 0;
 			Landblocks[idx(x, y)].variance = max - min;
 			const auto altitude_deduction = std::abs(Landblocks[idx(x, y)].height - water_height) / 10.0F;
-			Landblocks[idx(x, y)].temperature_c = static_cast<int8_t>(base_temp_by_latitude - altitude_deduction);
+			Landblocks[idx(x, y)].temperature_c = static_cast<int32>(base_temp_by_latitude - altitude_deduction);
 			if (Landblocks[idx(x, y)].temperature_c < -55) Landblocks[idx(x, y)].temperature_c = -55;
 			if (Landblocks[idx(x, y)].temperature_c > 55) Landblocks[idx(x, y)].temperature_c = 55;
 
@@ -241,7 +241,7 @@ void UNPlanet::Rainfall() {
 void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 	using namespace nfu;
 
-	const auto n_biomes = WORLD_HEIGHT * WORLD_WIDTH / (32 + rng.RollDice(1, 32));
+	const auto n_biomes = WORLD_HEIGHT * WORLD_WIDTH / (64 + rng.RollDice(1, 32));
 
 	// Randomly place biome centers
 	TArray<TPair<int32, int32>> centroids;
@@ -374,7 +374,7 @@ TMap<uint8, double> UNPlanet::BiomeMembership(const int32_t &bidx) {
 		}
 		else {
 			const auto pct = static_cast<double>(*finder) / counter;
-			*finder = pct;
+			percents.Add(i, pct);
 		}
 
 	}
@@ -395,10 +395,13 @@ TArray<TPair<double, size_t>> UNPlanet::FindPossibleBiomes(TMap<uint8, double> &
 			&& biome.warp_mutation >= bt->min_mutation && biome.warp_mutation <= bt->max_mutation) {
 
 			// It's possible, so check to see if tile types are available
-			for (const uint8_t &occur : bt->occurs) {
+			for (const auto &occur : bt->occurs) {
 				auto finder = percents.Find(occur);
 				if (finder != nullptr && *finder > 0) {
 					result.Emplace(TPair<double, size_t>(*finder * 100.0, idx));
+				}
+				else {
+					result.Emplace(TPair<double, size_t>(1.0, idx));
 				}
 			}
 		}
@@ -591,7 +594,9 @@ FString UNPlanet::NameBiome(RandomNumberGenerator &rng, FNBiome &biome) {
 	}
 
 	FString noun;
-	const auto bt = Cast<UNoxGameInstance>(GEngine->GetWorld()->GetGameInstance())->GetRaws()->get_biome_def(biome.type);
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	NRaws * raws = game->GetRaws();
+	const auto bt = raws->get_biome_def(biome.type);
 	noun = bt->nouns[rng.RollDice(1, bt->nouns.Num()) - 1];
 
 	name = noun;

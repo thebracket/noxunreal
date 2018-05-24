@@ -186,10 +186,10 @@ public:
 	
 	// TODO: CivHolder and History
 
-	constexpr inline int idx(const int x, const int y) { return y * nfu::WORLD_WIDTH + x; }
+	constexpr inline int idx(const int x, const int y) const { return y * nfu::WORLD_WIDTH + x; }
 
 	UFUNCTION(BlueprintCallable)
-	void BuildPlanet(const int &seed, const int &water_divisor, const int &plains_divisor, const int &starting_settlers, const bool &strict_beamdown);
+	void BuildPlanet(const int seed, const int water_divisor, const int plains_divisor, const int starting_settlers, const bool strict_beamdown);
 
 private:
 	RandomNumberGenerator rng;

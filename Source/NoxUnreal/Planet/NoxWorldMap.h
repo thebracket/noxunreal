@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "NPlanet.h"
 #include "ProceduralMeshComponent.h"
+#include "../Raws/NRaws.h"
 #include "NoxWorldMap.generated.h"
 
 UCLASS()
@@ -27,6 +28,8 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	UNPlanet * planet = nullptr;
+
+	NRaws * raws = nullptr;
 
 	UPROPERTY(VisibleAnywhere)
 	UProceduralMeshComponent * mesh;

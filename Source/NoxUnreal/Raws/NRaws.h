@@ -390,8 +390,8 @@ public:
 	*/
 	template <typename FUNC>
 	inline void each_biome(const FUNC &&func) noexcept {
-		for (auto &biome : biome_defs) {
-			func(&biome);
+		for (int i=0; i<biome_defs.Num(); ++i) {
+			func(&biome_defs[i]);
 		}
 	}
 
