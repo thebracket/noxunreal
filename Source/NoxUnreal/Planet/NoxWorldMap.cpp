@@ -4,6 +4,8 @@
 #include "../Public/NoxGameInstance.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
+constexpr float zscaler = 10.0f;
+
 // Sets default values
 ANoxWorldMap::ANoxWorldMap()
 {
@@ -42,7 +44,7 @@ struct worldgen_map_geometry {
 	int TriangleCounter = 0;
 
 	const float WORLD_SCALE = 200.0f;
-	const float Z_SCALE = 20.0f;
+	const float Z_SCALE = zscaler;
 	const int w = 1 * WORLD_SCALE;
 	const int h = 1 * WORLD_SCALE;
 
@@ -263,16 +265,19 @@ void ANoxWorldMap::BeginPlay()
 
 			const auto name = raws->get_biome_def(biome_type)->name;
 			if (name.Contains("Evergreen") || name.Contains("Deciduous") || name == "Rainforest") {
-				FVector loc = FVector(X * 200.0f, Y * 200.0f, planet->Landblocks[idx].height * 20.0f);
+				FVector loc = FVector(X * 200.0f, Y * 200.0f, planet->Landblocks[idx].height * zscaler);
 				FTransform trans = FTransform(FRotator(), loc, FVector(30.0, 30.0, 30.0));
+				//tree1->AddInstance(trans);
+				//tree2->AddInstance(trans);
+			}
+			/*
+			if (name.Contains("Grass")) {
+				FVector loc = FVector(X * 200.0f, Y * 200.0f, planet->Landblocks[idx].height * 20.0f);
+				FTransform trans = FTransform(FRotator(), loc, FVector(20.0, 20.0, 20.0));
 				tree1->AddInstance(trans);
 				tree2->AddInstance(trans);
 			}
-			if (name.Contains("Grass")) {
-				//FVector loc = FVector(X * 200.0f, Y * 200.0f, planet->Landblocks[idx].height * 20.0f);
-				//FTransform trans = FTransform(FRotator(), loc, FVector(6.25, 6.25, 6.25));
-				//grass->AddInstance(trans);
-			}
+			*/
 		}
 	}
 
@@ -284,27 +289,88 @@ void ANoxWorldMap::BeginPlay()
 		const auto biome_info = raws->get_biome_def(biome_idx);
 
 		if (biome_info) {
-			if (biome_info->name == "Grass Plain" || biome_info->name == "Grass Hills" || biome_info->name == "Savannah Hills" || biome_info->name == "Grass Plateau" || biome_info->name == "Grass Mountains" || biome_info->name == "Grass Highlands" || biome_info->name.Contains("Coast") || biome_info->name == "Savannah Mountains") {
-				MaterialAddress = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MZ_Grass.MZ_Grass'";
+			if (biome_info->name == "Grass Plain" || biome_info->name == "Temperate Coast" || biome_info->name == "Ocean") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_GrassPlain.WM_GrassPlain'";
 			}
-			else if (biome_info->name == "Ocean" || biome_info->name == "Tropical Ocean") {
-				MaterialAddress = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MB_Blight.MB_Blight'";
+			else if (biome_info->name == "Savannah Plain" || biome_info->name == "Tropical Coast" || biome_info->name == "Hot Ocean") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Savannah_Plain.WM_Savannah_Plain'";
 			}
-			else if (biome_info->name == "Rocky Plateau" || biome_info->name == "Rocky Plain" || biome_info->name == "Rocky Mountains" || biome_info->name == "Rocky Hills" || biome_info->name == "Rocky Highlands") {
-				MaterialAddress = "MaterialInstanceConstant'/Game/TileMaterials/Instances/M_Kaolinite_FloorRough.M_Kaolinite_FloorRough'";
+			else if (biome_info->name == "Rocky Plain" || biome_info->name == "Cold Coast" || biome_info->name == "Icy Ocean") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Rocky_Plain.WM_Rocky_Plain'";
 			}
-			else if (biome_info->name == "Badlands" || biome_info->name == "Rocky Desert") {
-				MaterialAddress = "MaterialInstanceConstant'/Game/TileMaterials/Instances/M_Shale_FloorRough.M_Shale_FloorRough'";
+			else if (biome_info->name == "Permafrost Plain" || biome_info->name == "Arctic Coast" || biome_info->name == "Frozen Ocean") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Permafrost_Plain.WM_Permafrost_Plain'";
+			}
+			else if (biome_info->name == "Permafrost Plateau") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Permafrost_Plateau.WM_Permafrost_Plateau'";
+			}
+			else if (biome_info->name == "Rocky Plateau") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Rocky_Plateau.WM_Rocky_Plateau'";
+			}
+			else if (biome_info->name == "Grass Plateau") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Grass_Plateau.WM_Grass_Plateau'";
+			}
+			else if (biome_info->name == "Savannah Plateau") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Savannah_Plateau.WM_Savannah_Plateau'";
+			}
+			else if (biome_info->name == "Permafrost Hills") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Permafrost_Hills.WM_Permafrost_Hills'";
+			}
+			else if (biome_info->name == "Rocky Hills") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Rocky_Hills.WM_Rocky_Hills'";
+			}
+			else if (biome_info->name == "Grass Hills") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Grass_Hills.WM_Grass_Hills'";
+			}
+			else if (biome_info->name == "Savannah Hills") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Savannah_Hills.WM_Savannah_Hills'";
+			}
+			else if (biome_info->name == "Permafrost Highlands") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Permafrost_Highlands.WM_Permafrost_Highlands'";
+			}
+			else if (biome_info->name == "Rocky Highlands") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Rocky_Highlands.WM_Rocky_Highlands'";
+			}
+			else if (biome_info->name == "Grass Highlands") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Grass_Highlands.WM_Grass_Highlands'";
+			}
+			else if (biome_info->name == "Savannah Highlands") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Savannah_Highlands.WM_Savannah_Highlands'";
+			}
+			else if (biome_info->name == "Badland Highlands") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Badland_high.WM_Badland_high'";
+			}
+			else if (biome_info->name == "Permafrost Mountains") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Permafrost_Mountains.WM_Permafrost_Mountains'";
+			}
+			else if (biome_info->name == "Rocky Mountains") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Rocky_Mountains.WM_Rocky_Mountains'";
+			}
+			else if (biome_info->name == "Grass Mountains") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Grass_Mountains.WM_Grass_Mountains'";
+			}
+			else if (biome_info->name == "Savannah Mountains") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Savannah_Mountains.WM_Savannah_Mountains'";
+			}
+			else if (biome_info->name == "Tundra") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Tundra.WM_Tundra'";
+			}
+			else if (biome_info->name == "Cold Desert") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_ColdDesert.WM_ColdDesert'";
 			}
 			else if (biome_info->name == "Sand Desert") {
-				MaterialAddress = "MaterialInstanceConstant'/Game/TileMaterials/Instances/M_Sandstone_FloorRough.M_Sandstone_FloorRough'";
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_SandDesert.WM_SandDesert'";
 			}
-			else if (biome_info->name == "Icy Ocean" || biome_info->name == "Tundra" || biome_info->name.Contains("Permafrost") || biome_info->name == "Frozen Ocean")
-			{
-				MaterialAddress = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MZ_Ice.MZ_Ice'";
-			} else if (biome_info->name.Contains("Evergreen") || biome_info->name.Contains("Deciduous")) {
-				MaterialAddress = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MZ_Grass.MZ_Grass'";
-			} else {
+			else if (biome_info->name == "Rocky Desert") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Rocky_Desert.WM_Rocky_Desert'";
+			}
+			else if (biome_info->name == "Badlands") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Rocky_Badlands.WM_Rocky_Badlands'";
+			}
+			else if (biome_info->name == "Deciduous Broadleaf" || biome_info->name == "Deciduous Needleleaf" || biome_info->name == "Deciduous Needleleaf" || biome_info->name == "Evergreen Broadleaf" || biome_info->name == "Evergreen Needleleaf" || biome_info->name == "Rainforest") {
+				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Trees.WM_Trees'";
+			}
+			else {
 				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, biome_info->name);
 				MaterialAddress = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MZ_Plastic.MZ_Plastic'";
 			}
@@ -327,11 +393,12 @@ void ANoxWorldMap::BeginPlay()
 	sealevel.CreateWater(0, 0, planet->water_height * sealevel.Z_SCALE, nfu::WORLD_WIDTH * sealevel.WORLD_SCALE, nfu::WORLD_HEIGHT * sealevel.WORLD_SCALE, 10.0f);	
 
 	UMaterial* material;
-	material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/Materials/12Water.12Water'"), nullptr, LOAD_None, nullptr));
+	material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/WorldMap/Materials/WorldMapWater.WorldMapWater'"), nullptr, LOAD_None, nullptr));
 	mesh->SetMaterial(sectionCount, material);
 	mesh->CreateMeshSection_LinearColor(sectionCount, sealevel.vertices, sealevel.Triangles, sealevel.normals, sealevel.UV0, sealevel.vertexColors, sealevel.tangents, true);
 	++sectionCount;
 
+	/*
 	worldgen_map_geometry riviera;
 	for (const auto &river : planet->Rivers) {
 		if (river.start_x > 2 && river.start_x < nfu::WORLD_WIDTH - 2 && river.start_y > 2 && river.start_y < nfu::WORLD_HEIGHT - 2)
@@ -343,9 +410,11 @@ void ANoxWorldMap::BeginPlay()
 	}
 
 	UMaterial* material2;
-	material2 = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/Materials/12Water_2.12Water_2'"), nullptr, LOAD_None, nullptr));
+	material2 = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/WorldMap/Materials/WorldMapWater.WorldMapWater'"), nullptr, LOAD_None, nullptr));
 	mesh->SetMaterial(sectionCount, material2);
 	mesh->CreateMeshSection_LinearColor(sectionCount, riviera.vertices, riviera.Triangles, riviera.normals, riviera.UV0, riviera.vertexColors, riviera.tangents, true);
+	*/
+
 
 	mesh->ContainsPhysicsTriMeshData(true);
 }

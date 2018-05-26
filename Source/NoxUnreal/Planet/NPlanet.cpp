@@ -8,9 +8,9 @@
 void UNPlanet::BuildPlanet(const int seed, const int water_divisor, const int plains_divisor, const int starting_settlers, const bool strict_beamdown) {
 	// Set incoming parameters
 	RngSeed = seed;
-	WaterDivisor = water_divisor + 1;
-	PlaintsDivisor = plains_divisor;
-	StartingSettlers = starting_settlers;
+	WaterDivisor = 3;
+	PlaintsDivisor = 3;
+	StartingSettlers = 10;
 	StrictBeamdown = strict_beamdown;
 	rng.ReSeed(seed);
 
@@ -57,7 +57,7 @@ inline uint8_t noise_to_planet_height(const float &n) {
 }
 
 //constexpr float NOISE_SIZE = 384.0F;
-constexpr float NOISE_SIZE = 512.0F;
+constexpr float NOISE_SIZE = 768.0f;
 
 inline float noise_x(const int world_x, const int region_x) {
 	const auto big_x = static_cast<float>((world_x * nfu::WORLD_WIDTH) + region_x);
@@ -111,7 +111,7 @@ FastNoise UNPlanet::PlanetNoiseMap() {
 			Landblocks[idx(x, y)].type = 0;
 			Landblocks[idx(x, y)].variance = max - min;
 			const auto altitude_deduction = std::abs(Landblocks[idx(x, y)].height - water_height) / 10.0F;
-			Landblocks[idx(x, y)].temperature_c = static_cast<int32>(base_temp_by_latitude - altitude_deduction);
+			Landblocks[idx(x, y)].temperature_c = static_cast<int32>(base_temp_by_latitude - altitude_deduction) + rng.RollDice(1,20) - rng.RollDice(1,20);
 			if (Landblocks[idx(x, y)].temperature_c < -55) Landblocks[idx(x, y)].temperature_c = -55;
 			if (Landblocks[idx(x, y)].temperature_c > 55) Landblocks[idx(x, y)].temperature_c = 55;
 
@@ -180,6 +180,7 @@ int32 UNPlanet::DetermineProportion(int32 &candidate, int32 target) {
 		}
 		else {
 			++candidate;
+			count = 0;
 		}
 	}
 	return count;
@@ -242,7 +243,24 @@ void UNPlanet::Rainfall() {
 void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 	using namespace nfu;
 
-	const auto n_biomes = WORLD_HEIGHT * WORLD_WIDTH / (64 + rng.RollDice(1, 32));
+	const auto n_biomes = 512;
+	Biomes.Empty();
+	//for (int i = 0; i < n_biomes; ++i)
+	//	Biomes.Emplace(FNBiome{});
+
+	/*FastNoise biome_noise(PerlinSeed);
+	biome_noise.SetNoiseType(FastNoise::Cellular);
+
+	for (int y = 0; y < nfu::WORLD_HEIGHT; ++y) {
+		for (int x = 0; x < nfu::WORLD_WIDTH; ++x) {
+			const int block_idx = idx(x, y);
+			const int z = Landblocks[block_idx].height;
+			const auto CellNoise = biome_noise.GetCellular(x*8.0f, y*8.0f, z*8.0f);
+			const auto NoiseRamp = (CellNoise + 2.0f) / 4.0f;
+			int32 BiomeIdx = NoiseRamp * n_biomes;
+			Landblocks[block_idx].biome_idx = BiomeIdx;
+		}
+	}*/
 
 	// Randomly place biome centers
 	TArray<TPair<int32, int32>> centroids;
@@ -257,7 +275,7 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 			}
 
 			if (!dupe) {
-				centroids.Emplace(TPair<int32, int32>(rng.RollDice(1, WORLD_WIDTH), rng.RollDice(1, WORLD_HEIGHT)));
+				centroids.Emplace(TPair<int32, int32>(x, y));
 				Biomes.Emplace(FNBiome{});
 				ok = true;
 			}
@@ -269,6 +287,7 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 		for (auto x = 0; x<WORLD_WIDTH; ++x) {
 			auto distance = 2147483647;
 			auto closest_index = -1;
+			auto mytype = Landblocks[idx(x, y)].type;
 
 			for (auto i = 0; i<n_biomes; ++i) {
 				const auto biome_x = centroids[i].Key;
@@ -276,17 +295,36 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 				const auto dx = std::abs(biome_x - x);
 				const auto dy = std::abs(biome_y - y);
 				const auto biome_distance = (dx*dx) + (dy*dy);
-				if (biome_distance < distance) {
+				if (biome_distance < distance && Landblocks[idx(biome_x,biome_y)].type == mytype) {
 					distance = biome_distance;
 					closest_index = i;
 				}
 			}
 
-			Landblocks[idx(x, y)].biome_idx = closest_index;
+			if (closest_index > -1) {
+				Landblocks[idx(x, y)].biome_idx = closest_index;
+			}
+			else {
+				for (auto i = 0; i<n_biomes; ++i) {
+					const auto biome_x = centroids[i].Key;
+					const auto biome_y = centroids[i].Value;
+					const auto dx = std::abs(biome_x - x);
+					const auto dy = std::abs(biome_y - y);
+					const auto biome_distance = (dx*dx) + (dy*dy);
+					if (biome_distance < distance) {
+						distance = biome_distance;
+						closest_index = i;
+					}
+				}
+				Landblocks[idx(x, y)].biome_idx = closest_index;
+			}
 		}
 	}
 
 	// Process each biome and determine important facts defining it
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+
 	std::size_t count = 0;
 	std::size_t no_match = 0;
 	for (auto &biome : Biomes) {
@@ -295,8 +333,8 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 			auto possible_types = FindPossibleBiomes(membership_count, biome);
 			if (possible_types.Num() > 0) {
 
-				/*
-				auto max_roll = 0.0;
+				
+				/*auto max_roll = 0.0;
 				for (const auto &possible : possible_types) {
 					max_roll += possible.Key;
 				}
@@ -308,12 +346,13 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 						break;
 					}
 				}
-				if (biome.type == -1) biome.type = possible_types[possible_types.Num() - 1].Value;
-				*/
+				if (biome.type == -1) biome.type = possible_types[possible_types.Num() - 1].Value;*/
+				
 				const int numAvailable = possible_types.Num();
 				const int roll = rng.RollDice(1, numAvailable) - 1;
 				biome.type = possible_types[roll].Value;
 				biome.name = NameBiome(rng, biome);
+				biome.BiomeTypeName = raws->get_biome_def(biome.type)->name;
 			}
 			else {
 				++no_match;
@@ -355,7 +394,7 @@ TMap<uint8, double> UNPlanet::BiomeMembership(const int32_t &bidx) {
 					counts.Add(Landblocks[block_idx].type,  1L);
 				}
 				else {
-					++finder;
+					++counts[Landblocks[block_idx].type];
 				}
 			}
 		}
@@ -389,7 +428,7 @@ TMap<uint8, double> UNPlanet::BiomeMembership(const int32_t &bidx) {
 	for (auto i = 0; i <= BlockType::MAX_BLOCK_TYPE; ++i) {
 		const auto finder = counts.Find(i);
 		if (finder == nullptr) {
-			percents.Add(i, 0.0);
+			percents.Add(i, 1.0);
 		}
 		else {
 			const auto pct = static_cast<double>(*finder) / counter;
@@ -409,7 +448,14 @@ TArray<TPair<double, size_t>> UNPlanet::FindPossibleBiomes(TMap<uint8, double> &
 	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
 	NRaws * raws = game->GetRaws();
 	raws->each_biome([&biome, &idx, &result, &percents](rawdefs::biome_type_t *bt) {
-		if (biome.mean_temperature >= bt->min_temp && biome.mean_temperature <= bt->max_temp
+		for (const auto &occur : bt->occurs) {
+			auto finder = percents.Find(occur);
+			if (finder != nullptr && *finder > 0) {
+				result.Emplace(TPair<double, size_t>(25.0, idx));
+			}
+		}
+		
+		/*if (biome.mean_temperature >= bt->min_temp && biome.mean_temperature <= bt->max_temp
 			&& biome.mean_rainfall >= bt->min_rain && biome.mean_rainfall <= bt->max_rain
 			&& biome.warp_mutation >= bt->min_mutation && biome.warp_mutation <= bt->max_mutation) {
 
@@ -423,7 +469,7 @@ TArray<TPair<double, size_t>> UNPlanet::FindPossibleBiomes(TMap<uint8, double> &
 					//result.Emplace(TPair<double, size_t>(25.0, idx));
 				}
 			}
-		}
+		}*/
 		++idx;
 	});
 
@@ -697,4 +743,14 @@ void UNPlanet::RunRivers(RandomNumberGenerator &rng) {
 
 		Rivers.Emplace(river);
 	}
+}
+
+FNPlanetBlock UNPlanet::GetWorldBlock(const int x, const int y) {
+	const int pidx = idx(x, y);
+	return Landblocks[pidx];
+}
+
+FNBiome UNPlanet::GetWorldBiome(const int x, const int y) {
+	const int pidx = idx(x, y);
+	return Biomes[Landblocks[pidx].biome_idx];
 }

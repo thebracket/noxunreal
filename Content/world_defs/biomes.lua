@@ -145,7 +145,7 @@ biomes = {
         worldgen_texture_index = biomeTex("tundra")
     },
     rocky_plain = {
-        name = "Rocky Plain", min_temp = -5, max_temp = 5, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
+        name = "Rocky Plain", min_temp = -15, max_temp = 15, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
         occurs = { biome_types["plains"], biome_types["coast"], biome_types["marsh"] }, soils = { soil=50, sand=50 },
         plants = { none=25, grass=20, sage=1, daisy=1, reeds=2, cabbage=1, leek=1, hemp=1 },
         trees = { deciduous = 0, evergreen = 1 },

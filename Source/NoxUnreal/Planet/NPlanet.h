@@ -95,6 +95,9 @@ struct FNBiome
 
 	UPROPERTY(BlueprintReadOnly)
 	int32 center_y = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString BiomeTypeName;
 };
 
 USTRUCT(BlueprintType)
@@ -190,6 +193,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void BuildPlanet(const int seed, const int water_divisor, const int plains_divisor, const int starting_settlers, const bool strict_beamdown);
+
+	UFUNCTION(BlueprintCallable)
+	FNPlanetBlock GetWorldBlock(const int x, const int y);
+
+	UFUNCTION(BlueprintCallable)
+	FNBiome GetWorldBiome(const int x, const int y);
 
 private:
 	RandomNumberGenerator rng;
