@@ -27,3 +27,32 @@ inline float distance2d(const int &x1, const int &y1, const int &x2, const int &
 	const float dy = (float)y1 - (float)y2;
 	return FMath::Sqrt((dx*dx) + (dy*dy));
 }
+
+inline float distance2d_squared(const int &x1, const int &y1, const int &x2, const int &y2) noexcept {
+	const float dx = (float)x1 - (float)x2;
+	const float dy = (float)y1 - (float)y2;
+	return (dx*dx) + (dy*dy);
+}
+
+/*
+* Perform a function for each line element between x1/y1 and x2/y2. We used to use Bresenham's line,
+* but benchmarking showed a simple float-based setup to be faster.
+*/
+template <typename FUNC>
+inline void line_func(const int &x1, const int &y1, const int &x2, const int &y2, FUNC &&func) noexcept
+{
+	float x = static_cast<float>(x1) + 0.5F;
+	float y = static_cast<float>(y1) + 0.5F;
+	const float dest_x = static_cast<float>(x2);
+	const float dest_y = static_cast<float>(y2);
+	const float n_steps = distance2d(x1, y1, x2, y2);
+	const int steps = static_cast<const int>(FMath::FloorToInt(n_steps) + 1);
+	const float slope_x = (dest_x - x) / n_steps;
+	const float slope_y = (dest_y - y) / n_steps;
+
+	for (int i = 0; i < steps; ++i) {
+		func(static_cast<int>(x), static_cast<int>(y));
+		x += slope_x;
+		y += slope_y;
+	}
+}

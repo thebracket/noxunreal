@@ -32,6 +32,8 @@ namespace nfu {
 	constexpr int REGION_HEIGHT = 256;
 	constexpr int REGION_DEPTH = 128;
 	constexpr int REGION_TILES_COUNT = REGION_WIDTH * REGION_HEIGHT * REGION_DEPTH;
+
+	constexpr float NOISE_SIZE = 768.0f;
 }
 
 USTRUCT(BlueprintType)
@@ -199,6 +201,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FNBiome GetWorldBiome(const int x, const int y);
+
+	RandomNumberGenerator * GetRNG() { return &rng; }
+
+	FastNoise GetNoiseMap() { return PlanetNoiseMap(); }
 
 private:
 	RandomNumberGenerator rng;

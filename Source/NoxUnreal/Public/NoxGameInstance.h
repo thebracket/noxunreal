@@ -6,6 +6,7 @@
 #include "Engine/GameInstance.h"
 #include "../Raws/NRaws.h"
 #include "../Planet/NPlanet.h"
+#include "../Planet/NRegion.h"
 #include "NoxGameInstance.generated.h"
 
 /**
@@ -23,10 +24,16 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UNPlanet * GetPlanet();
 
+	UFUNCTION(BlueprintCallable)
+	UNRegion * GetRegion();
+
 private:
 	NRaws * raws_instance = nullptr;
 
 	UPROPERTY()
 	UNPlanet * planet_instance = nullptr;
+
+	UPROPERTY()
+	UNRegion * region_instance = nullptr;
 	
 };

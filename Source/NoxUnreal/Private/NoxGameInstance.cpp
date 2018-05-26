@@ -17,3 +17,10 @@ UNPlanet * UNoxGameInstance::GetPlanet() {
 	}
 	return planet_instance;
 }
+
+UNRegion * UNoxGameInstance::GetRegion() {
+	if (region_instance == nullptr) {
+		region_instance = NewObject<UNRegion>(this);
+	}
+	return region_instance;
+}

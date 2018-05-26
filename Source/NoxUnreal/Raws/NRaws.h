@@ -404,7 +404,17 @@ public:
 		return finder != nullptr ? *finder : 0;
 	}
 
-private:
+	inline size_t get_plant_idx(const FString &tag) noexcept {
+		const auto finder = plant_defs_idx.Find(tag);
+		return finder == nullptr ? 0 : *finder;
+	}
+
+	inline rawdefs::plant_t * get_plant_def(const std::size_t &index) noexcept
+	{
+		if (index > plant_defs.Num()) return nullptr;
+		return &plant_defs[index];
+	}
+
 	bool LoadedRaws = false;
 
 	TMap<FString, size_t> material_defs_idx;
