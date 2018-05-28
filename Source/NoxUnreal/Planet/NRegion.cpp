@@ -3,6 +3,7 @@
 #include "NRegion.h"
 #include "../Public/NoxGameInstance.h"
 #include "../Raws/NRaws.h"
+#include "../BEngine/BECS.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
 struct region_water_feature_tile {
@@ -96,6 +97,21 @@ void UNRegion::BuildRegion(const int StartX, const int StartY, const bool Starti
 	// Add Features
 	// Recalculate all tiles
 	// Save it
+
+	/* TEST CODE - DELETE ME*/
+	ecs_t<test_component, test_component2> tmp;
+	tmp.Empty();
+	const auto result = tmp.GetComponentIndex<test_component2>();
+	static_assert(result == 1, "OOps");
+	const auto entity = tmp.AddEntity();
+	tmp.Assign(entity, test_component{ 1 });
+	bool hasIt = tmp.HasComponent<test_component>(entity);
+	tmp.Each<test_component>([](int &entity_id, test_component &tc) {});
+	tmp.EachWithout<test_component2, test_component>([](int &entity_id, test_component &tc) {});
+	tmp.EachWithoutBoth<test_component, test_component2, test_component>([](int &entity_id, test_component &tc) {});
+	tmp.EachIf<test_component>([](int &entity_id, test_component &tc) { return tc.n == 1; }, [](int &entity_id, test_component &tc) {});
+	tmp.Remove<test_component>(entity);
+	tmp.DeleteEntity(entity);
 }
 
 TArray<uint8> UNRegion::CreateEmptyHeightmap() {
