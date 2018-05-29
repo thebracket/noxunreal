@@ -4,15 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "../Planet/GameComponents.h"
 #include "BECS.generated.h"
-
-struct test_component {
-	int n;
-};
-
-struct test_component2 {
-	int n;
-};
 
 template <typename T, typename... Ts>
 struct Index;
@@ -158,7 +151,7 @@ public:
 };
 
 /**
- * 
+ * Holder for the main ECS
  */
 UCLASS()
 class NOXUNREAL_API UBECS : public UObject
@@ -166,9 +159,14 @@ class NOXUNREAL_API UBECS : public UObject
 	GENERATED_BODY()
 	
 public:
-
-private:
-	ecs_t<test_component> ecs;
-	
+	ecs_t<world_position_t, calendar_t, designations_t, logger_t, camera_options_t, mining_designations_t, farming_designations_t, 
+		building_designations_t, architecture_designations_t, building_t, name_t, construct_provides_sleep_t, construct_container_t,
+		item_stored_t, renderable_t, item_t, item_quality_t, item_wear_t, item_creator_t, item_chopping_t, item_digging_t, item_melee_t,
+		item_ranged_t, item_ammo_t, item_food_t, item_spice_t, item_drink_t, item_hide_t, item_bone_t, item_skull_t, item_leather_t,
+		item_farming_t, item_seed_t, item_topsoil_t, item_fertilizer_t, item_food_prepared_t, viewshed_t, lightsource_t, construct_power_t,
+		smoke_emitter_t, construct_door_t, receives_signal_t, turret_t, initiative_t, position_t, species_t, game_stats_t, skill_t,
+		health_t, settler_ai_t, renderable_composite_t, ai_settler_new_arrival_t, sleep_clock_t, hunger_t, thirst_t, item_carried_t>
+		
+		ecs;
 	
 };

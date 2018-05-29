@@ -600,7 +600,7 @@ void NRaws::ReadBuildings() {
 
 			lua_pop(lua_state, 1);
 		}
-		building_defs.Add(c.hashtag, c);
+		building_defs.Add(c.tag, c);
 		//std::cout << "Read schematics for building: " << key << " (VOX " << building_defs[key].vox_model << ")\n";
 		lua_pop(lua_state, 1);
 	}

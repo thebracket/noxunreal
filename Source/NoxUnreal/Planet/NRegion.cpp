@@ -5,6 +5,7 @@
 #include "../Raws/NRaws.h"
 #include "../BEngine/BECS.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "../BEngine/RexReader.h"
 
 struct region_water_feature_tile {
 	region_water_feature_tile() = default;
@@ -80,7 +81,8 @@ void UNRegion::BuildRegion(const int StartX, const int StartY, const bool Starti
 	const int crash_y = StartingArea ? REGION_HEIGHT / 2 : 1;
 	const int crash_z = GroundZ(crash_x, crash_y);
 
-	// TODO: Build game components
+	// Build game components
+	if (StartingArea) BuildGameComponents(crash_x, crash_y, crash_z);
 	
 	// Trees and Blight
 	// TODO: Determine blight level
@@ -93,25 +95,33 @@ void UNRegion::BuildRegion(const int StartX, const int StartY, const bool Starti
 	if (StartingArea) BuildDebrisTrail(crash_x, crash_y);
 
 	// Build Escape Pod
+	if (StartingArea) BuildEscapePod(crash_x, crash_y, crash_z);
+
 	// Add Settlers
+	if (StartingArea) {
+		TArray<TTuple<int, int, int>> settler_spawn_points;
+		settler_spawn_points.Emplace(TTuple<int,int,int>(crash_x - 3, crash_y - 2, crash_z + 1));
+		settler_spawn_points.Emplace(TTuple<int, int, int>(crash_x - 2, crash_y - 2, crash_z + 1));
+		settler_spawn_points.Emplace(TTuple<int, int, int>(crash_x - 1, crash_y - 2, crash_z + 1));
+		settler_spawn_points.Emplace(TTuple<int, int, int>(crash_x, crash_y - 2, crash_z + 1));
+		settler_spawn_points.Emplace(TTuple<int, int, int>(crash_x + 1, crash_y - 2, crash_z + 1));
+		settler_spawn_points.Emplace(TTuple<int, int, int>(crash_x - 3, crash_y, crash_z + 1));
+		settler_spawn_points.Emplace(TTuple<int, int, int>(crash_x - 2, crash_y, crash_z + 1));
+		settler_spawn_points.Emplace(TTuple<int, int, int>(crash_x - 1, crash_y, crash_z + 1));
+		settler_spawn_points.Emplace(TTuple<int, int, int>(crash_x, crash_y, crash_z + 1));
+		settler_spawn_points.Emplace(TTuple<int, int, int>(crash_x + 1, crash_y, crash_z + 1));
+
+		for (int i = 0; i<planet->StartingSettlers; ++i) {
+			auto sx = settler_spawn_points[i % settler_spawn_points.Num()].Get<0>();
+			auto sy = settler_spawn_points[i % settler_spawn_points.Num()].Get<1>();
+			auto sz = settler_spawn_points[i % settler_spawn_points.Num()].Get<2>();
+			CreateSettler(sx, sy, sz, rng, i % 3);
+		}
+	}
+
 	// Add Features
 	// Recalculate all tiles
 	// Save it
-
-	/* TEST CODE - DELETE ME*/
-	ecs_t<test_component, test_component2> tmp;
-	tmp.Empty();
-	const auto result = tmp.GetComponentIndex<test_component2>();
-	static_assert(result == 1, "OOps");
-	const auto entity = tmp.AddEntity();
-	tmp.Assign(entity, test_component{ 1 });
-	bool hasIt = tmp.HasComponent<test_component>(entity);
-	tmp.Each<test_component>([](int &entity_id, test_component &tc) {});
-	tmp.EachWithout<test_component2, test_component>([](int &entity_id, test_component &tc) {});
-	tmp.EachWithoutBoth<test_component, test_component2, test_component>([](int &entity_id, test_component &tc) {});
-	tmp.EachIf<test_component>([](int &entity_id, test_component &tc) { return tc.n == 1; }, [](int &entity_id, test_component &tc) {});
-	tmp.Remove<test_component>(entity);
-	tmp.DeleteEntity(entity);
 }
 
 TArray<uint8> UNRegion::CreateEmptyHeightmap() {
@@ -797,4 +807,662 @@ void UNRegion::BuildDebrisTrail(const int &crash_x, const int &crash_y) {
 
 		}
 	}
+}
+
+void UNRegion::BuildGameComponents(const int &crash_x, const int &crash_y, const int &crash_z) {
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto ecs = game->GetECS();
+
+	calendar_t calendar;
+	calendar.defined_shifts.Emplace(shift_t{ "Early Shift",{
+		WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT }
+		});
+	calendar.defined_shifts.Emplace(shift_t{ "Day Shift",{
+		SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT,	WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT }
+		});
+	calendar.defined_shifts.Emplace(shift_t{ "Late Shift",{
+		LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, LEISURE_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT, SLEEP_SHIFT,	WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT, WORK_SHIFT }
+		});
+
+	auto game_id = ecs->ecs.AddEntity();
+	ecs->ecs.Assign(game_id, world_position_t{ RegionX, RegionY, crash_x, crash_y, crash_z });
+	ecs->ecs.Assign(game_id, std::move(calendar));
+	ecs->ecs.Assign(game_id, designations_t{});
+	ecs->ecs.Assign(game_id, logger_t{});
+	ecs->ecs.Assign(game_id, camera_options_t{ TOP_DOWN, false, 12 });
+	ecs->ecs.Assign(game_id, mining_designations_t{});
+	ecs->ecs.Assign(game_id, farming_designations_t{});
+	ecs->ecs.Assign(game_id, building_designations_t{});
+	ecs->ecs.Assign(game_id, architecture_designations_t{});
+}
+
+void UNRegion::BuildEscapePod(const int &crash_x, const int &crash_y, const int &crash_z) {
+	int z = crash_z - 2;
+	FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir() + FString("rex/spaceship.xp"));
+	char * path_c_str = TCHAR_TO_ANSI(*ThePath);
+	RexReader rr;
+	rr.LoadFile(path_c_str);
+
+	rr.GetLayerCount();
+	auto ship = rr.GetTileMap();
+
+	for (int layer = 0; layer<5; ++layer) {
+		for (int Y = 0; Y<rr.GetLayerHeight(); ++Y) {
+			for (int X = 0; X<rr.GetLayerWidth(); ++X) {
+				const int x = X - 5 + crash_x;
+				const int y = Y - 11 + crash_y;
+
+				const auto &output = ship->Layers[layer]->Tiles[(Y * rr.GetLayerWidth()) + X];
+				const auto &glyph = output->CharacterCode;
+				if (output != nullptr && glyph != 32) reveal(mapidx(x, y, z));
+				if (output != nullptr && !( output->BackgroundRed == 255 && output->BackgroundGreen == 0 && output->BackgroundBlue == 255 )) {
+					if (glyph == 219) {
+						add_construction(x, y, z, "ship_wall", true, 0);
+					}
+					else if (glyph == 'W') {
+						add_construction(x, y, z, "ship_window", true, 0);
+					}
+					else if (glyph == 176) {
+						add_construction(x, y, z, "ship_floor", false, 0);
+					}
+					else if (glyph == 'X') {
+						add_construction(x, y, z, "ship_updown", false, 0);
+					}
+					else if (glyph == '<') {
+						add_construction(x, y, z, "ship_up", false, 0);
+					}
+					else if (glyph == '>') {
+						add_construction(x, y, z, "ship_down", false, 0);
+					}
+					else if (glyph == 178) {
+						add_construction(x, y, z, "solar_panel", false, 0);
+					}
+					else if (glyph == 241) {
+						add_construction(x, y, z, "battery", false, 0);
+					}
+					else if (glyph == 'X') {
+						add_construction(x, y, z, "ship_updown", false, 0);
+					}
+					else if (glyph == '0') {
+						add_construction(x, y, z, "cryo_bed", false, 0);
+					}
+					else if (glyph == 'X') {
+						add_construction(x, y, z, "ship_updown", false, 0);
+					}
+					else if (glyph == 236) {
+						add_construction(x, y, z, "storage_locker", false, 0);
+					}
+					else if (glyph == 'C') {
+						add_construction(x, y, z, "cordex", false, 0);
+					}
+					else if (glyph == 243) {
+						add_construction(x, y, z, "ship_defense_turret", false, 0);
+					}
+					else if (glyph == 251) {
+						add_construction(x, y, z, "small_replicator", false, 0);
+					}
+					else if (glyph == 232) {
+						add_construction(x, y, z, "rtg", false, 0);
+					}
+					else if (glyph == 197) {
+						add_construction(x, y, z, "ship_door", false, 0);
+					}
+					else if (glyph == 'L') {
+						add_construction(x, y, z, "ship_lamp", false, 0);
+					}
+					else {
+						//if (output->glyph != 32)
+						//glog(log_target::LOADER, log_severity::warning, "No handler for {0} ({1})", (char)output->glyph, output->glyph);
+					}
+				}
+			}
+		}
+		++z;
+		//std::cout << z << "\n";
+	}
+}
+
+void UNRegion::add_construction(const int x, const int y, const int z, const FString type, bool solid, const size_t &civ_owner) noexcept {
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+
+	const auto idx = mapidx(x, y, z);
+	const auto plasteel = raws->get_material_by_tag("plasteel");
+	const auto wood = raws->get_material_by_tag("wood");
+	using namespace regiondefs;
+
+	set_tile(idx, tile_type::FLOOR, false, false, plasteel, 0, true, true);
+
+	if (type == "ship_wall") {
+		set_tile(idx, tile_type::WALL, true, true, plasteel, 0, true, true);
+	}
+	else if (type == "ship_window") {
+		set_tile(idx, tile_type::WINDOW, true, false, plasteel, 0, true, true);
+	}
+	else if (type == "ship_floor") {
+		set_tile(idx, tile_type::FLOOR, false, false, plasteel, 0, true, true);
+	}
+	else if (type == "hut_wall") {
+		set_tile(idx, tile_type::WALL, true, true, wood, 0, true, true);
+	}
+	else if (type == "hut_floor") {
+		set_tile(idx, tile_type::FLOOR, false, false, wood, 0, true, true);
+	}
+	else if (type == "ship_up") {
+		set_tile(idx, tile_type::STAIRS_UP, false, false, plasteel, 0, true, true);
+	}
+	else if (type == "ship_down") {
+		set_tile(idx, tile_type::STAIRS_DOWN, false, false, plasteel, 0, true, true);
+	}
+	else if (type == "ship_updown") {
+		set_tile(idx, tile_type::STAIRS_UPDOWN, false, false, plasteel, 0, true, true);
+	}
+	else if (type == "hut_upstairs") {
+		set_tile(idx, tile_type::STAIRS_UP, false, false, wood, 0, true, true);
+	}
+	else if (type == "hut_downstairs") {
+		set_tile(idx, tile_type::STAIRS_DOWN, false, false, wood, 0, true, true);
+	}
+	else if (type == "hut_updownstairs") {
+		set_tile(idx, tile_type::STAIRS_UPDOWN, false, false, wood, 0, true, true);
+	}
+	else if (type == "cordex") {
+		add_building("cordex", x, y, z, civ_owner);
+	}
+	else if (type == "ship_defense_turret") {
+		add_building("ship_defense_turret", x, y, z, civ_owner);
+	}
+	else if (type == "solar_panel") {
+		add_building("solar_panel", x, y, z, civ_owner);
+	}
+	else if (type == "cryo_bed") {
+		add_building("cryo_bed", x, y, z, civ_owner);
+	}
+	else if (type == "storage_locker") {
+		add_building("storage_locker", x, y, z, civ_owner);
+	}
+	else if (type == "battery") {
+		add_building("battery", x, y, z, civ_owner);
+	}
+	else if (type == "rtg") {
+		add_building("rtg", x, y, z, civ_owner);
+	}
+	else if (type == "small_replicator") {
+		add_building("small_replicator", x, y, z, civ_owner);
+	}
+	else if (type == "campfire") {
+		add_building("camp_fire", x, y, z, civ_owner);
+	}
+	else if (type == "ship_door") {
+		add_building("energy_door", x, y, z, civ_owner);
+	}
+	else if (type == "ship_lamp") {
+		add_building("lamp", x, y, z, civ_owner);
+	}
+	else if (type == "door") {
+		//std::cout << "Door owner: " << civ_owner << "\n";
+		add_building("door", x, y, z, civ_owner);
+	}
+	else {
+		//glog(log_target::LOADER, log_severity::error, "Don't know how to build a {0}", type);
+	}
+}
+
+void UNRegion::add_building(FString tag, const int x, const int y, const int z, const size_t &civ_owner) noexcept {
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+	auto ecs = game->GetECS();
+
+	auto building = raws->get_building_def(tag);
+	if (building == nullptr) {
+		//glog(log_target::LOADER, log_severity::error, "Warning: do not know how to build: {0}", tag);
+	}
+
+	int bx = x;
+	int by = y;
+	if (building->width == 3 && building->height == 3)
+	{
+		--bx;
+		--by;
+	}
+
+	const auto new_building_id = ecs->ecs.AddEntity();
+	ecs->ecs.Assign(new_building_id, position_t{ bx, by, z });
+	ecs->ecs.Assign(new_building_id, building_t{ tag, building->width, building->height, true, civ_owner, 10, 10, building->vox_model });
+	ecs->ecs.Assign(new_building_id, name_t{ building->name, "" });
+
+	for (const auto &provides : building->provides) {
+		if (provides.provides == rawdefs::provides_sleep) ecs->ecs.Assign(new_building_id, construct_provides_sleep_t{});
+		if (provides.provides == rawdefs::provides_storage) ecs->ecs.Assign(new_building_id, construct_container_t{});
+	}
+
+	const int offX = building->width == 3 ? -1 : 0;
+	const int offY = building->height == 3 ? -1 : 0;
+	for (int Y = y + offY; Y < y + building->height + offY; ++Y) {
+		for (int X = x + offX; X < x + building->width + offX; ++X) {
+			const int idx = mapidx(X, Y, z);
+			BuildingId[idx] = new_building_id;
+		}
+	}
+
+	if (tag == "storage_locker") {
+		spawn_item_in_container(new_building_id, "personal_survival_shelter_kit", raws->get_material_by_tag("plasteel"), 6, 100, 0, "Eden Acme Corp");
+		spawn_item_in_container(new_building_id, "personal_survival_shelter_kit", raws->get_material_by_tag("plasteel"), 6, 100, 0, "Eden Acme Corp");
+		spawn_item_in_container(new_building_id, "personal_survival_shelter_kit", raws->get_material_by_tag("plasteel"), 6, 100, 0, "Eden Acme Corp");
+		spawn_item_in_container(new_building_id, "camp_fire_kit", raws->get_material_by_tag("plasteel"), 6, 100, 0, "Eden Acme Corp");
+		spawn_item_in_container(new_building_id, "fire_axe", raws->get_material_by_tag("plasteel"), 6, 100, 0, "Eden Acme Corp");
+		spawn_item_in_container(new_building_id, "pickaxe", raws->get_material_by_tag("plasteel"), 6, 100, 0, "Eden Acme Corp");
+		spawn_item_in_container(new_building_id, "hoe", raws->get_material_by_tag("plasteel"), 6, 100, 0, "Eden Acme Corp");
+	}
+	else if (tag == "cordex") {
+		ecs->ecs.Assign(new_building_id, viewshed_t{ 16, false });
+	}
+	else if (tag == "lamp") {
+		ecs->ecs.Assign(new_building_id, lightsource_t{ 16, FNColor{ 1.0f, 1.0f, 1.0f }, true });
+	}
+	else if (tag == "battery") {
+		ecs->ecs.Assign(new_building_id, construct_power_t{ 20,0,0 });
+	}
+	else if (tag == "rtg") {
+		ecs->ecs.Assign(new_building_id, construct_power_t{ 0,1,0 });
+	}
+	else if (tag == "solar_panel") {
+		ecs->ecs.Assign(new_building_id, construct_power_t{ 00,0,1 });
+	}
+	else if (tag == "camp_fire") {
+		ecs->ecs.Assign(new_building_id, lightsource_t{ 5, FNColor{ 1.0f, 1.0f, 0.0f } });
+		ecs->ecs.Assign(new_building_id, smoke_emitter_t{});
+	}
+	else if (tag == "energy_door" || tag == "door") {
+		ecs->ecs.Assign(new_building_id, construct_door_t{});
+		ecs->ecs.Assign(new_building_id, receives_signal_t{});
+	}
+	else if (tag == "ship_defense_turret") {
+		//std::cout << "Turret created\n";
+		ecs->ecs.Assign(new_building_id, viewshed_t{ 8, false });
+		ecs->ecs.Assign(new_building_id, turret_t{ 8, 2, 3, 8, 3, civ_owner });
+		ecs->ecs.Assign(new_building_id, initiative_t{});
+	}
+}
+
+void UNRegion::CreateSettler(const int x, const int y, const int z, RandomNumberGenerator * rng, int shift_id) noexcept {
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+	auto ecs = game->GetECS();
+
+	using namespace rawdefs;
+
+	species_t species;
+	game_stats_t stats;
+	const auto species_def = raws->get_species_def("human");
+
+	species.tag = "human";
+
+	// Gender
+	const auto gender_roll = rng->RollDice(1, 20);
+	if (gender_roll < 11) {
+		species.gender = MALE;
+	}
+	else {
+		species.gender = FEMALE;
+	}
+	// Sexuality
+	const auto sex_roll = rng->RollDice(1, 10);
+	if (sex_roll < 9) {
+		species.sexuality = HETEROSEXUAL;
+	}
+	else {
+		species.sexuality = HOMOSEXUAL;
+	}
+
+	// Height/Weight
+	if (species.gender == MALE)
+	{
+		species.height_cm = 147.0F + static_cast<float>(rng->RollDice(2, 10) * 2.5F);
+		species.weight_kg = 54.0F + static_cast<float>(rng->RollDice(2, 8) * 0.45);
+	}
+	else
+	{
+		species.height_cm = 134.0F + (rng->RollDice(2, 10) * 2.5F);
+		species.weight_kg = 38.0F + (rng->RollDice(2, 4) * 0.45);
+	}
+
+	// Hair/etc. this should be made more realistic one day!
+	species.base_male_glyph = species_def->base_male_glyph;
+	species.base_female_glyph = species_def->base_female_glyph;
+	species.skin_color = species_def->skin_colors[rng->RollDice(1, species_def->skin_colors.Num()) - 1];
+
+	species.bearded = false;
+	if (species.gender == MALE)
+	{
+		const auto beard_roll = rng->RollDice(1, 20);
+		if (beard_roll < 7)
+		{
+			species.bearded = true;
+		}
+		else
+		{
+			species.bearded = false;
+		}
+	}
+
+	species.hair_color = species_def->hair_colors[rng->RollDice(1, species_def->hair_colors.Num()) - 1];
+
+	species.hair_style = BALD;
+	if (species.gender == MALE)
+	{
+		const auto style_roll = rng->RollDice(1, 5);
+		switch (style_roll)
+		{
+		case 1:
+			species.hair_style = BALD;
+			break;
+		case 2:
+			species.hair_style = BALDING;
+			break;
+		case 3:
+			species.hair_style = MOHAWK;
+			break;
+		case 4:
+			species.hair_style = SHORT_HAIR;
+			break;
+		case 5:
+			species.hair_style = LONG_HAIR;
+			break;
+		}
+	}
+	else
+	{
+		const auto style_roll = rng->RollDice(1, 4);
+		switch (style_roll)
+		{
+		case 1:
+			species.hair_style = SHORT_HAIR;
+			break;
+		case 2:
+			species.hair_style = LONG_HAIR;
+			break;
+		case 3:
+			species.hair_style = PIGTAILS;
+			break;
+		case 4:
+			species.hair_style = TRIANGLE;
+			break;
+		}
+	}
+
+	// Name
+	using namespace string_tables;
+	FString first_name;
+	if (species.gender == FEMALE) {
+		first_name = to_proper_noun_case(raws->string_tables[FIRST_NAMES_FEMALE].random_entry(*rng));
+	}
+	else
+	{
+		first_name = to_proper_noun_case(raws->string_tables[FIRST_NAMES_MALE].random_entry(*rng));
+	}
+
+	const auto last_name = to_proper_noun_case(raws->string_tables[LAST_NAMES].random_entry(*rng));
+
+	// Profession
+	const auto starting_profession = raws->get_random_profession(*rng);
+	stats.profession_tag = starting_profession->name;
+	stats.original_profession = starting_profession->name;
+
+	// Stats
+	stats.strength = rng->RollDice(3, 6) + starting_profession->strength;
+	stats.dexterity = rng->RollDice(3, 6) + starting_profession->dexterity;
+	stats.constitution = rng->RollDice(3, 6) + starting_profession->constitution;
+	stats.intelligence = rng->RollDice(3, 6) + starting_profession->intelligence;
+	stats.wisdom = rng->RollDice(3, 6) + starting_profession->wisdom;
+	stats.charisma = rng->RollDice(3, 6) + starting_profession->charisma;
+	stats.comeliness = rng->RollDice(3, 6) + starting_profession->comeliness;
+	stats.ethics = rng->RollDice(3, 6) + starting_profession->ethics;
+	stats.age = 15 + rng->RollDice(3, 6);
+
+	auto settler = ecs->ecs.AddEntity();
+
+	// Life events
+	auto year = 2525 - stats.age;
+	auto age = 0;
+	TArray<FString> event_buffer;
+
+	while (year < 2522) {
+		auto candidates = get_event_candidates(age, event_buffer);
+		if (!candidates.Num() == 0) {
+			const std::size_t idx = rng->RollDice(1, candidates.Num()) - 1;
+			const auto event_name = candidates[idx];
+			event_buffer.Emplace(event_name);
+			auto ledef = raws->get_life_event(event_name);
+
+			auto has_effect = false;
+			if (ledef->strength != 0) has_effect = true;
+			if (ledef->dexterity != 0) has_effect = true;
+			if (ledef->constitution != 0) has_effect = true;
+			if (ledef->intelligence != 0) has_effect = true;
+			if (ledef->wisdom != 0) has_effect = true;
+			if (ledef->charisma != 0) has_effect = true;
+			if (ledef->comeliness != 0) has_effect = true;
+			if (ledef->ethics != 0) has_effect = true;
+			if (!ledef->skills.Num() == 0) has_effect = true;
+
+			if (age == 0 || has_effect) {
+				/*const auto finder = planet.history.settler_life_events.find(settler->id);
+				const life_event_t event { year, event_name };
+				if (finder == planet.history.settler_life_events.end()) {
+					planet.history.settler_life_events[settler->id] = std::vector<life_event_t>{ event };
+				}
+				else {
+					planet.history.settler_life_events[settler->id].push_back(event);
+				}*/
+				if (rng->RollDice(1, 10) > 7) {
+					stats.strength += ledef->strength;
+					stats.dexterity += ledef->dexterity;
+					stats.constitution += ledef->constitution;
+					stats.intelligence += ledef->intelligence;
+					stats.wisdom += ledef->wisdom;
+					stats.charisma += ledef->charisma;
+					stats.comeliness += ledef->comeliness;
+					stats.ethics += ledef->ethics;
+				}
+				for (const auto &skill : ledef->skills) {
+					if (rng->RollDice(1, 10) > 7) {
+						const auto skillfinder = stats.skills.Find(skill);
+						if (skillfinder == nullptr) {
+							stats.skills[skill] = skill_t{ 1, 0 };
+						}
+						else {
+							if (stats.skills[skill].skill_level < 3) {
+								++stats.skills[skill].skill_level;
+								//glog(log_target::GAME, log_severity::info, "Raised skill in {0} to {1}", skill, +stats.skills[skill].skill_level);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		++year;
+		++age;
+	}
+	//planet.history.settler_life_events[settler->id].push_back(life_event_t{ 2524, "ark_b" });
+	//planet.history.settler_life_events[settler->id].push_back(life_event_t{ 2525, "planetfall" });
+
+	auto base_hp = rng->RollDice(1, 10) + stat_modifier(stats.constitution);
+	if (base_hp < 1) base_hp = 1;
+	auto health = create_health_component_settler("human", base_hp, raws);
+
+	settler_ai_t ai;
+	ai.shift_id = shift_id;
+
+	const auto angle = 0;
+	ecs->ecs.Assign(settler, position_t{ x,y,z,angle });
+	ecs->ecs.Assign(settler, renderable_composite_t{ RENDER_SETTLER, 2 });
+	ecs->ecs.Assign(settler, std::move(species));
+	ecs->ecs.Assign(settler, std::move(health));
+	ecs->ecs.Assign(settler, std::move(stats));
+	ecs->ecs.Assign(settler, std::move(ai));
+	ecs->ecs.Assign(settler, name_t{ first_name, last_name });
+	ecs->ecs.Assign(settler, viewshed_t{ 8, false });
+	ecs->ecs.Assign(settler, initiative_t{});
+	ecs->ecs.Assign(settler, ai_settler_new_arrival_t{});
+	ecs->ecs.Assign(settler, sleep_clock_t{});
+	ecs->ecs.Assign(settler, hunger_t{});
+	ecs->ecs.Assign(settler, thirst_t{});
+
+	// Create clothing items
+	//std::cout << settler->id << "\n";
+	for (auto item : starting_profession->starting_clothes) {
+		if (item.Get<0>() == 0 || (item.Get<0>() == 1 && species.gender == MALE) || (item.Get<0>() == 2 && species.gender == FEMALE)) {
+			const auto item_name = item.Get<2>();
+			const auto slot_name = item.Get<1>();
+			auto position = INVENTORY;
+			if (slot_name == "head") position = HEAD;
+			if (slot_name == "torso") position = TORSO;
+			if (slot_name == "legs") position = LEGS;
+			if (slot_name == "shoes") position = FEET;
+			spawn_item_carried(settler, item_name, raws->get_material_by_tag("cloth"), position, ecs_item_quality::GREAT, 100, 0, "Eden Acme Corp", rng);
+		}
+	}
+
+	// Add a raygun and energey cells
+	const auto plasteel = raws->get_material_by_tag("plasteel");
+	spawn_item_carried(settler, "ray_pistol", plasteel, EQUIP_RANGED, ecs_item_quality::GREAT, 100, 0, "Eden Acme Corp", rng);
+	spawn_item_carried(settler, "small_energy_cell", plasteel, EQUIP_AMMO, ecs_item_quality::GREAT, 100, 0, "Eden Acme Corp", rng);
+}
+
+void UNRegion::decorate_item_categories(int &item, TBitArray<> &categories) noexcept
+{
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+	auto ecs = game->GetECS();
+
+	using namespace rawdefs;
+
+	if (categories[TOOL_CHOPPING]) ecs->ecs.Assign(item, item_chopping_t{});
+	if (categories[TOOL_DIGGING]) ecs->ecs.Assign(item, item_digging_t{});
+	if (categories[WEAPON_MELEE]) ecs->ecs.Assign(item, item_melee_t{});
+	if (categories[WEAPON_RANGED]) ecs->ecs.Assign(item, item_ranged_t{});
+	if (categories[WEAPON_AMMO]) ecs->ecs.Assign(item, item_ammo_t{});
+	if (categories[ITEM_FOOD]) ecs->ecs.Assign(item, item_food_t{});
+	if (categories[ITEM_SPICE]) ecs->ecs.Assign(item, item_spice_t{});
+	if (categories[ITEM_DRINK]) ecs->ecs.Assign(item, item_drink_t{});
+	if (categories[ITEM_HIDE]) ecs->ecs.Assign(item, item_hide_t{});
+	if (categories[ITEM_BONE]) ecs->ecs.Assign(item, item_bone_t{});
+	if (categories[ITEM_SKULL]) ecs->ecs.Assign(item, item_skull_t{});
+	if (categories[ITEM_LEATHER]) ecs->ecs.Assign(item, item_leather_t{});
+	if (categories[ITEM_FARMING]) ecs->ecs.Assign(item, item_farming_t{});
+	if (categories[ITEM_SEED]) ecs->ecs.Assign(item, item_seed_t{});
+	if (categories[ITEM_TOPSOIL]) ecs->ecs.Assign(item, item_topsoil_t{});
+	if (categories[ITEM_FERTILIZER]) ecs->ecs.Assign(item, item_fertilizer_t{});
+	if (categories[ITEM_FOOD_PREPARED]) ecs->ecs.Assign(item, item_food_prepared_t{});
+}
+
+void UNRegion::spawn_item_in_container(const int container_id, const FString &tag, const std::size_t &material, uint8_t quality, uint8_t wear, int creator_id, FString creator_name) noexcept {
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+	auto ecs = game->GetECS();
+
+	auto finder = raws->get_item_def(tag);
+	if (finder == nullptr) {
+		//glog(log_target::GAME, log_severity::warning, "Unknown item tag {0}", tag);
+	}
+
+	const auto mat = raws->get_material(material);
+
+	//std::cout << "Spawning [" << tag << "], glyph " << +finder->glyph << "\n";
+
+	auto entity = ecs->ecs.AddEntity();
+	ecs->ecs.Assign(entity, item_stored_t{ container_id });
+	ecs->ecs.Assign(entity, renderable_t{ finder->glyph, finder->glyph_ascii, finder->voxel_model });
+	ecs->ecs.Assign(entity, item_t( tag, finder->name, material, finder->stack_size, finder->clothing_layer, raws ));
+	ecs->ecs.Assign(entity, item_quality_t{ quality });
+	ecs->ecs.Assign(entity, item_wear_t{ wear });
+	ecs->ecs.Assign(entity, item_creator_t{ creator_id, creator_name });
+
+	decorate_item_categories(entity, finder->categories);
+}
+
+void UNRegion::spawn_item_carried(const int holder_id, const FString &tag, const std::size_t &material, const ecs_item_location_t &loc, uint8_t quality, uint8_t wear, int creator_id, FString creator_name, RandomNumberGenerator * rng) noexcept
+{
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+	auto ecs = game->GetECS();
+
+	const auto mat = raws->get_material(material);
+	const auto clothing_finder = raws->get_clothing_by_tag(tag);
+	if (clothing_finder) {
+		// Clothing needs to be handled differently
+		auto entity = ecs->ecs.AddEntity();
+		ecs->ecs.Assign(entity, item_carried_t{ loc, holder_id });
+		ecs->ecs.Assign(entity, renderable_t{ clothing_finder->clothing_glyph, clothing_finder->clothing_glyph, clothing_finder->voxel_model });
+		ecs->ecs.Assign(entity, item_t{ tag, raws, rng });
+		ecs->ecs.Assign(entity, item_quality_t{ quality });
+		ecs->ecs.Assign(entity, item_wear_t{ wear });
+		ecs->ecs.Assign(entity, item_creator_t{ creator_id, creator_name });
+		//entity->component<item_t>()->material = material;
+		// TODO: Implement entity->component interface
+	}
+	else {
+		auto finder = raws->get_item_def(tag);
+		if (finder == nullptr) {
+			//glog(log_target::GAME, log_severity::warning, "Unknown item tag {0}", tag);
+		}
+
+		auto entity = ecs->ecs.AddEntity();
+		ecs->ecs.Assign(entity, item_carried_t{ loc, holder_id });
+		ecs->ecs.Assign(entity, renderable_t{ finder->glyph, finder->glyph_ascii, finder->voxel_model });
+		ecs->ecs.Assign(entity, item_t{ tag, finder->name, material, finder->stack_size, finder->clothing_layer });
+		ecs->ecs.Assign(entity, item_quality_t{ quality });
+		ecs->ecs.Assign(entity, item_wear_t{ wear });
+		ecs->ecs.Assign(entity, item_creator_t{ creator_id, creator_name });
+		decorate_item_categories(entity, finder->categories);
+	}
+}
+
+TArray<FString> UNRegion::get_event_candidates(const int &age, const TArray<FString> &past) noexcept {
+	using namespace rawdefs;
+
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+	auto ecs = game->GetECS();
+
+	TArray<FString> result;
+
+	TSet<FString> unavailable;
+	for (const auto &le : past) {
+		auto lefinder = raws->get_life_event(le);
+		for (const auto &no : lefinder->precludes_event) {
+			unavailable.Add(no);
+		}
+	}
+
+	raws->each_life_event([&unavailable, &result, &age, &past](FString tag, life_event_template * it) {
+		if (age >= it->min_age && age <= it->max_age) {
+			auto available = true;
+
+			auto nope_check = unavailable.Find(tag);
+			if (nope_check != nullptr) {
+				available = false;
+			}
+
+			if (available && !it->requires_event.Num()==0) {
+				available = false;
+				for (const auto &req : it->requires_event) {
+					for (const auto &p : past) {
+						if (p == req) available = true;
+					}
+				}
+			}
+
+			if (available) {
+				for (auto i = 0; i<it->weight; ++i) {
+					result.Emplace(tag);
+				}
+			}
+
+		}
+	});
+
+	return result;
 }

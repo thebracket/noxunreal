@@ -24,3 +24,10 @@ UNRegion * UNoxGameInstance::GetRegion() {
 	}
 	return region_instance;
 }
+
+UBECS * UNoxGameInstance::GetECS() {
+	if (ecs_instance == nullptr) {
+		ecs_instance = NewObject<UBECS>(this);
+	}
+	return ecs_instance;
+}

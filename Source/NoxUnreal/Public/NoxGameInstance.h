@@ -7,6 +7,7 @@
 #include "../Raws/NRaws.h"
 #include "../Planet/NPlanet.h"
 #include "../Planet/NRegion.h"
+#include "../BEngine/BECS.h"
 #include "NoxGameInstance.generated.h"
 
 /**
@@ -27,6 +28,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UNRegion * GetRegion();
 
+	UFUNCTION(BlueprintCallable)
+	UBECS * GetECS();
+
 private:
 	NRaws * raws_instance = nullptr;
 
@@ -35,5 +39,8 @@ private:
 
 	UPROPERTY()
 	UNRegion * region_instance = nullptr;
+
+	UPROPERTY()
+	UBECS * ecs_instance = nullptr;
 	
 };

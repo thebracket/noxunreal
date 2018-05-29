@@ -6,6 +6,7 @@
 #include "UObject/NoExportTypes.h"
 #include "../BEngine/RandomNumberGenerator.h"
 #include "NPlanet.h"
+#include "GameComponents.h"
 #include "NRegion.generated.h"
 
 namespace regiondefs {
@@ -163,6 +164,37 @@ public:
 		return result;
 	}
 
+	inline void set_tile_type(const int idx, const uint8_t type) {
+		if (idx < 0 || idx > nfu::REGION_TILES_COUNT) return;
+		TileType[idx] = type;
+	}
+
+	inline void set_tile(const int idx, const uint8_t type, const bool solid, const bool opaque,
+		const std::size_t material, const uint8_t water, const bool remove_vegetation,
+		const bool construction) 
+	{
+		set_tile_type(idx, type);
+		if (solid) {
+			setbit(regiondefs::tile_flags::SOLID, TileFlags[idx]);
+		}
+		else
+		{
+			resetbit(regiondefs::tile_flags::SOLID, TileFlags[idx]);
+		}
+		if (opaque)
+		{
+			setbit(regiondefs::tile_flags::OPAQUE_TILE, TileFlags[idx]);
+		}
+		else
+		{
+			resetbit(regiondefs::tile_flags::OPAQUE_TILE, TileFlags[idx]);
+		}
+		SetTileMaterial(idx, material);
+		if (remove_vegetation) TileVegetationType[idx] = 0;
+		WaterLevel[idx] = water;
+		if (construction) setbit(regiondefs::tile_flags::CONSTRUCTION, TileFlags[idx]);
+	}
+
 private:
 	UNPlanet * planet;
 
@@ -199,4 +231,14 @@ private:
 	void BuildBeaches();
 	void BuildTrees(RandomNumberGenerator * rng, bool StartingArea);
 	void BuildDebrisTrail(const int &crash_x, const int &crash_y);
+	void BuildEscapePod(const int &crash_x, const int &crash_y, const int &crash_z);
+	void BuildGameComponents(const int &crash_x, const int &crash_y, const int &crash_z);
+	void add_construction(const int x, const int y, const int z, const FString type, bool solid, const size_t &civ_owner) noexcept;
+	void add_building(FString tag, const int x, const int y, const int z, const size_t &civ_owner) noexcept;
+	void CreateSettler(const int x, const int y, const int z, RandomNumberGenerator * rng, int shift_id) noexcept;
+	TArray<FString> get_event_candidates(const int &age, const TArray<FString> &past) noexcept;
+
+	void decorate_item_categories(int &item, TBitArray<> &categories) noexcept;
+	void spawn_item_in_container(const int container_id, const FString &tag, const std::size_t &material, uint8_t quality, uint8_t wear, int creator_id, FString creator_name) noexcept;
+	void spawn_item_carried(const int holder_id, const FString &tag, const std::size_t &material, const ecs_item_location_t &loc, uint8_t quality, uint8_t wear, int creator_id, FString creator_name, RandomNumberGenerator * rng) noexcept;
 };

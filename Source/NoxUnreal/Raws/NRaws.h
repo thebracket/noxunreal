@@ -13,6 +13,14 @@ struct FNColor
 {
 	GENERATED_USTRUCT_BODY()
 
+	FNColor() = default;
+	FNColor(uint8 red, uint8 green, uint8 blue) {
+		r = (float)red / 255.0f;
+		g = (float)green / 255.0f;
+		b = (float)blue / 255.0f;
+	}
+	FNColor(float R, float G, float B) : r(R), g(G), b(B) {}
+
 	UPROPERTY(BlueprintReadWrite)
 	float r = 0.0;
 
@@ -365,6 +373,12 @@ inline TMap<FString, const TFunction<void()>> lua_parser(std::initializer_list<l
 	return result;
 }
 
+inline FString to_proper_noun_case(const FString &original)
+{
+	// TODO:
+	return original;
+}
+
 /**
  * 
  */
@@ -374,7 +388,7 @@ public:
 	NRaws();
 	~NRaws();
 
-	TMap<int8, NStringTable> string_tables;
+	TMap<int8, NStringTable> string_tables;	
 
 	void LoadRaws();
 	void LoadGameTables();
@@ -395,8 +409,12 @@ public:
 		}
 	}
 
-	inline rawdefs::biome_type_t * get_biome_def(const std::size_t &index) {
+	inline rawdefs::biome_type_t * get_biome_def(const size_t &index) {
 		return &biome_defs[index];
+	}
+
+	inline rawdefs::material_def_t * get_material(const size_t &index) {
+		return &material_defs[index];
 	}
 
 	inline size_t get_material_by_tag(const FString &tag) {
@@ -415,6 +433,55 @@ public:
 		return &plant_defs[index];
 	}
 
+	inline rawdefs::building_def_t * get_building_def(const FString &tag) noexcept {
+		auto finder = building_defs.Find(tag);
+		return finder;
+	}
+
+	inline rawdefs::item_def_t * get_item_def(const FString &tag) noexcept {
+		auto finder = item_defs.Find(tag);
+		return finder;
+	}
+
+	inline rawdefs::clothing_t * get_clothing_by_tag(const FString &tag) noexcept {
+		auto finder = clothing_types.Find(tag);
+		return finder;
+	}
+
+	inline FString material_name(const std::size_t &id) noexcept {
+		if (id < material_defs.Num()) return material_defs[id].name;
+		FString name = "Unknown material: ";
+		name.AppendInt(id);
+		return name;
+	}
+
+	inline rawdefs::raw_species_t * get_species_def(const FString &tag) noexcept {
+		auto finder = species_defs.Find(tag);
+		return finder;
+	}
+
+	inline rawdefs::profession_t * get_random_profession(RandomNumberGenerator &rng) noexcept {
+		auto roll = rng.RollDice(1, starting_professions.Num()) - 1;
+		return &starting_professions[roll];
+	}
+
+	inline rawdefs::life_event_template * get_life_event(const FString &tag) noexcept {
+		auto finder = life_event_defs.Find(tag);
+		return finder;
+	}
+
+	template <typename FUNC>
+	void each_life_event(const FUNC &func) noexcept {
+		for (auto &it : life_event_defs) {
+			func(it.Key, &it.Value);
+		}
+	}
+
+	inline rawdefs::raw_creature_t * get_creature_def(const FString &tag) noexcept {
+		auto finder = creature_defs.Find(tag);
+		return finder;
+	}
+
 	bool LoadedRaws = false;
 
 	TMap<FString, size_t> material_defs_idx;
@@ -426,7 +493,7 @@ public:
 	TMap<int, rawdefs::stockpile_def_t> stockpile_defs;
 	int clothing_stockpile = 0;
 	TMap<FString, rawdefs::item_def_t> item_defs;
-	TMap<int, rawdefs::building_def_t> building_defs;
+	TMap<FString, rawdefs::building_def_t> building_defs;
 	TMap<int, rawdefs::reaction_t> reaction_defs;
 	TMap<int, TArray<FString>> reaction_building_defs;
 	TMap<FString, int> plant_defs_idx;
