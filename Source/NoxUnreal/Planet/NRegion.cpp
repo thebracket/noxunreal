@@ -1412,7 +1412,7 @@ void UNRegion::spawn_item_carried(const int holder_id, const FString &tag, const
 		auto entity = ecs->ecs.AddEntity();
 		ecs->ecs.Assign(entity, item_carried_t{ loc, holder_id });
 		ecs->ecs.Assign(entity, renderable_t{ finder->glyph, finder->glyph_ascii, finder->voxel_model });
-		ecs->ecs.Assign(entity, item_t{ tag, finder->name, material, finder->stack_size, finder->clothing_layer });
+		ecs->ecs.Assign(entity, item_t{ tag, finder->name, material, finder->stack_size, finder->clothing_layer, raws });
 		ecs->ecs.Assign(entity, item_quality_t{ quality });
 		ecs->ecs.Assign(entity, item_wear_t{ wear });
 		ecs->ecs.Assign(entity, item_creator_t{ creator_id, creator_name });
