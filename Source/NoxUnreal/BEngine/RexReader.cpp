@@ -151,9 +151,9 @@ RexTileMap* RexReader::GetTileMap()
 		for (unsigned int x = 0; x < width; x++)
 			for (unsigned int y = 0; y < height; y++)
 			{
-				RexTile* tile = new RexTile();
-				gzread(filestream, tile, 10);
-				map->Layers[layer]->Tiles[x + (y * width)] = TUniquePtr<RexTile>(tile);
+				RexTile tile;
+				gzread(filestream, (voidp)&tile, 10);
+				map->Layers[layer].Tiles[x + (y * width)] = tile;
 			}
 		offset = 16 + ((10 * width * height) + 8) * (layer + 1);
 		gzseek(filestream, offset, SEEK_SET);

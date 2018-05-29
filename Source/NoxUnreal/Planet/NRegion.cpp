@@ -852,10 +852,10 @@ void UNRegion::BuildEscapePod(const int &crash_x, const int &crash_y, const int 
 				const int x = X - 5 + crash_x;
 				const int y = Y - 11 + crash_y;
 
-				const auto &output = ship->Layers[layer]->Tiles[(Y * rr.GetLayerWidth()) + X];
-				const auto &glyph = output->CharacterCode;
-				if (output != nullptr && glyph != 32) reveal(mapidx(x, y, z));
-				if (output != nullptr && !( output->BackgroundRed == 255 && output->BackgroundGreen == 0 && output->BackgroundBlue == 255 )) {
+				const auto &output = ship->Layers[layer].Tiles[(Y * rr.GetLayerWidth()) + X];
+				const auto &glyph = output.CharacterCode;
+				if (glyph != 32) reveal(mapidx(x, y, z));
+				if (!( output.BackgroundRed == 255 && output.BackgroundGreen == 0 && output.BackgroundBlue == 255 )) {
 					if (glyph == 219) {
 						add_construction(x, y, z, "ship_wall", true, 0);
 					}
@@ -1269,7 +1269,7 @@ void UNRegion::CreateSettler(const int x, const int y, const int z, RandomNumber
 					if (rng->RollDice(1, 10) > 7) {
 						const auto skillfinder = stats.skills.Find(skill);
 						if (skillfinder == nullptr) {
-							stats.skills[skill] = skill_t{ 1, 0 };
+							stats.skills.Add(skill, skill_t{ 1, 0 });
 						}
 						else {
 							if (stats.skills[skill].skill_level < 3) {

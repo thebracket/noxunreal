@@ -19,7 +19,7 @@ struct RexTile
 class RexTileLayer
 {
 public:
-	TArray<TUniquePtr<RexTile>> Tiles;
+	TArray<RexTile> Tiles;
 	RexTileLayer() = default;
 	RexTileLayer(int width, int height)
 	{
@@ -39,7 +39,7 @@ private:
 	unsigned int layerCount;
 
 public:
-	TArray<TUniquePtr<RexTileLayer>> Layers;
+	TArray<RexTileLayer> Layers;
 
 	RexTileMap(unsigned int width, unsigned int height, unsigned int layers)
 	{
@@ -47,10 +47,9 @@ public:
 		this->height = height;
 		this->layerCount = layers;
 
-		Layers.AddUninitialized(this->layerCount);
 		for (unsigned int i = 0; i < layerCount; i++)
 		{
-			this->Layers[i] = MakeUnique<RexTileLayer>(width, height);
+			this->Layers.Emplace(RexTileLayer(width, height));
 		}
 	}
 	~RexTileMap() = default;
