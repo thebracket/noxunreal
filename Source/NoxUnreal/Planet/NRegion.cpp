@@ -1473,9 +1473,9 @@ void UNRegion::InitializeChunks() {
 	using namespace nfu;
 
 	DirtyChunks.Empty();
-	DirtyChunks.Add(CHUNKS_TOTAL);
+	for (int i=0; i<CHUNKS_TOTAL; ++i) DirtyChunks.Add(false);
 	Chunks.Empty();
-	Chunks.AddUninitialized(CHUNKS_TOTAL);
+	Chunks.AddDefaulted(CHUNKS_TOTAL);
 
 	for (int z = 0; z<CHUNK_DEPTH; ++z) {
 		for (int y = 0; y<CHUNK_HEIGHT; ++y) {
@@ -1504,7 +1504,7 @@ void UNRegion::SetupChunk(const int &idx, const int &x, const int &y, const int 
 	Chunks[idx].base_z = z * CHUNK_SIZE;
 	Chunks[idx].index = idx;
 	Chunks[idx].layers.Empty();
-	Chunks[idx].layers.AddUninitialized(CHUNK_SIZE);
+	Chunks[idx].layers.AddDefaulted(CHUNK_SIZE);
 }
 
 static bool is_cube(const uint8_t type) {
@@ -1750,12 +1750,15 @@ void UNRegion::UpdateChunk(const int &chunk_idx) {
 							cubes.Add(ridx, get_cube_tex(ridx));
 						}
 						else if (tiletype == tile_type::STAIRS_DOWN) {
+							if (!Chunks[chunk_idx].static_voxel_models.Contains(24)) Chunks[chunk_idx].static_voxel_models.Add(24, TArray<TTuple<int, int, int>>());
 							Chunks[chunk_idx].static_voxel_models[24].Emplace(TTuple<int,int,int>(region_x, region_y, region_z));
 						}
 						else if (tiletype == tile_type::STAIRS_UP) {
+							if (!Chunks[chunk_idx].static_voxel_models.Contains(34)) Chunks[chunk_idx].static_voxel_models.Add(23, TArray<TTuple<int, int, int>>());
 							Chunks[chunk_idx].static_voxel_models[23].Emplace(TTuple<int, int, int>(region_x, region_y, region_z));
 						}
 						else if (tiletype == tile_type::STAIRS_UPDOWN) {
+							if (!Chunks[chunk_idx].static_voxel_models.Contains(25)) Chunks[chunk_idx].static_voxel_models.Add(25, TArray<TTuple<int, int, int>>());
 							Chunks[chunk_idx].static_voxel_models[25].Emplace(TTuple<int, int, int>(region_x, region_y, region_z));
 						}
 						else if (tiletype == tile_type::CLOSED_DOOR) {
@@ -1780,6 +1783,7 @@ void UNRegion::UpdateChunk(const int &chunk_idx) {
 									}
 								}*/
 							}
+							if (!Chunks[chunk_idx].static_voxel_models.Contains(vox_id)) Chunks[chunk_idx].static_voxel_models.Add(vox_id, TArray<TTuple<int, int, int>>());
 							Chunks[chunk_idx].static_voxel_models[vox_id].Emplace(TTuple<int, int, int>(region_x, region_y, region_z));
 						}
 					} // revealed
