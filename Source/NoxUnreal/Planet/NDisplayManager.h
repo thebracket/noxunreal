@@ -39,7 +39,7 @@ struct FNLayer
 	UPROPERTY(VisibleAnywhere)
 	UProceduralMeshComponent * mesh;
 
-	TMap<int, GeometryChunk> geometry_by_material;
+	//TMap<int, GeometryChunk> geometry_by_material;
 };
 
 USTRUCT(BlueprintType)

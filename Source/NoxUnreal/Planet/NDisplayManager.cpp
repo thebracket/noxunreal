@@ -85,7 +85,9 @@ void ANDisplayManager::Tick(float DeltaTime)
 }
 
 void ANDisplayManager::RebuildChunkLayer(const int &chunk, const int &layer) {
-	auto * gbm = &Chunks[chunk].layers[layer].geometry_by_material;
+	TMap<int, GeometryChunk> geometry_by_material;
+	auto * gbm = &geometry_by_material;
+	//auto * gbm = &Chunks[chunk].layers[layer].geometry_by_material;
 	gbm->Empty();
 
 	int z = Chunks[chunk].layers[layer].local_z;
