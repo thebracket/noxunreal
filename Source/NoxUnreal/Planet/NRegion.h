@@ -61,6 +61,38 @@ inline void setbit(const uint32 n, uint32 &bits) noexcept { bits |= n; }
 inline void resetbit(const uint32 n, uint32 &bits) noexcept { bits &= ~n; }
 inline bool testbit(const uint32 n, uint32 &bits) noexcept { return (bits & n) != 0; }
 
+inline int chunk_id_by_world_pos(const int x, const int y, const int z) noexcept
+{
+	using namespace nfu;
+	const int chunk_x = x / CHUNK_SIZE;
+	const int chunk_y = y / CHUNK_SIZE;
+	const int chunk_z = z / CHUNK_SIZE;
+	return chunk_idx(chunk_x, chunk_y, chunk_z);
+}
+
+struct cube_t {
+	int x, y, z, w, h, d;
+	unsigned int tex;
+};
+
+struct floor_t {
+	int x, y, z, w, h;
+	unsigned int tex;
+};
+
+struct layer_t {
+	TArray<cube_t> cubes;
+	TArray<floor_t> floors;
+	TArray<floor_t> design_mode;
+};
+
+struct chunk_t {
+	int index = 0, base_x = 0, base_y = 0, base_z = 0;
+	TArray<layer_t> layers;
+	TMap<int, TArray<TTuple<int, int, int>>> static_voxel_models;
+	TArray<TTuple<int, int, int, int, int>> vegetation_models; // plant, state, x, y, z
+};
+
 /**
  * Provides information and generation functions for a region.
  */
@@ -93,6 +125,18 @@ public:
 	*/
 	inline int mapidx(const int &x, const int &y, const int &z) noexcept {
 		return (z * nfu::REGION_HEIGHT * nfu::REGION_WIDTH) + (y * nfu::REGION_WIDTH) + x;
+	}
+
+	inline TTuple<int, int, int> idxmap(int idx) noexcept {
+		int z = idx / (nfu::REGION_HEIGHT * nfu::REGION_WIDTH);
+		idx -= (z * nfu::REGION_WIDTH * nfu::REGION_HEIGHT);
+
+		int y = idx / nfu::REGION_WIDTH;
+		idx -= (y * nfu::REGION_WIDTH);
+
+		int x = idx;
+
+		return TTuple<int, int, int>(x, y, z);
 	}
 
 	inline void SetTileType(const int idx, const uint8_t type) {
@@ -195,6 +239,14 @@ public:
 		if (construction) setbit(regiondefs::tile_flags::CONSTRUCTION, TileFlags[idx]);
 	}
 
+	TArray<chunk_t> Chunks;
+	TBitArray<> DirtyChunks;
+	void InitializeChunks();
+	void UpdateChunks();
+	void SetupChunk(const int &idx, const int &x, const int &y, const int &z);
+	inline void MarkChunkDirty(const int &idx) { DirtyChunks[idx] = true; }
+	void UpdateChunk(const int &chunk_idx);
+
 private:
 	UNPlanet * planet;
 
@@ -241,4 +293,12 @@ private:
 	void decorate_item_categories(int &item, TBitArray<> &categories) noexcept;
 	void spawn_item_in_container(const int container_id, const FString &tag, const std::size_t &material, uint8_t quality, uint8_t wear, int creator_id, FString creator_name) noexcept;
 	void spawn_item_carried(const int holder_id, const FString &tag, const std::size_t &material, const ecs_item_location_t &loc, uint8_t quality, uint8_t wear, int creator_id, FString creator_name, RandomNumberGenerator * rng) noexcept;
+
+	// Chunking
+	unsigned int get_design_tex(const int &idx);
+	unsigned int get_floor_tex(const int &idx);
+	unsigned int get_cube_tex(const int &idx);
+	void greedy_floors(TMap<int, unsigned int> &floors, const int &chunk_idx, const int &chunk_z);
+	void greedy_design(TMap<int, unsigned int> &floors, const int &chunk_idx, const int &chunk_z);
+	void greedy_cubes(TMap<int, unsigned int> &cubes, const int &chunk_idx, const int &chunk_z);
 };

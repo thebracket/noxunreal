@@ -1466,3 +1466,409 @@ TArray<FString> UNRegion::get_event_candidates(const int &age, const TArray<FStr
 
 	return result;
 }
+
+/* CHUNKING */
+
+void UNRegion::InitializeChunks() {
+	using namespace nfu;
+
+	DirtyChunks.Empty();
+	DirtyChunks.Add(CHUNKS_TOTAL);
+	Chunks.Empty();
+	Chunks.AddUninitialized(CHUNKS_TOTAL);
+
+	for (int z = 0; z<CHUNK_DEPTH; ++z) {
+		for (int y = 0; y<CHUNK_HEIGHT; ++y) {
+			for (int x = 0; x<CHUNK_WIDTH; ++x) {
+				const int idx = chunk_idx(x, y, z);
+				SetupChunk(idx, x, y, z);
+				MarkChunkDirty(idx);
+			}
+		}
+	}
+}
+
+void UNRegion::UpdateChunks() {
+	for (auto i = 0; i < nfu::CHUNKS_TOTAL; ++i) {
+		if (DirtyChunks[i]) {
+			UpdateChunk(i);
+			DirtyChunks[i] = false;
+		}
+	}
+}
+
+void UNRegion::SetupChunk(const int &idx, const int &x, const int &y, const int &z) {
+	using namespace nfu;
+	Chunks[idx].base_x = x * CHUNK_SIZE;
+	Chunks[idx].base_y = y * CHUNK_SIZE;
+	Chunks[idx].base_z = z * CHUNK_SIZE;
+	Chunks[idx].index = idx;
+	Chunks[idx].layers.Empty();
+	Chunks[idx].layers.AddUninitialized(CHUNK_SIZE);
+}
+
+static bool is_cube(const uint8_t type) {
+	using namespace regiondefs;
+	switch (type) {
+	case tile_type::SOLID: return true;
+	case tile_type::WALL: return true;
+	case tile_type::SEMI_MOLTEN_ROCK: return true;
+	default: return false;
+	}
+}
+
+void UNRegion::greedy_floors(TMap<int, unsigned int> &floors, const int &chunk_idx, const int &chunk_z) {
+	using namespace nfu;
+
+	auto n_floors = floors.Num();
+	const int base_x = Chunks[chunk_idx].base_x;
+	const int base_y = Chunks[chunk_idx].base_y;
+	const int base_z = Chunks[chunk_idx].base_z;
+
+	while (!floors.Num()==0) {
+		const auto first_floor = floors.CreateIterator();
+		const auto base_region_idx = first_floor->Key;
+		const auto texture_id = first_floor->Value;
+
+		const auto tt = idxmap(base_region_idx);
+		const auto tile_x = tt.Get<0>();
+		const auto tile_y = tt.Get<1>();
+		const auto tile_z = tt.Get<2>();
+		auto width = 1;
+		auto height = 1;
+
+		floors.Remove(base_region_idx);
+		auto idx_grow_right = base_region_idx + 1;
+		auto x_coordinate = tile_x;
+		auto right_finder = floors.Find(idx_grow_right);
+		while (x_coordinate < REGION_WIDTH - 1 && idx_grow_right < mapidx(FMath::Min(REGION_WIDTH - 1, base_x + CHUNK_SIZE), tile_y, tile_z) && right_finder != nullptr && *right_finder == texture_id) {
+			floors.Remove(idx_grow_right);
+			++width;
+			++idx_grow_right;
+			++x_coordinate;
+			right_finder = floors.Find(idx_grow_right);
+		}
+
+		if (tile_y < REGION_HEIGHT - 1) {
+			auto y_progress = tile_y + 1;
+
+			auto possible = true;
+			while (possible && y_progress < base_y + CHUNK_SIZE && y_progress < REGION_HEIGHT - 1) {
+				for (auto gx = tile_x; gx < tile_x + width; ++gx) {
+					const auto candidate_idx = mapidx(gx, y_progress, tile_z);
+					const auto vfinder = floors.Find(candidate_idx);
+					if (vfinder == nullptr || *vfinder != texture_id) possible = false;
+				}
+				if (possible) {
+					++height;
+					for (auto gx = tile_x; gx < tile_x + width; ++gx) {
+						const auto candidate_idx = mapidx(gx, y_progress, tile_z);
+						floors.Remove(candidate_idx);
+					}
+				}
+
+				++y_progress;
+			}
+		}
+
+		Chunks[chunk_idx].layers[chunk_z].floors.Emplace(floor_t{ tile_x, tile_y, tile_z, width, height, texture_id });
+	}
+}
+
+void UNRegion::greedy_design(TMap<int, unsigned int> &floors, const int &chunk_idx, const int &chunk_z) {
+	using namespace nfu;
+	auto n_floors = floors.Num();
+	const int base_x = Chunks[chunk_idx].base_x;
+	const int base_y = Chunks[chunk_idx].base_y;
+	const int base_z = Chunks[chunk_idx].base_z;
+
+	while (!floors.Num()==0) {
+		const auto first_floor = floors.CreateIterator();
+		const auto base_region_idx = first_floor->Key;
+		const auto texture_id = first_floor->Value;
+
+		const auto tt = idxmap(base_region_idx);
+		const auto tile_x = tt.Get<0>();
+		const auto tile_y = tt.Get<1>();
+		const auto tile_z = tt.Get<2>();
+		auto width = 1;
+		auto height = 1;
+
+		floors.Remove(base_region_idx);
+		auto idx_grow_right = base_region_idx + 1;
+		auto x_coordinate = tile_x;
+		auto right_finder = floors.Find(idx_grow_right);
+		while (x_coordinate < REGION_WIDTH - 1 && idx_grow_right < mapidx(FMath::Min(REGION_WIDTH - 1, base_x + CHUNK_SIZE), tile_y, tile_z) && right_finder != nullptr && *right_finder == texture_id) {
+			floors.Remove(idx_grow_right);
+			++width;
+			++idx_grow_right;
+			++x_coordinate;
+			right_finder = floors.Find(idx_grow_right);
+		}
+
+		if (tile_y < REGION_HEIGHT - 1) {
+			auto y_progress = tile_y + 1;
+
+			auto possible = true;
+			while (possible && y_progress < base_y + CHUNK_SIZE && y_progress < REGION_HEIGHT - 1) {
+				for (auto gx = tile_x; gx < tile_x + width; ++gx) {
+					const auto candidate_idx = mapidx(gx, y_progress, tile_z);
+					const auto vfinder = floors.Find(candidate_idx);
+					if (vfinder == nullptr || *vfinder != texture_id) possible = false;
+				}
+				if (possible) {
+					++height;
+					for (auto gx = tile_x; gx < tile_x + width; ++gx) {
+						const auto candidate_idx = mapidx(gx, y_progress, tile_z);
+						floors.Remove(candidate_idx);
+					}
+				}
+
+				++y_progress;
+			}
+		}
+
+		Chunks[chunk_idx].layers[chunk_z].design_mode.Emplace(floor_t{ tile_x, tile_y, tile_z, width, height, texture_id });
+	}
+}
+
+void UNRegion::greedy_cubes(TMap<int, unsigned int> &cubes, const int &chunk_idx, const int &chunk_z) {
+	using namespace nfu;
+	const int base_x = Chunks[chunk_idx].base_x;
+	const int base_y = Chunks[chunk_idx].base_y;
+	const int base_z = Chunks[chunk_idx].base_z;
+
+	auto n_cubes = cubes.Num();
+	while (!cubes.Num()==0) {
+		const auto first_floor = cubes.CreateIterator();
+		const auto base_region_idx = first_floor->Key;
+		const auto texture_id = first_floor->Value;
+
+		const auto tt = idxmap(base_region_idx);
+		const auto tile_x = tt.Get<0>();
+		const auto tile_y = tt.Get<1>();
+		const auto tile_z = tt.Get<2>();
+		auto width = 1;
+		auto height = 1;
+
+		cubes.Remove(base_region_idx);
+		auto idx_grow_right = base_region_idx + 1;
+		auto x_coordinate = tile_x;
+		auto right_finder = cubes.Find(idx_grow_right);
+		while (x_coordinate < REGION_WIDTH - 1 && idx_grow_right < mapidx(FMath::Min(REGION_WIDTH - 1, base_x + CHUNK_SIZE), tile_y, tile_z) && right_finder != nullptr && *right_finder == texture_id) {
+			cubes.Remove(idx_grow_right);
+			++width;
+			++idx_grow_right;
+			++x_coordinate;
+			right_finder = cubes.Find(idx_grow_right);
+		}
+
+		//std::cout << "Merging " << width << " tiles horizontally\n";
+
+		if (tile_y < REGION_HEIGHT - 1) {
+			auto y_progress = tile_y + 1;
+
+			auto possible = true;
+			while (possible && y_progress < base_y + CHUNK_SIZE && y_progress < REGION_HEIGHT - 1) {
+				for (auto gx = tile_x; gx < tile_x + width; ++gx) {
+					const auto candidate_idx = mapidx(gx, y_progress, tile_z);
+					const auto vfinder = cubes.Find(candidate_idx);
+					if (!(vfinder != nullptr && *vfinder == texture_id)) possible = false;
+				}
+				if (possible) {
+					++height;
+					for (int gx = tile_x; gx < tile_x + width; ++gx) {
+						const auto candidate_idx = mapidx(gx, y_progress, tile_z);
+						cubes.Remove(candidate_idx);
+					}
+				}
+
+				++y_progress;
+			}
+		}
+
+		Chunks[chunk_idx].layers[chunk_z].cubes.Emplace(cube_t{ tile_x, tile_y, tile_z, width, height, 1, texture_id });
+	}
+}
+
+void UNRegion::UpdateChunk(const int &chunk_idx) {
+	using namespace nfu;
+	using namespace regiondefs;
+
+	for (auto &layer : Chunks[chunk_idx].layers) {
+		layer.cubes.Empty();
+		layer.floors.Empty();
+		layer.design_mode.Empty();
+	}
+	Chunks[chunk_idx].static_voxel_models.Empty();
+	Chunks[chunk_idx].vegetation_models.Empty();
+
+	const int base_x = Chunks[chunk_idx].base_x;
+	const int base_y = Chunks[chunk_idx].base_y;
+	const int base_z = Chunks[chunk_idx].base_z;
+
+
+	for (int chunk_z = 0; chunk_z < CHUNK_SIZE; ++chunk_z) {
+		const int region_z = chunk_z + base_z;
+		TMap<int, unsigned int> floors;
+		TMap<int, unsigned int> cubes;
+		TMap<int, unsigned int> design_mode;
+
+		for (int chunk_y = 0; chunk_y < CHUNK_SIZE; ++chunk_y) {
+			const int region_y = chunk_y + base_y;
+			for (int chunk_x = 0; chunk_x < CHUNK_SIZE; ++chunk_x) {
+				const int region_x = chunk_x + base_x;
+				const int ridx = mapidx(region_x, region_y, region_z);
+
+				const auto tiletype = TileType[ridx];
+				design_mode.Add(ridx, get_design_tex(ridx));
+				if (tiletype != tile_type::OPEN_SPACE) {
+					if (testbit(tile_flags::REVEALED, TileFlags[ridx])) {
+						if (tiletype == tile_type::WINDOW) {
+							cubes.Add(ridx, -3);
+						}
+						else if (tiletype == tile_type::FLOOR) {
+							floors.Add(ridx, get_floor_tex(ridx));
+							//if (farm_designations->farms.find(ridx) != farm_designations->farms.end()) {
+							//	chunks[chunk_idx].static_voxel_models[116].push_back(std::make_tuple(region_x, region_y, region_z));
+							//}
+
+							if (TileVegetationType[ridx] > 0 && !testbit(tile_flags::CONSTRUCTION, TileFlags[ridx])) {
+								Chunks[chunk_idx].vegetation_models.Emplace(TTuple<int, int, int, int, int>((int)TileVegetationType[ridx], (int)TileVegetationLifecycle[ridx], (int)region_x, (int)region_y, (int)region_z));
+							}
+						}
+						else if (tiletype == tile_type::TREE_TRUNK) {
+							Chunks[chunk_idx].vegetation_models.Emplace(TTuple<int, int, int, int, int>(-1, 0, (int)region_x, (int)region_y, (int)region_z));
+							floors.Add(ridx, -1);
+						}
+						else if (is_cube(tiletype))
+						{
+							cubes.Add(ridx, get_cube_tex(ridx));
+						}
+						else if (tiletype == tile_type::RAMP) {
+							// TODO: Handle differently
+							cubes.Add(ridx, get_cube_tex(ridx));
+						}
+						else if (tiletype == tile_type::STAIRS_DOWN) {
+							Chunks[chunk_idx].static_voxel_models[24].Emplace(TTuple<int,int,int>(region_x, region_y, region_z));
+						}
+						else if (tiletype == tile_type::STAIRS_UP) {
+							Chunks[chunk_idx].static_voxel_models[23].Emplace(TTuple<int, int, int>(region_x, region_y, region_z));
+						}
+						else if (tiletype == tile_type::STAIRS_UPDOWN) {
+							Chunks[chunk_idx].static_voxel_models[25].Emplace(TTuple<int, int, int>(region_x, region_y, region_z));
+						}
+						else if (tiletype == tile_type::CLOSED_DOOR) {
+							auto vox_id = 128;
+							const auto bid = BuildingId[ridx];
+							if (bid > 0)
+							{
+								/*const auto building_entity = bengine::entity(bid);
+								if (building_entity)
+								{
+									const auto building_comp = building_entity->component<building_t>();
+									if (building_comp)
+									{
+										const auto def = get_building_def(building_comp->tag);
+										if (def)
+										{
+											for (const auto &p : def->provides)
+											{
+												if (p.alternate_vox > 0) vox_id = p.alternate_vox;
+											}
+										}
+									}
+								}*/
+							}
+							Chunks[chunk_idx].static_voxel_models[vox_id].Emplace(TTuple<int, int, int>(region_x, region_y, region_z));
+						}
+					} // revealed
+					else {
+						cubes.Add(ridx, 3);
+					}
+				}
+			}
+		}
+
+		greedy_floors(floors, chunk_idx, chunk_z);
+		greedy_cubes(cubes, chunk_idx, chunk_z);
+		greedy_design(design_mode, chunk_idx, chunk_z);
+	}
+}
+
+unsigned int UNRegion::get_design_tex(const int &idx) {
+	using namespace regiondefs;
+	const auto tt = TileType[idx];
+
+	// Default graphics for open space and not-yet-revealed
+	if (tt == tile_type::OPEN_SPACE) return 3;
+	if (!testbit(tile_flags::REVEALED, TileFlags[idx])) return 3;
+	if (tt == tile_type::FLOOR) return get_floor_tex(idx);
+	if (tt == tile_type::TREE_TRUNK) return 6;
+	return get_cube_tex(idx);
+}
+
+unsigned int UNRegion::get_floor_tex(const int &idx) {
+	using namespace regiondefs;
+
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+
+	// If its a stockpile, render it as such
+	if (StockpileId[idx] > 0) return 3; // TODO: Determine texture
+
+												 // We no longer hard-code grass.
+	if (TileVegetationType[idx] > 0 && !testbit(tile_flags::CONSTRUCTION, TileFlags[idx])) {
+		switch (TileVegetationLifecycle[idx]) {
+		case 0: return 18; // Germination
+		case 1: return 21; // Sprouting
+		case 2: return -1; // Growing (grass is material 0)
+		case 3: return 24; // Flowering
+		}
+		return -1; // Grass is determined to be index -1
+	}
+	const auto material_idx = TileMaterial[idx];
+	const auto material = raws->get_material(material_idx);
+	if (!material) return -2; // -2 is the super-obvious "we don't have a material" texture.
+
+	unsigned int use_id = -2;
+	if (testbit(tile_flags::CONSTRUCTION, TileFlags[idx])) {
+		use_id = (unsigned int)material->floor_smooth_id;
+	}
+	else {
+		use_id = (unsigned int)material->floor_rough_id;
+	}
+	if (use_id == 3) {
+		//glog(log_target::LOADER, log_severity::warning, "Material [{0}] is lacking a texture", material->name);
+	}
+
+	//std::cout << material->name << "=" << use_id << "\n";
+	return use_id;
+}
+
+unsigned int UNRegion::get_cube_tex(const int &idx) {
+	using namespace regiondefs;
+
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+
+	const auto tt = TileType[idx];
+	if (tt == tile_type::TREE_TRUNK) return 6;
+	if (tt == tile_type::TREE_LEAF) return 9;
+
+	const auto material_idx = TileMaterial[idx];
+	const auto material = raws->get_material(material_idx);
+	if (!material) return -2;
+
+	unsigned int use_id = -2;
+	if (!testbit(tile_flags::CONSTRUCTION, TileFlags[idx])) {
+		use_id = (unsigned int)material->wall_smooth_id;
+	}
+	else {
+		use_id = (unsigned int)material->wall_rough_id;
+	}
+	if (use_id == -2) {
+		//glog(log_target::LOADER, log_severity::warning, "Material [{0}] is lacking a texture.", material->name);
+	}
+	return use_id;
+}
