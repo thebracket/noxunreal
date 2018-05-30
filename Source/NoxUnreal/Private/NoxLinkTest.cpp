@@ -424,7 +424,7 @@ void ANoxLinkTest::Tick(float DeltaTime)
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraDirector::StaticClass(), FoundActors);
 		for (int i = 0; i < FoundActors.Num(); ++i) {
 			ACameraDirector * cd = Cast<ACameraDirector>(FoundActors[i]);
-			cd->ZLevelChanged.Broadcast();
+			//cd->ZLevelChanged.Broadcast();
 		}
 	}
 }

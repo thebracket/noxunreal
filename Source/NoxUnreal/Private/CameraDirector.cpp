@@ -64,17 +64,17 @@ void ACameraDirector::Tick(float DeltaTime)
 	// Input Support
 	if (zooming == 1) {
 		nf::camera_zoom_in();
-		ZLevelChanged.Broadcast();
+		//ZLevelChanged.Broadcast();
 	}
 	else if (zooming == 2) {
 		nf::camera_zoom_out();
-		ZLevelChanged.Broadcast();
+		//ZLevelChanged.Broadcast();
 	}
 
 	if (xMove != 0 || yMove != 0 || zMove != 0) {
 		nf::camera_move(xMove, yMove, zMove);
 		if (zMove != 0) {
-			ZLevelChanged.Broadcast();
+			//ZLevelChanged.Broadcast();
 		}
 		zMove = 0;
 	}
@@ -189,5 +189,5 @@ void ACameraDirector::RightClickOff() {
 }
 
 void ACameraDirector::TriggerZLevelChange() {
-	ZLevelChanged.Broadcast();
+	//ZLevelChanged.Broadcast();
 }

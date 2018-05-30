@@ -201,7 +201,7 @@ void ANoxStaticModel::BeginPlay()
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraDirector::StaticClass(), FoundActors);
 	for (int i = 0; i < FoundActors.Num(); ++i) {
 		ACameraDirector * cd = Cast<ACameraDirector>(FoundActors[i]);
-		cd->ZLevelChanged.AddDynamic(this, &ANoxStaticModel::onZChange);
+		//cd->ZLevelChanged.AddDynamic(this, &ANoxStaticModel::onZChange);
 	}
 }
 

@@ -1,31 +1,38 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// (c) 2016 - Present, Bracket Productions
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "CameraDirector.generated.h"
+#include "../Public/NoxGameInstance.h"
+#include "GameInputManager.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FonZChange);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FonCameraMove);
 
 UCLASS()
-class NOXUNREAL_API ACameraDirector : public APawn
+class NOXUNREAL_API AGameInputManager : public APawn
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
-	ACameraDirector();
+
+public:
+	// Sets default values for this pawn's properties
+	AGameInputManager();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 	UPROPERTY(EditAnywhere)
-	AActor* CameraOne;	
+	AActor* CameraOne;
 
 	UPROPERTY(BlueprintReadOnly)
 	bool LeftClicked;
@@ -33,19 +40,21 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool RightClicked;
 
-	//UPROPERTY(BlueprintAssignable, Category = "CameraControl")
-	//FOnZChange ZLevelChanged;
+	UPROPERTY(BlueprintAssignable, Category = "CameraControl")
+	FonZChange ZLevelChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "CameraControl")
+	FonCameraMove CameraMoved;
 
 	const int WORLD_SCALE = 200;
-	
 	int zooming = 0;
-	void ZoomIn();
-	void ZoomOut();
-	void ZoomOff();
-
 	int xMove = 0;
 	int yMove = 0;
 	int zMove = 0;
+
+	void ZoomIn();
+	void ZoomOut();
+	void ZoomOff();
 	void CameraLeft();
 	void CameraRight();
 	void CameraNorth();
@@ -61,7 +70,13 @@ public:
 	void LeftClickOff();
 	void RightClickOn();
 	void RightClickOff();
+	
+	UNRegion * region;
+	UBECS * ecs;
 
 	UFUNCTION(BlueprintCallable)
 	void TriggerZLevelChange();
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateCamera();
 };

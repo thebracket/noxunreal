@@ -169,4 +169,17 @@ public:
 		
 		ecs;
 	
+	int CameraEntity = -1;
+	int RegionX = -1;
+	int RegionY = -1;
+	world_position_t * CameraPosition = nullptr;
+	calendar_t * Calendar = nullptr;
+	designations_t * Designations = nullptr;
+	camera_options_t * Camera = nullptr;
+	mining_designations_t * MiningDesignations = nullptr;
+	farming_designations_t * FarmingDesignations = nullptr;
+	building_designations_t * BuildingDesignations;
+	architecture_designations_t * ArchitectureDesignations;
+
+	void LinkMasters();
 };

@@ -2,6 +2,7 @@
 
 #include "NDisplayManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameInputManager.h"
 
 constexpr float WORLD_SCALE = 200.0f;
 
@@ -75,6 +76,15 @@ void ANDisplayManager::BeginPlay()
 			RebuildChunkLayer(i, j);
 		}
 	}
+
+	// Link to event handlers
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AGameInputManager::StaticClass(), FoundActors);
+	for (int i = 0; i < FoundActors.Num(); ++i) {
+		AGameInputManager * cd = Cast<AGameInputManager>(FoundActors[i]);
+		//cd->ZLevelChanged.Broadcast();
+		cd->ZLevelChanged.AddDynamic(this, &ANDisplayManager::onZChange);
+	}
 }
 
 // Called every frame
@@ -127,6 +137,9 @@ void ANDisplayManager::RebuildChunkLayer(const int &chunk, const int &layer) {
 
 	// Enable collision data
 	Chunks[chunk].layers[layer].mesh->ContainsPhysicsTriMeshData(true);
+	Chunks[chunk].layers[layer].mesh->bCastHiddenShadow = true;
+	region->Chunks[chunk].layers[layer].floors.Empty();
+	region->Chunks[chunk].layers[layer].cubes.Empty();
 }
 
 FString ANDisplayManager::GetMaterialTexture(const int &Key) {
@@ -136,6 +149,24 @@ FString ANDisplayManager::GetMaterialTexture(const int &Key) {
 	}
 	else {
 		return MaterialAtlas[-2];
+	}
+}
+
+void ANDisplayManager::onZChange() {
+	for (int chunk = 0; chunk < nfu::CHUNKS_TOTAL; ++chunk) {
+		for (int layer = 0; layer < nfu::CHUNK_SIZE; ++layer) {
+			const int z = ecs->CameraPosition->region_z;
+			const int my_layer = Chunks[chunk].base_z + layer;
+
+			if (my_layer <= z && my_layer >= z - 20) {
+				Chunks[chunk].layers[layer].mesh->SetVisibility(true);
+				Chunks[chunk].layers[layer].mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+			}
+			else {
+				Chunks[chunk].layers[layer].mesh->SetVisibility(false);
+				Chunks[chunk].layers[layer].mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+			}
+		}
 	}
 }
 

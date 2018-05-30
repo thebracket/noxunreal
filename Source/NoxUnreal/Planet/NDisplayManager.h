@@ -88,4 +88,7 @@ public:
 
 	void RebuildChunkLayer(const int &chunk, const int &layer);
 	FString GetMaterialTexture(const int &Key);
+
+	UFUNCTION(BlueprintCallable)
+	void onZChange();
 };

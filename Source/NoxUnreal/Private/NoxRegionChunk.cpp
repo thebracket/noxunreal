@@ -55,7 +55,7 @@ void ANoxRegionChunk::BeginPlay()
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACameraDirector::StaticClass(), FoundActors);
 	for (int i = 0; i < FoundActors.Num(); ++i) {
 		ACameraDirector * cd = Cast<ACameraDirector>(FoundActors[i]);
-		cd->ZLevelChanged.AddDynamic(this, &ANoxRegionChunk::onZChange);
+		//cd->ZLevelChanged.AddDynamic(this, &ANoxRegionChunk::onZChange);
 	}
 }
 
