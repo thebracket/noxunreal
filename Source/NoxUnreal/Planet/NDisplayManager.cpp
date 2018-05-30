@@ -64,6 +64,13 @@ void ANDisplayManager::BeginPlay()
 		Chunks.Emplace(chunk);
 	}
 
+	UStaticMesh* tree1 = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/TileMaterials/Foliage/FastTree/tree_1__tree.tree_1__tree'"), nullptr, LOAD_None, nullptr));
+	UStaticMesh* tree2 = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/TileMaterials/Foliage/FastTree/tree_1__leaves.tree_1__leaves'"), nullptr, LOAD_None, nullptr));
+	UStaticMesh* grass = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/Meshes/Grass/SM_grass_patch1.SM_grass_patch1'"), nullptr, LOAD_None, nullptr));
+	FRotator rot = FRotator();
+	FVector GrassScale(6.25f, 6.25f, 6.25f);
+	FVector TreeScale(30.0f, 30.0f, 30.0f);
+
 	for (size_t i = 0; i < nfu::CHUNKS_TOTAL; ++i) {
 		for (size_t j = 0; j < nfu::CHUNK_SIZE; ++j) {
 			FString layerName = "Mesh";
@@ -73,7 +80,51 @@ void ANDisplayManager::BeginPlay()
 			Chunks[i].layers[j].mesh = NewObject<UProceduralMeshComponent>(this, FName(*layerName));
 			Chunks[i].layers[j].mesh->RegisterComponent();
 			//chunks[i].layers[j].mesh->AttachTo(GetRootComponent(), SocketName, EAttachLocation::KeepWorldPosition);
-			RebuildChunkLayer(i, j);
+			RebuildChunkLayer(i, j);			
+		}
+
+		for (const auto &Foliage : region->Chunks[i].vegetation_models) {
+			// plant, state, x, y, z - tuple contents
+			const int plant = Foliage.Get<0>();
+			const int state = Foliage.Get<1>();
+			const int x = Foliage.Get<2>();
+			const int y = Foliage.Get<3>();
+			const int z = Foliage.Get<4>();
+			float mx = x + 0.5f;
+			float my = y + 0.5f;
+			float mz = z;
+
+			const int plant_layer = z - Chunks[i].base_z;
+
+			if (Chunks[i].layers[plant_layer].foliage.tree1 == nullptr) {
+				// Initialize foliage containers
+				Chunks[i].layers[plant_layer].foliage.tree1 = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
+				Chunks[i].layers[plant_layer].foliage.tree1->RegisterComponent();
+				Chunks[i].layers[plant_layer].foliage.tree1->SetStaticMesh(tree1);
+				AddInstanceComponent(Chunks[i].layers[plant_layer].foliage.tree1);
+
+				Chunks[i].layers[plant_layer].foliage.tree2 = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
+				Chunks[i].layers[plant_layer].foliage.tree2->RegisterComponent();
+				Chunks[i].layers[plant_layer].foliage.tree2->SetStaticMesh(tree2);
+				AddInstanceComponent(Chunks[i].layers[plant_layer].foliage.tree2);
+
+				Chunks[i].layers[plant_layer].foliage.grass1 = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
+				Chunks[i].layers[plant_layer].foliage.grass1->RegisterComponent();
+				Chunks[i].layers[plant_layer].foliage.grass1->SetStaticMesh(grass);
+				AddInstanceComponent(Chunks[i].layers[plant_layer].foliage.grass1);
+			}
+
+			FVector loc = FVector(mx * WORLD_SCALE, my * WORLD_SCALE, mz * WORLD_SCALE);
+
+			if (plant == -1) {
+				FTransform trans = FTransform(rot, loc, TreeScale);
+				Chunks[i].layers[plant_layer].foliage.tree1->AddInstance(trans);
+				Chunks[i].layers[plant_layer].foliage.tree2->AddInstance(trans);
+			}
+			else {
+				FTransform trans = FTransform(rot, loc, GrassScale);
+				Chunks[i].layers[plant_layer].foliage.grass1->AddInstance(trans);
+			}
 		}
 	}
 
@@ -161,10 +212,20 @@ void ANDisplayManager::onZChange() {
 			if (my_layer <= z && my_layer >= z - 20) {
 				Chunks[chunk].layers[layer].mesh->SetVisibility(true);
 				Chunks[chunk].layers[layer].mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+				if (Chunks[chunk].layers[layer].foliage.tree1) {
+					Chunks[chunk].layers[layer].foliage.tree1->SetVisibility(true);
+					Chunks[chunk].layers[layer].foliage.tree2->SetVisibility(true);
+					Chunks[chunk].layers[layer].foliage.grass1->SetVisibility(true);
+				}
 			}
 			else {
 				Chunks[chunk].layers[layer].mesh->SetVisibility(false);
 				Chunks[chunk].layers[layer].mesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+				if (Chunks[chunk].layers[layer].foliage.tree1) {
+					Chunks[chunk].layers[layer].foliage.tree1->SetVisibility(false);
+					Chunks[chunk].layers[layer].foliage.tree2->SetVisibility(false);
+					Chunks[chunk].layers[layer].foliage.grass1->SetVisibility(false);
+				}
 			}
 		}
 	}

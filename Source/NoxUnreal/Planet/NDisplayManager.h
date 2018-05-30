@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "../Public/NoxGameInstance.h"
 #include "ProceduralMeshComponent.h"
+#include "Runtime/Engine/Classes/Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "NDisplayManager.generated.h"
 
 struct GeometryChunk {
@@ -27,6 +28,21 @@ struct GeometryChunk {
 };
 
 USTRUCT(BlueprintType)
+struct FFoliage
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(VisibleAnywhere)
+	UHierarchicalInstancedStaticMeshComponent * tree1 = nullptr;
+
+	UPROPERTY(VisibleAnywhere)
+	UHierarchicalInstancedStaticMeshComponent * tree2 = nullptr;
+
+	UPROPERTY(VisibleAnywhere)
+	UHierarchicalInstancedStaticMeshComponent * grass1 = nullptr;
+};
+
+USTRUCT(BlueprintType)
 struct FNLayer
 {
 	GENERATED_USTRUCT_BODY()
@@ -39,7 +55,8 @@ struct FNLayer
 	UPROPERTY(VisibleAnywhere)
 	UProceduralMeshComponent * mesh;
 
-	//TMap<int, GeometryChunk> geometry_by_material;
+	UPROPERTY(VisibleAnywhere)
+	FFoliage foliage;
 };
 
 USTRUCT(BlueprintType)
