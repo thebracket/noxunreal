@@ -103,9 +103,14 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FNChunk> Chunks;
 
+	UPROPERTY(VisibleAnywhere)
+	UProceduralMeshComponent * WaterMesh;
+
 	void RebuildChunkLayer(const int &chunk, const int &layer);
 	FString GetMaterialTexture(const int &Key);
 
 	UFUNCTION(BlueprintCallable)
 	void onZChange();
+
+	void Water();
 };

@@ -126,6 +126,11 @@ void ANDisplayManager::BeginPlay()
 				Chunks[i].layers[plant_layer].foliage.grass1->AddInstance(trans);
 			}
 		}
+
+		// Water
+		WaterMesh = NewObject<UProceduralMeshComponent>(this, FName(TEXT("WetMesh")));
+		WaterMesh->RegisterComponent();
+		Water();
 	}
 
 	// Link to event handlers
@@ -229,6 +234,29 @@ void ANDisplayManager::onZChange() {
 			}
 		}
 	}
+}
+
+void ANDisplayManager::Water() {
+	using namespace nfu;
+
+	WaterMesh->ClearAllMeshSections();
+	GeometryChunk water_geometry;
+
+	for (int z = 0; z < REGION_DEPTH; ++z) {
+		for (int y = 0; y < REGION_HEIGHT; ++y) {
+			for (int x = 0; x < REGION_WIDTH; ++x) {
+				const auto idx = region->mapidx(x, y, z);
+				if (region->WaterLevel[idx] > 0) {
+					water_geometry.CreateWater(x * WORLD_SCALE, y * WORLD_SCALE, z * WORLD_SCALE, 1 * WORLD_SCALE, 1 * WORLD_SCALE, region->WaterLevel[idx]);
+				}
+			}
+		}
+	}
+
+	WaterMesh->CreateMeshSection_LinearColor(0, water_geometry.vertices, water_geometry.Triangles, water_geometry.normals, water_geometry.UV0, water_geometry.vertexColors, water_geometry.tangents, true);
+	UMaterial* material;
+	material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/Materials/12Water.12Water'"), nullptr, LOAD_None, nullptr));
+	WaterMesh->SetMaterial(0, material);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -247,7 +247,6 @@ public:
 	inline void MarkChunkDirty(const int &idx) { DirtyChunks[idx] = true; }
 	void UpdateChunk(const int &chunk_idx);
 
-private:
 	UNPlanet * planet;
 
 	// Region Tile Data
