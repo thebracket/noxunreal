@@ -112,5 +112,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void onZChange();
 
+	UPROPERTY(BlueprintReadOnly)
+	TMap<int, UStaticMeshComponent *> Buildings;
+
 	void Water();
+	void InitialBuildings();
 };

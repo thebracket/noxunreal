@@ -171,6 +171,7 @@ void FastNoise::SetSeed(int seed)
 {
 	m_seed = seed;
 	RandomNumberGenerator rng(seed);
+	rng.ReSeed(seed);
 
 	for (int i = 0; i < 256; i++)
 		m_perm[i] = i;
