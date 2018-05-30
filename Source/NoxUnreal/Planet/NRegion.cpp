@@ -837,7 +837,7 @@ void UNRegion::BuildGameComponents(const int &crash_x, const int &crash_y, const
 }
 
 void UNRegion::BuildEscapePod(const int &crash_x, const int &crash_y, const int &crash_z) {
-	int z = crash_z - 2;
+	int z = FMath::Max(crash_z - 2, 1);
 	FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir() + FString("rex/spaceship.xp"));
 	char * path_c_str = TCHAR_TO_ANSI(*ThePath);
 	RexReader rr;
