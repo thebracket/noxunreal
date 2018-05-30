@@ -179,7 +179,7 @@ void FastNoise::SetSeed(int seed)
 	for (int j = 0; j < 256; j++)
 	{
 		//std::uniform_int_distribution<> dis(0, 256 - j);
-		int k = rng.RollDice(1, 257 - j)-1;
+		int k = (int)(rng.RollDice(1, 2147483645) % (256 - j));
 		int l = m_perm[j];
 		m_perm[j] = m_perm[j + 256] = m_perm[k];
 		m_perm[k] = l;

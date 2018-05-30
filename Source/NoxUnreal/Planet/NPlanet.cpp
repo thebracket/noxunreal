@@ -264,8 +264,8 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 	for (auto i = 0; i<n_biomes; ++i) {
 		bool ok = false;
 		while (!ok) {
-			int x = rng.RollDice(1, WORLD_WIDTH);
-			int y = rng.RollDice(1, WORLD_HEIGHT);
+			int x = rng.RollDice(1, WORLD_WIDTH-1);
+			int y = rng.RollDice(1, WORLD_HEIGHT-1);
 			bool dupe = false;
 			for (const auto &c : centroids) {
 				if (c.Key == x && c.Value == y) dupe = true;

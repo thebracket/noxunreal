@@ -240,11 +240,6 @@ void ANDisplayManager::onZChange() {
 		auto loc = bm.Value->RelativeLocation;
 		int z = (loc.Z-0.5f) / WORLD_SCALE;
 		const int camera_z = ecs->CameraPosition->region_z;
-		FString m = TEXT("Camera: ");
-		m.AppendInt(camera_z);
-		m.Append(TEXT(", Building: "));
-		m.AppendInt(z);
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, m);
 		if (camera_z > z) {
 			bm.Value->SetVisibility(true);
 		}
