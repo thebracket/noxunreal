@@ -3,8 +3,19 @@
 #include "GameComponents.h"
 
 FString calendar_t::get_date_time() const {
-	// TODO
-	return "";
+	FString result;
+	
+	result.AppendInt(day+1);
+	result.Append("/");
+	result.AppendInt(month+1);
+	result.Append("/");
+	result.AppendInt(year);
+	result.Append(" ");
+	result.AppendInt(hour);
+	result.Append(":");
+	result.AppendInt(minute);
+
+	return result;
 }
 
 void calendar_t::next_minute() {

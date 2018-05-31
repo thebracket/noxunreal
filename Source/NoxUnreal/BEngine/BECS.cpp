@@ -74,7 +74,7 @@ void UBECS::RunCalendar() {
 	day_elapsed = false;
 	if (Calendar->hour != hour) hour_elapsed = true;
 	if (Calendar->day != day) day_elapsed = true;
-	// TODO: Notify the HUD of the change
+	dm->OnCalendarChange.Broadcast(Calendar->get_date_time());
 }
 
 void UBECS::RunHunger() {

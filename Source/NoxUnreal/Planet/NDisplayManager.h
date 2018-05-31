@@ -12,6 +12,7 @@
 #include "NDisplayManager.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPauseChange, const int32, NewPauseMode);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCalendarChange, const FString, NewDateTime);
 
 struct GeometryChunk {
 	TArray<FVector> vertices;
@@ -94,6 +95,9 @@ public:
 	// Events
 	UPROPERTY(BlueprintAssignable, Category = "HUD")
 	FOnPauseChange OnPauseChange;
+
+	UPROPERTY(BlueprintAssignable, Category = "HUD")
+	FOnCalendarChange OnCalendarChange;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
