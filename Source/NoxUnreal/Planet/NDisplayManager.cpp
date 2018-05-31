@@ -112,11 +112,19 @@ void ANDisplayManager::BeginPlay()
 
 				Chunks[i].layers[plant_layer].foliage.tree2 = NewObject<UInstancedStaticMeshComponent>(this);
 				Chunks[i].layers[plant_layer].foliage.tree2->RegisterComponent();
+				Chunks[i].layers[plant_layer].foliage.tree2->bOwnerNoSee = false;
+				Chunks[i].layers[plant_layer].foliage.tree2->bCastDynamicShadow = false;
+				Chunks[i].layers[plant_layer].foliage.tree2->CastShadow = false;
+				Chunks[i].layers[plant_layer].foliage.tree2->SetHiddenInGame(false);
 				Chunks[i].layers[plant_layer].foliage.tree2->SetStaticMesh(tree2);
 				AddInstanceComponent(Chunks[i].layers[plant_layer].foliage.tree2);
 
 				Chunks[i].layers[plant_layer].foliage.grass1 = NewObject<UInstancedStaticMeshComponent>(this);
 				Chunks[i].layers[plant_layer].foliage.grass1->RegisterComponent();
+				Chunks[i].layers[plant_layer].foliage.grass1->bOwnerNoSee = false;
+				Chunks[i].layers[plant_layer].foliage.grass1->bCastDynamicShadow = false;
+				Chunks[i].layers[plant_layer].foliage.grass1->CastShadow = false;
+				Chunks[i].layers[plant_layer].foliage.grass1->SetHiddenInGame(false);
 				Chunks[i].layers[plant_layer].foliage.grass1->SetStaticMesh(grass);
 				AddInstanceComponent(Chunks[i].layers[plant_layer].foliage.grass1);
 			}
@@ -151,6 +159,10 @@ void ANDisplayManager::BeginPlay()
 		//cd->ZLevelChanged.Broadcast();
 		cd->ZLevelChanged.AddDynamic(this, &ANDisplayManager::onZChange);
 	}
+
+	// Single step and start the timer
+	ecs->pause_mode = 1;
+	GetWorld()->GetTimerManager().SetTimer(TickTockHandle, this, &ANDisplayManager::TickTock, 0.066F, true, 0.066F);
 }
 
 // Called every frame
@@ -1160,4 +1172,10 @@ void GeometryChunk::CreateWater(int x, int y, int z, int w, int h, float d) {
 	vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 	vertexColors.Add(FLinearColor(0.75, 0.75, 0.75, 1.0));
 	*/
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+
+void ANDisplayManager::TickTock() {
+	ecs->GameTick();
 }

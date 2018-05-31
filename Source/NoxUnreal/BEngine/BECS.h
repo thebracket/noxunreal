@@ -194,6 +194,9 @@ public:
 	farming_designations_t * FarmingDesignations = nullptr;
 	building_designations_t * BuildingDesignations;
 	architecture_designations_t * ArchitectureDesignations;
+	int pause_mode = 0; // 0 = Paused, 1 = Single Step, 2 = Running.
 
 	void LinkMasters();
+
+	void GameTick();
 };

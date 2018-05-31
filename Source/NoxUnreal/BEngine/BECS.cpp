@@ -24,4 +24,6 @@ void UBECS::LinkMasters() {
 	});
 }
 
+void UBECS::GameTick() {
 
+}

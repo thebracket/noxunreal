@@ -127,4 +127,9 @@ public:
 	void InitialBuildings();
 	void InitialComposites();
 	void InitialLights();
+
+	FTimerHandle TickTockHandle;
+
+	UFUNCTION(BlueprintCallable)
+	void TickTock();
 };
