@@ -164,6 +164,10 @@ public:
 	}
 };
 
+class UNPlanet;
+class UNRegion;
+class ANDisplayManager;
+
 /**
  * Holder for the main ECS
  */
@@ -194,9 +198,24 @@ public:
 	farming_designations_t * FarmingDesignations = nullptr;
 	building_designations_t * BuildingDesignations;
 	architecture_designations_t * ArchitectureDesignations;
-	int pause_mode = 0; // 0 = Paused, 1 = Single Step, 2 = Running.
 
-	void LinkMasters();
+	void SetPauseMode(const int &p);
+
+	void LinkMasters(UNPlanet * planet, UNRegion * region);
+	void LinkDM(ANDisplayManager * ndm);
 
 	void GameTick();
+
+private:
+	int pause_mode = 0; // 0 = Paused, 1 = Single Step, 2 = Running.
+	RandomNumberGenerator rng;
+	int slow_ticker_count = 0;
+	bool major_tick = false;
+	bool slow_tick = false;
+	bool hour_elapsed = false;
+	bool day_elapsed = false;
+
+	void RunCalendar();
+	void RunHunger();
+	void RunSettlerSpawner();
 };

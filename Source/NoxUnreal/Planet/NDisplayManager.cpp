@@ -31,6 +31,7 @@ void ANDisplayManager::BeginPlay()
 	planet = game->GetPlanet();
 	region = game->GetRegion();
 	ecs = game->GetECS();
+	ecs->LinkDM(this);
 
 	// Setup Materials
 	MaterialAtlas.Empty();
@@ -161,7 +162,7 @@ void ANDisplayManager::BeginPlay()
 	}
 
 	// Single step and start the timer
-	ecs->pause_mode = 1;
+	ecs->SetPauseMode(1);
 	GetWorld()->GetTimerManager().SetTimer(TickTockHandle, this, &ANDisplayManager::TickTock, 0.066F, true, 0.066F);
 }
 

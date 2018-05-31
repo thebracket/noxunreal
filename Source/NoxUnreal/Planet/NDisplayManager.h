@@ -11,6 +11,8 @@
 #include "Runtime/Engine/Classes/Components/PointLightComponent.h"
 #include "NDisplayManager.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPauseChange, const int32, NewPauseMode);
+
 struct GeometryChunk {
 	TArray<FVector> vertices;
 	TArray<int32> Triangles;
@@ -89,6 +91,10 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	// Events
+	UPROPERTY(BlueprintAssignable, Category = "HUD")
+	FOnPauseChange OnPauseChange;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
