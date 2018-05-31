@@ -7,12 +7,13 @@
 
 void UNPlanet::BuildPlanet(const int seed, const int water_divisor, const int plains_divisor, const int starting_settlers, const bool strict_beamdown) {
 	// Set incoming parameters
-	RngSeed = seed;
+	RngSeed = seed;	
 	WaterDivisor = 3;
 	PlaintsDivisor = 3;
 	StartingSettlers = 10;
 	StrictBeamdown = strict_beamdown;
 	rng.ReSeed(seed);
+	PerlinSeed = seed;
 
 	// Clear the planet
 	ZeroFillPlanet();
@@ -70,6 +71,7 @@ FastNoise UNPlanet::PlanetNoiseMap() {
 	using namespace nfu;
 
 	FastNoise noise(PerlinSeed);
+	noise.SetSeed(PerlinSeed);
 	noise.SetNoiseType(FastNoise::GradientFractal);
 	noise.SetFractalType(FastNoise::FBM);
 	noise.SetFractalOctaves(octaves);

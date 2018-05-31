@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Runtime/Core/Public/Math/RandomStream.h"
+#include "pcg.h"
 
 /**
  * Provides RNG functionality
@@ -19,7 +19,7 @@ public:
 	void ReSeed(const int32 &seed);
 
 private:
-	FRandomStream rng;
+	pcg32_random_t rng;
 };
 
 inline float distance2d(const int &x1, const int &y1, const int &x2, const int &y2) noexcept {

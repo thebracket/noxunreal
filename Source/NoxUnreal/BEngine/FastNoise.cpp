@@ -170,7 +170,8 @@ static float InterpQuinticFunc(float t) { return t * t*t*(t*(t * 6 - 15) + 10); 
 void FastNoise::SetSeed(int seed)
 {
 	m_seed = seed;
-	RandomNumberGenerator rng(seed);
+
+	RandomNumberGenerator rng;
 	rng.ReSeed(seed);
 
 	for (int i = 0; i < 256; i++)
@@ -178,8 +179,7 @@ void FastNoise::SetSeed(int seed)
 
 	for (int j = 0; j < 256; j++)
 	{
-		//std::uniform_int_distribution<> dis(0, 256 - j);
-		int k = (int)(rng.RollDice(1, 2147483645) % (256 - j));
+		int k = (rng.RollDice(1, 257)-1) + j;
 		int l = m_perm[j];
 		m_perm[j] = m_perm[j + 256] = m_perm[k];
 		m_perm[k] = l;
