@@ -77,6 +77,7 @@ FastNoise UNPlanet::PlanetNoiseMap() {
 	noise.SetFractalOctaves(octaves);
 	noise.SetFractalGain(persistence);
 	noise.SetFractalLacunarity(frequency);
+	noiseMap = noise;
 
 	constexpr auto max_temperature = 56.7F;
 	constexpr auto min_temperature = -55.2F;

@@ -215,9 +215,10 @@ public:
 
 	RandomNumberGenerator * GetRNG() { return &rng; }
 
-	FastNoise GetNoiseMap() { return PlanetNoiseMap(); }
+	FastNoise GetNoiseMap() { return noiseMap; }
 
 private:
+	FastNoise noiseMap;
 	RandomNumberGenerator rng;
 	void ZeroFillPlanet();
 	FastNoise PlanetNoiseMap();

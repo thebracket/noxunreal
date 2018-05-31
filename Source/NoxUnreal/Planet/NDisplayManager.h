@@ -33,13 +33,13 @@ struct FFoliage
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(VisibleAnywhere)
-	UHierarchicalInstancedStaticMeshComponent * tree1 = nullptr;
+	UInstancedStaticMeshComponent * tree1 = nullptr;
 
 	UPROPERTY(VisibleAnywhere)
-	UHierarchicalInstancedStaticMeshComponent * tree2 = nullptr;
+	UInstancedStaticMeshComponent * tree2 = nullptr;
 
 	UPROPERTY(VisibleAnywhere)
-	UHierarchicalInstancedStaticMeshComponent * grass1 = nullptr;
+	UInstancedStaticMeshComponent * grass1 = nullptr;
 };
 
 USTRUCT(BlueprintType)

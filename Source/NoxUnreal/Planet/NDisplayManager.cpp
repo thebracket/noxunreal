@@ -16,6 +16,10 @@ ANDisplayManager::ANDisplayManager()
 	RootComponent = SceneComp;
 }
 
+FRotator rot = FRotator(0.0f, 0.0f, 0.0f);
+FVector GrassScale(6.25f, 6.25f, 6.25f);
+FVector TreeScale(30.0f, 30.0f, 30.0f);
+
 // Called when the game starts or when spawned
 void ANDisplayManager::BeginPlay()
 {
@@ -67,9 +71,6 @@ void ANDisplayManager::BeginPlay()
 	UStaticMesh* tree1 = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/TileMaterials/Foliage/FastTree/tree_1__tree.tree_1__tree'"), nullptr, LOAD_None, nullptr));
 	UStaticMesh* tree2 = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/TileMaterials/Foliage/FastTree/tree_1__leaves.tree_1__leaves'"), nullptr, LOAD_None, nullptr));
 	UStaticMesh* grass = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/Meshes/Grass/SM_grass_patch1.SM_grass_patch1'"), nullptr, LOAD_None, nullptr));
-	FRotator rot = FRotator();
-	FVector GrassScale(6.25f, 6.25f, 6.25f);
-	FVector TreeScale(30.0f, 30.0f, 30.0f);
 
 	for (size_t i = 0; i < nfu::CHUNKS_TOTAL; ++i) {
 		for (size_t j = 0; j < nfu::CHUNK_SIZE; ++j) {
@@ -98,17 +99,23 @@ void ANDisplayManager::BeginPlay()
 
 			if (Chunks[i].layers[plant_layer].foliage.tree1 == nullptr) {
 				// Initialize foliage containers
-				Chunks[i].layers[plant_layer].foliage.tree1 = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
+				Chunks[i].layers[plant_layer].foliage.tree1 = NewObject<UInstancedStaticMeshComponent>(this);
 				Chunks[i].layers[plant_layer].foliage.tree1->RegisterComponent();
 				Chunks[i].layers[plant_layer].foliage.tree1->SetStaticMesh(tree1);
+				Chunks[i].layers[plant_layer].foliage.tree1->bOwnerNoSee = false;
+				Chunks[i].layers[plant_layer].foliage.tree1->bCastDynamicShadow = false;
+				Chunks[i].layers[plant_layer].foliage.tree1->CastShadow = false;
+				Chunks[i].layers[plant_layer].foliage.tree1->SetHiddenInGame(false);
+				Chunks[i].layers[plant_layer].foliage.tree1->SetMobility(EComponentMobility::Movable);
+				Chunks[i].layers[plant_layer].foliage.tree1->AttachTo(RootComponent);
 				AddInstanceComponent(Chunks[i].layers[plant_layer].foliage.tree1);
 
-				Chunks[i].layers[plant_layer].foliage.tree2 = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
+				Chunks[i].layers[plant_layer].foliage.tree2 = NewObject<UInstancedStaticMeshComponent>(this);
 				Chunks[i].layers[plant_layer].foliage.tree2->RegisterComponent();
 				Chunks[i].layers[plant_layer].foliage.tree2->SetStaticMesh(tree2);
 				AddInstanceComponent(Chunks[i].layers[plant_layer].foliage.tree2);
 
-				Chunks[i].layers[plant_layer].foliage.grass1 = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
+				Chunks[i].layers[plant_layer].foliage.grass1 = NewObject<UInstancedStaticMeshComponent>(this);
 				Chunks[i].layers[plant_layer].foliage.grass1->RegisterComponent();
 				Chunks[i].layers[plant_layer].foliage.grass1->SetStaticMesh(grass);
 				AddInstanceComponent(Chunks[i].layers[plant_layer].foliage.grass1);
