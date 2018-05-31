@@ -219,4 +219,5 @@ private:
 	void RunHunger();
 	void RunSettlerSpawner();
 	TArray<int> RunInitiative();
+	void RunAI(const int &entity);
 };

@@ -1180,3 +1180,7 @@ void GeometryChunk::CreateWater(int x, int y, int z, int w, int h, float d) {
 void ANDisplayManager::TickTock() {
 	ecs->GameTick();
 }
+
+void ANDisplayManager::SetPauseStatus(int p) {
+	ecs->SetPauseMode(p);
+}

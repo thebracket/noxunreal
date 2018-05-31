@@ -103,6 +103,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Render")
 	FCompositeAdded OnCompositeAdded;
 
+	UFUNCTION(BlueprintCallable)
+	void SetPauseStatus(int p);
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 

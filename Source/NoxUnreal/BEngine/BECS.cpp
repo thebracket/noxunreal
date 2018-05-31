@@ -64,6 +64,9 @@ void UBECS::GameTick() {
 		RunCalendar();
 		if (day_elapsed) RunSettlerSpawner();
 		auto EntityTurn = RunInitiative();
+		for (auto &id : EntityTurn) {
+			RunAI(id);
+		}
 		
 		/*
 		WE ARE PORTING... removing when done
@@ -217,4 +220,8 @@ TArray<int> UBECS::RunInitiative() {
 		}
 	});
 	return my_turn;
+}
+
+void UBECS::RunAI(const int &entity) {
+
 }
