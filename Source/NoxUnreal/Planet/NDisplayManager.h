@@ -8,6 +8,7 @@
 #include "ProceduralMeshComponent.h"
 #include "Runtime/Engine/Classes/Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "NCharacter.h"
+#include "Runtime/Engine/Classes/Components/PointLightComponent.h"
 #include "NDisplayManager.generated.h"
 
 struct GeometryChunk {
@@ -119,7 +120,11 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TMap<int, ANCharacter *> CompositeRender;
 
+	UPROPERTY(BlueprintReadOnly)
+	TMap<int, UPointLightComponent *> Lightsources;
+
 	void Water();
 	void InitialBuildings();
 	void InitialComposites();
+	void InitialLights();
 };

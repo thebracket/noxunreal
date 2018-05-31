@@ -140,6 +140,7 @@ void ANDisplayManager::BeginPlay()
 		Water();
 		InitialBuildings();
 		InitialComposites();
+		InitialLights();
 	}
 
 	// Link to event handlers
@@ -490,6 +491,21 @@ void ANDisplayManager::InitialComposites() {
 			newModel->z = pos.z;
 			newModel->rotation = pos.rotation;
 			CompositeRender.Add(id, newModel);
+		}
+	});
+}
+
+void ANDisplayManager::InitialLights() {
+	ecs->ecs.Each<lightsource_t, position_t>([this](const int &id, lightsource_t &light, position_t &pos) {
+		if (!Lightsources.Contains(id)) {
+			FString lightName = TEXT("Light_");
+			lightName.AppendInt(id);
+			UPointLightComponent * pl = NewObject<UPointLightComponent>(this, FName(*lightName));
+			const float mx = (pos.x + 0.5f) * WORLD_SCALE;
+			const float my = (pos.y + 0.5f) * WORLD_SCALE;
+			const float mz = (pos.z + 0.5f) * WORLD_SCALE;
+			pl->SetWorldLocation(FVector(mx, my, mz));
+			pl->RegisterComponent();
 		}
 	});
 }
