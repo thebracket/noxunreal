@@ -290,7 +290,7 @@ public:
 	void BuildGameComponents(const int &crash_x, const int &crash_y, const int &crash_z);
 	void add_construction(const int x, const int y, const int z, const FString type, bool solid, const size_t &civ_owner) noexcept;
 	void add_building(FString tag, const int x, const int y, const int z, const size_t &civ_owner) noexcept;
-	void CreateSettler(const int x, const int y, const int z, RandomNumberGenerator * rng, int shift_id) noexcept;
+	int CreateSettler(const int x, const int y, const int z, RandomNumberGenerator * rng, int shift_id) noexcept;
 	TArray<FString> get_event_candidates(const int &age, const TArray<FString> &past) noexcept;
 
 	void decorate_item_categories(int &item, TBitArray<> &categories) noexcept;

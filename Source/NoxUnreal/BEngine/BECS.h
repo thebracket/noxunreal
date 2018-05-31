@@ -218,4 +218,5 @@ private:
 	void RunCalendar();
 	void RunHunger();
 	void RunSettlerSpawner();
+	TArray<int> RunInitiative();
 };

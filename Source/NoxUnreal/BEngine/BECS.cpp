@@ -63,6 +63,70 @@ void UBECS::GameTick() {
 	if (major_tick) {
 		RunCalendar();
 		if (day_elapsed) RunSettlerSpawner();
+		auto EntityTurn = RunInitiative();
+		
+		/*
+		WE ARE PORTING... removing when done
+
+		wildlife_population::run(ms);
+			// fluids
+			explosives::run(ms);
+			doors::run(ms);
+			gravity::run(ms);
+			distance_map::run(ms);
+			world::run(ms);
+			if (day_elapsed) sentient_ai_system::run(ms);
+			corpse_system::run(ms);
+			mining_system::run(ms);
+			architecture_system::run(ms);
+			stockpile_system::run(ms);
+			power::run(ms);
+			workflow_system::run(ms);
+			ai_status_effects::run(ms);
+			ai_stuck::run(ms);
+			ai_visibility_scan::run(ms);
+			ai_new_arrival::run(ms);
+			ai_scheduler::run(ms);
+			ai_leisure_time::run(ms);
+			ai_sleep_time::run(ms);
+			ai_work_time::run(ms);
+			ai_work_lumberjack::run(ms);
+			ai_mining::run(ms);
+			ai_guard::run(ms);
+			ai_harvest::run(ms);
+			ai_farm_plant::run(ms);
+			ai_farm_fertilize::run(ms);
+			ai_farm_clear::run(ms);
+			ai_farm_fixsoil::run(ms);
+			ai_farm_water::run(ms);
+			ai_farm_weed::run(ms);
+			ai_building::run(ms);
+			ai_workorder::run(ms);
+			ai_architect::run(ms);
+			ai_hunt::run(ms);
+			ai_butcher::run(ms);
+			ai_work_stockpiles::run(ms);
+			ai_deconstruction::run(ms);
+			ai_leisure_eat::run(ms);
+			ai_leisure_drink::run(ms);
+			ai_idle_time::run(ms);
+			movement::run(ms);
+			triggers::run(ms);
+			settler_ranged_attack::run(ms);
+			settler_melee_attack::run(ms);
+			sentient_attacks::run(ms);
+			creature_attacks::run(ms);
+			turret_attacks::run(ms);
+			damage_system::run(ms);
+			kill_system::run(ms);
+			if (hour_elapsed) healing_system::run(ms);
+			topology::run(ms);
+			visibility::run(ms);
+			vegetation::run(ms);
+			if (day_elapsed) item_wear::run(ms);
+		}
+		inventory_system::run(ms);
+		*/
 	}
 }
 
@@ -123,9 +187,34 @@ void UBECS::RunSettlerSpawner() {
 
 			for (auto i = 0; i < new_settler_count; ++i) {
 				const position_t spawn_point = settler_arrival_points[i % settler_arrival_points.Num()];
-				region->CreateSettler(spawn_point.x, spawn_point.y, spawn_point.z, &rng, rng.RollDice(1, 3) - 1);
+				auto newId = region->CreateSettler(spawn_point.x, spawn_point.y, spawn_point.z, &rng, rng.RollDice(1, 3) - 1);
 				//particles::block_destruction_effect(spawn_point.x, spawn_point.y, spawn_point.z, 1.0f, 1.0f, 1.0f, particles::PARTICLE_SMOKE);
+				dm->OnCompositeAdded.Broadcast(newId);
 			}
 		}
 	}
+}
+
+inline void calculate_initiative(initiative_t &ai, game_stats_t &stats, RandomNumberGenerator * rng) {
+	ai.initiative = FMath::Max(1, rng->RollDice(1, 12) - stat_modifier(stats.dexterity) + ai.initiative_modifier);
+}
+
+TArray<int> UBECS::RunInitiative() {
+	TArray<int> my_turn;
+	ecs.Each<initiative_t>([this, &my_turn](const int &e, initiative_t &i) {
+		--i.initiative;
+		if (i.initiative + i.initiative_modifier < 1) {
+			// It's my turn
+			my_turn.Emplace(e);
+			auto stats = ecs.GetComponent<game_stats_t>(e);
+			if (stats) {
+				calculate_initiative(i, *stats, &rng);
+			}
+			else {
+				i.initiative = 10;
+			}
+			i.initiative_modifier = 0;
+		}
+	});
+	return my_turn;
 }

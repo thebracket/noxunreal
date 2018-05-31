@@ -1088,7 +1088,7 @@ void UNRegion::add_building(FString tag, const int x, const int y, const int z, 
 	}
 }
 
-void UNRegion::CreateSettler(const int x, const int y, const int z, RandomNumberGenerator * rng, int shift_id) noexcept {
+int UNRegion::CreateSettler(const int x, const int y, const int z, RandomNumberGenerator * rng, int shift_id) noexcept {
 	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
 	auto raws = game->GetRaws();
 	auto ecs = game->GetECS();
@@ -1332,6 +1332,8 @@ void UNRegion::CreateSettler(const int x, const int y, const int z, RandomNumber
 	const auto plasteel = raws->get_material_by_tag("plasteel");
 	spawn_item_carried(settler, "ray_pistol", plasteel, EQUIP_RANGED, ecs_item_quality::GREAT, 100, 0, "Eden Acme Corp", rng);
 	spawn_item_carried(settler, "small_energy_cell", plasteel, EQUIP_AMMO, ecs_item_quality::GREAT, 100, 0, "Eden Acme Corp", rng);
+
+	return settler;
 }
 
 void UNRegion::decorate_item_categories(int &item, TBitArray<> &categories) noexcept

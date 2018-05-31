@@ -13,6 +13,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPauseChange, const int32, NewPauseMode);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCalendarChange, const FString, NewDateTime);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCompositeAdded, const int32, NewComposite);
 
 struct GeometryChunk {
 	TArray<FVector> vertices;
@@ -98,6 +99,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "HUD")
 	FOnCalendarChange OnCalendarChange;
+
+	UPROPERTY(BlueprintAssignable, Category = "Render")
+	FCompositeAdded OnCompositeAdded;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
