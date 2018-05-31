@@ -89,6 +89,20 @@ public:
 		return EntityHasComponents[EntityId][familyId];
 	}
 
+	bool EntityExists(const int &EntityId) {
+		return EntityHasComponents.Contains(EntityId);
+	}
+
+	template <class C>
+	C * GetComponent(const int &EntityId) {
+		if (!EntityHasComponents.Contains(EntityId)) return nullptr;
+		const size_t id = Index<C, Components...>::value;
+		if (!EntityHasComponents[EntityId][id]) return nullptr;
+		auto &store = ComponentStorage.Get<Index<C, Components...>::value>();
+		auto result = store.Find(EntityId);
+		return result;
+	}
+
 	template <class ... Cs, typename FUNC>
 	void Each(const FUNC &f) {
 		size_t ids[sizeof ... (Cs)]{ Index<Cs, Components...>::value... };

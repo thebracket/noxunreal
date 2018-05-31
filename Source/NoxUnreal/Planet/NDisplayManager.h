@@ -7,6 +7,7 @@
 #include "../Public/NoxGameInstance.h"
 #include "ProceduralMeshComponent.h"
 #include "Runtime/Engine/Classes/Components/HierarchicalInstancedStaticMeshComponent.h"
+#include "NCharacter.h"
 #include "NDisplayManager.generated.h"
 
 struct GeometryChunk {
@@ -115,6 +116,10 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	TMap<int, UStaticMeshComponent *> Buildings;
 
+	UPROPERTY(BlueprintReadOnly)
+	TMap<int, ANCharacter *> CompositeRender;
+
 	void Water();
 	void InitialBuildings();
+	void InitialComposites();
 };

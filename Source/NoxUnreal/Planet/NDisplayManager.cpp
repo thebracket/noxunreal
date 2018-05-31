@@ -139,6 +139,7 @@ void ANDisplayManager::BeginPlay()
 		WaterMesh->RegisterComponent();
 		Water();
 		InitialBuildings();
+		InitialComposites();
 	}
 
 	// Link to event handlers
@@ -243,15 +244,26 @@ void ANDisplayManager::onZChange() {
 		}
 	}
 
+	const int camera_z = ecs->CameraPosition->region_z;
 	for (auto &bm : Buildings) {
 		auto loc = bm.Value->RelativeLocation;
 		int z = (loc.Z-0.5f) / WORLD_SCALE;
-		const int camera_z = ecs->CameraPosition->region_z;
+		
 		if (camera_z > z) {
 			bm.Value->SetVisibility(true);
 		}
 		else {
 			bm.Value->SetVisibility(false);
+		}
+	}
+
+	for (auto &cr : CompositeRender) {
+		const int z = cr.Value->z;
+		if (camera_z >= z) {
+			cr.Value->Show(true);
+		}
+		else {
+			cr.Value->Show(false);
 		}
 	}
 }
@@ -456,6 +468,29 @@ void ANDisplayManager::InitialBuildings() {
 		Buildings[id]->AttachTo(RootComponent);
 		Buildings[id]->SetRelativeLocation(FVector((pos.x+0.5f) * WORLD_SCALE, (pos.y+0.5f) * WORLD_SCALE, pos.z * WORLD_SCALE));
 		Buildings[id]->RegisterComponent();
+	});
+}
+
+void ANDisplayManager::InitialComposites() {
+	ecs->ecs.Each<renderable_composite_t, position_t, name_t>([this](const int &id, renderable_composite_t &r, position_t &pos, name_t &name) {
+		if (!CompositeRender.Contains(id)) {
+			const float mx = pos.x + 0.5f;
+			const float my = pos.y + 0.5f;
+			const float mz = pos.z;
+
+			FRotator rot = FRotator(0, pos.rotation + 90.0f, 0);
+			FVector loc = FVector(mx * WORLD_SCALE, my * WORLD_SCALE, mz * WORLD_SCALE);
+			FTransform trans = FTransform(rot, loc, FVector(1.0f, 1.0f, 1.0f));
+			auto newModel = GetWorld()->SpawnActorDeferred<ANCharacter>(ANCharacter::StaticClass(), trans, this);
+			newModel->id = id;
+			newModel->CharacterName = name.first_name + TEXT(" ") + name.last_name;
+			newModel->FinishSpawning(trans);
+			newModel->x = pos.x;
+			newModel->y = pos.y;
+			newModel->z = pos.z;
+			newModel->rotation = pos.rotation;
+			CompositeRender.Add(id, newModel);
+		}
 	});
 }
 
