@@ -120,7 +120,10 @@ void UNRegion::BuildRegion(const int StartX, const int StartY, const bool Starti
 	}
 
 	// Add Features
+
 	// Recalculate all tiles
+	TileRecalcAll();
+
 	// Save it
 }
 
@@ -1875,4 +1878,121 @@ unsigned int UNRegion::get_cube_tex(const int &idx) {
 		//glog(log_target::LOADER, log_severity::warning, "Material [{0}] is lacking a texture.", material->name);
 	}
 	return use_id;
+}
+
+void UNRegion::TileRecalcAll() {
+	using namespace nfu;
+
+	for (int z = 0; z < REGION_DEPTH; ++z) {
+		for (int y = 0; y < REGION_HEIGHT; ++y) {
+			for (int x = 0; x < REGION_WIDTH; ++x) {
+				TileCalculate(x, y, z);
+			}
+		}
+	}
+	for (int z = 0; z < REGION_DEPTH; ++z) {
+		for (int y = 0; y < REGION_HEIGHT; ++y) {
+			for (int x = 0; x < REGION_WIDTH; ++x) {
+				TilePathing(x, y, z);
+			}
+		}
+	}
+}
+
+void UNRegion::TileCalculate(const int &x, const int &y, const int &z) {
+	using namespace nfu;
+	using namespace regiondefs;
+
+	const auto idx = mapidx(x, y, z);
+
+	// Calculate render characteristics
+	//calc_render(idx);
+
+	// Solidity and first-pass standability
+	if (TileType[idx] == tile_type::SEMI_MOLTEN_ROCK || TileType[idx] == tile_type::SOLID
+		|| TileType[idx] == tile_type::WALL || TileType[idx] == tile_type::TREE_TRUNK ||
+		TileType[idx] == tile_type::TREE_LEAF
+		|| TileType[idx] == tile_type::WINDOW || TileType[idx] == tile_type::CLOSED_DOOR)
+	{
+		setbit(tile_flags::SOLID, TileFlags[idx]);
+		if (TileType[idx] == tile_type::WINDOW) {
+			resetbit(tile_flags::OPAQUE_TILE, TileFlags[idx]);
+		}
+		else {
+			setbit(tile_flags::OPAQUE_TILE, TileFlags[idx]);
+		}
+		resetbit(tile_flags::CAN_STAND_HERE, TileFlags[idx]);
+	}
+	else {
+		resetbit(tile_flags::SOLID, TileFlags[idx]);
+
+		// Locations on which one can stand
+		setbit(tile_flags::CAN_STAND_HERE, TileFlags[idx]);
+		if (TileType[idx] == tile_type::OPEN_SPACE) resetbit(tile_flags::CAN_STAND_HERE, TileFlags[idx]);
+
+		if (z > 0) {
+			const auto idx_below = mapidx(x, y, z - 1);
+
+			// Can stand on the tile above walls, ramps and up stairs
+			if (TileType[idx] == tile_type::FLOOR) setbit(tile_flags::CAN_STAND_HERE, TileFlags[idx]);
+			if (TileType[idx] == tile_type::OPEN_SPACE && TileType[idx_below] == tile_type::WALL)
+				setbit(tile_flags::CAN_STAND_HERE, TileFlags[idx]);
+			if (TileType[idx] == tile_type::OPEN_SPACE && TileType[idx_below] == tile_type::RAMP)
+				setbit(tile_flags::CAN_STAND_HERE, TileFlags[idx]);
+			if (TileType[idx] == tile_type::OPEN_SPACE && TileType[idx_below] == tile_type::STAIRS_UP)
+				setbit(tile_flags::CAN_STAND_HERE, TileFlags[idx]);
+			if (TileType[idx] == tile_type::OPEN_SPACE && TileType[idx_below] == tile_type::STAIRS_UPDOWN)
+				setbit(tile_flags::CAN_STAND_HERE, TileFlags[idx]);
+			if (TileType[idx] == tile_type::OPEN_SPACE && TileType[idx_below] == tile_type::SOLID)
+				setbit(tile_flags::CAN_STAND_HERE, TileFlags[idx]);
+		}
+	}
+
+	TilePathing(x, y, z);
+}
+
+void UNRegion::TilePathing(const int &x, const int &y, const int &z) {
+	using namespace nfu;
+	using namespace regiondefs;
+
+	const auto idx = mapidx(x, y, z);
+
+	// Start with a clean slate
+	resetbit(tile_flags::CAN_GO_NORTH, TileFlags[idx]);
+	resetbit(tile_flags::CAN_GO_SOUTH, TileFlags[idx]);
+	resetbit(tile_flags::CAN_GO_EAST, TileFlags[idx]);
+	resetbit(tile_flags::CAN_GO_EAST, TileFlags[idx]);
+	resetbit(tile_flags::CAN_GO_UP, TileFlags[idx]);
+	resetbit(tile_flags::CAN_GO_DOWN, TileFlags[idx]);
+	resetbit(tile_flags::CAN_GO_NORTH_EAST, TileFlags[idx]);
+	resetbit(tile_flags::CAN_GO_NORTH_WEST, TileFlags[idx]);
+	resetbit(tile_flags::CAN_GO_SOUTH_EAST, TileFlags[idx]);
+	resetbit(tile_flags::CAN_GO_SOUTH_WEST, TileFlags[idx]);
+
+	if (testbit(tile_flags::SOLID, TileFlags[idx]) || !testbit(tile_flags::CAN_STAND_HERE, TileFlags[idx])) {
+		// If you can't go there, it doesn't have any exits.
+	}
+	else {
+		if (x > 0 && testbit(tile_flags::CAN_STAND_HERE, TileFlags[mapidx(x-1, y, z)])) setbit(tile_flags::CAN_GO_WEST, TileFlags[idx]);
+		if (x < REGION_WIDTH - 1 && testbit(tile_flags::CAN_STAND_HERE, TileFlags[mapidx(x + 1, y, z)])) setbit(tile_flags::CAN_GO_EAST, TileFlags[idx]);
+		if (y > 0 && testbit(tile_flags::CAN_STAND_HERE, TileFlags[mapidx(x, y-1, z)])) setbit(tile_flags::CAN_GO_NORTH, TileFlags[idx]);
+		if (y < REGION_HEIGHT - 1 && testbit(tile_flags::CAN_STAND_HERE, TileFlags[mapidx(x, y+1, z)])) setbit(tile_flags::CAN_GO_SOUTH, TileFlags[idx]);
+		if (x > 0 && y > 0 && testbit(tile_flags::CAN_STAND_HERE, TileFlags[mapidx(x - 1, y - 1, z)])) setbit(tile_flags::CAN_GO_NORTH_WEST, TileFlags[idx]);
+		if (x < REGION_WIDTH - 1 && y > 0 && testbit(tile_flags::CAN_STAND_HERE, TileFlags[mapidx(x + 1, y - 1, z)])) setbit(tile_flags::CAN_GO_NORTH_EAST, TileFlags[idx]);
+		if (x > 0 && y < REGION_HEIGHT - 1 && testbit(tile_flags::CAN_STAND_HERE, TileFlags[mapidx(x - 1, y + 1, z)])) setbit(tile_flags::CAN_GO_SOUTH_WEST, TileFlags[idx]);
+		if (x < REGION_WIDTH - 1 && y < REGION_HEIGHT - 1 && testbit(tile_flags::CAN_STAND_HERE, TileFlags[mapidx(x + 1, y + 1, z)])) setbit(tile_flags::CAN_GO_SOUTH_EAST, TileFlags[idx]);
+
+		if (z < REGION_DEPTH - 1 &&
+			(TileType[idx] == tile_type::RAMP || TileType[idx] == tile_type::STAIRS_UP || TileType[idx] == tile_type::STAIRS_UPDOWN) && testbit(tile_flags::CAN_STAND_HERE, TileFlags[idx])) {
+			setbit(tile_flags::CAN_GO_UP, TileFlags[idx]);
+		}
+
+		if (z > 0 && (TileType[idx] == tile_type::STAIRS_DOWN || TileType[idx] == tile_type::STAIRS_UPDOWN) && testbit(tile_flags::CAN_STAND_HERE, TileFlags[idx])) {
+			setbit(tile_flags::CAN_GO_DOWN, TileFlags[idx]);
+		}
+
+		if (z > 0 && TileType[idx] == tile_type::OPEN_SPACE && TileType[mapidx(x, y, z - 1)] == tile_type::RAMP) {
+			setbit(tile_flags::CAN_GO_DOWN, TileFlags[idx]);
+		}
+	}
 }
