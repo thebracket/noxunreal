@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "../BEngine/BECS.h"
+#include "Runtime/Engine/Classes/Components/TextRenderComponent.h"
 #include "NCharacter.generated.h"
 
 UCLASS()
@@ -25,7 +26,13 @@ public:
 	FString CharacterName;
 
 	UPROPERTY(BlueprintReadOnly)
+	FString FirstName;
+
+	UPROPERTY(BlueprintReadOnly)
 	TMap<int, UStaticMeshComponent *> components;
+
+	UPROPERTY(BlueprintReadOnly)
+	UTextRenderComponent * label;
 
 	UPROPERTY(BlueprintReadOnly)
 	int x;

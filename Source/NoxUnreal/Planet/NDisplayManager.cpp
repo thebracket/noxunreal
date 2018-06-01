@@ -142,15 +142,15 @@ void ANDisplayManager::BeginPlay()
 				Chunks[i].layers[plant_layer].foliage.grass1->AddInstance(trans);
 			}
 		}
-
-		// Water
-		WaterMesh = NewObject<UProceduralMeshComponent>(this, FName(TEXT("WetMesh")));
-		WaterMesh->RegisterComponent();
-		Water();
-		InitialBuildings();
-		InitialComposites();
-		InitialLights();
 	}
+
+	// Water
+	WaterMesh = NewObject<UProceduralMeshComponent>(this, FName(TEXT("WetMesh")));
+	WaterMesh->RegisterComponent();
+	Water();
+	InitialBuildings();
+	InitialComposites();
+	InitialLights();
 
 	// Link to event handlers
 	TArray<AActor*> FoundActors;
@@ -160,6 +160,7 @@ void ANDisplayManager::BeginPlay()
 		//cd->ZLevelChanged.Broadcast();
 		cd->ZLevelChanged.AddDynamic(this, &ANDisplayManager::onZChange);
 	}
+	OnCompositeMoved.AddDynamic(this, &ANDisplayManager::onCompositeMove);
 
 	// Single step and start the timer
 	ecs->SetPauseMode(1);
@@ -498,6 +499,7 @@ void ANDisplayManager::InitialComposites() {
 			auto newModel = GetWorld()->SpawnActorDeferred<ANCharacter>(ANCharacter::StaticClass(), trans, this);
 			newModel->id = id;
 			newModel->CharacterName = name.first_name + TEXT(" ") + name.last_name;
+			newModel->FirstName = name.first_name;
 			newModel->FinishSpawning(trans);
 			newModel->x = pos.x;
 			newModel->y = pos.y;
@@ -1183,4 +1185,13 @@ void ANDisplayManager::TickTock() {
 
 void ANDisplayManager::SetPauseStatus(int p) {
 	ecs->SetPauseMode(p);
+}
+
+void ANDisplayManager::onCompositeMove(const int id) {
+	if (CompositeRender.Contains(id)) {
+		auto pos = ecs->ecs.GetComponent<position_t>(id);
+		if (pos) {
+			CompositeRender[id]->SetActorLocationAndRotation(FVector(pos->x * WORLD_SCALE, pos->y * WORLD_SCALE, pos->z * WORLD_SCALE), FRotator(0, pos->rotation + 90.0f, 0));
+		}
+	}
 }

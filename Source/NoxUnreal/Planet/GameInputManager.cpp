@@ -25,7 +25,7 @@ void AGameInputManager::BeginPlay()
 	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
 	region = game->GetRegion();
 	ecs = game->GetECS();
-	ecs->LinkMasters(game->GetPlanet(), region);
+	ecs->LinkMasters(game->GetPlanet(), region, game->GetRaws());
 
 	CameraMoved.AddDynamic(this, &AGameInputManager::UpdateCamera);
 

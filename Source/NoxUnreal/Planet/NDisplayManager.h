@@ -14,6 +14,8 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPauseChange, const int32, NewPauseMode);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCalendarChange, const FString, NewDateTime);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCompositeAdded, const int32, NewComposite);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCompositeMoved, const int32, Entity);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEmote, const int32, Entity, const FString, Statement);
 
 struct GeometryChunk {
 	TArray<FVector> vertices;
@@ -103,6 +105,12 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Render")
 	FCompositeAdded OnCompositeAdded;
 
+	UPROPERTY(BlueprintAssignable, Category = "Render")
+	FCompositeMoved OnCompositeMoved;
+
+	UPROPERTY(BlueprintAssignable, Category = "Render")
+	FEmote OnEmote;
+
 	UFUNCTION(BlueprintCallable)
 	void SetPauseStatus(int p);
 
@@ -130,6 +138,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void onZChange();
+
+	UFUNCTION(BlueprintCallable)
+	void onCompositeMove(const int id);
 
 	UPROPERTY(BlueprintReadOnly)
 	TMap<int, UStaticMeshComponent *> Buildings;

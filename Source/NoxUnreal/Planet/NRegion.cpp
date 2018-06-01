@@ -257,7 +257,7 @@ void add_dig_target(int X, int Y, int radius, int depth, TMap<int, region_water_
 				const auto idx = (actual_y * REGION_WIDTH) + actual_x;
 				if (dig_targets.Find(idx) == nullptr) {
 					const auto has_water = pooled_water[idx] > 0;
-					if (idx > 0 && idx < REGION_TILES_COUNT) dig_targets[idx] = region_water_feature_tile{ idx, has_water, depth, heightmap[idx] };
+					if (idx > 0 && idx < REGION_TILES_COUNT) dig_targets.Add(idx, region_water_feature_tile{ idx, has_water, depth, heightmap[idx] });
 				}
 			}
 		}

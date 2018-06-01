@@ -22,6 +22,13 @@ void ANCharacter::BeginPlay()
 	ActorName.AppendInt(id);
 	SetActorLabel(ActorName);
 	RefreshModels();
+	label = NewObject<UTextRenderComponent>(this);
+	label->RegisterComponent();
+	label->SetText(FirstName);
+	label->SetHorizontalAlignment(EHTA_Center);
+	label->SetWorldSize(50.0f);
+	label->SetRelativeLocation(FVector(0.0f, 0.0f, 200.0f));
+	label->AttachTo(RootComponent);
 }
 
 void ANCharacter::AddModel(int modelId, int componentId, FNColor tint) {

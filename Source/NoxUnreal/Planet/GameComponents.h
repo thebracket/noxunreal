@@ -56,9 +56,6 @@ struct position_t {
 	int x = 0;
 	int y = 0;
 	int z = 0;
-	float offset_x = 0;
-	float offset_y = 0;
-	float offset_z = 0;
 	int rotation = 0;
 
 	position_t() = default;
@@ -648,6 +645,7 @@ inline health_t create_health_component_creature(const FString &tag, NRaws * raw
 
 struct settler_ai_t {
 	int shift_id = 0;
+	bool busy = false;
 };
 
 enum render_mode_t { RENDER_SETTLER, RENDER_SENTIENT };

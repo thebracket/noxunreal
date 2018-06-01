@@ -167,6 +167,20 @@ public:
 class UNPlanet;
 class UNRegion;
 class ANDisplayManager;
+class NRaws;
+
+struct move_request_t {
+	int entity;
+	int startX, startY, startZ;
+	int endX, endY, endZ;
+};
+
+struct damage_request_t {
+	int victim;
+	int amount;
+	int sourceX, sourceY, sourceZ;
+	FString damageType;
+};
 
 /**
  * Holder for the main ECS
@@ -201,7 +215,7 @@ public:
 
 	void SetPauseMode(const int &p);
 
-	void LinkMasters(UNPlanet * planet, UNRegion * region);
+	void LinkMasters(UNPlanet * planet, UNRegion * region, NRaws * raws);
 	void LinkDM(ANDisplayManager * ndm);
 
 	void GameTick();
@@ -215,9 +229,19 @@ private:
 	bool hour_elapsed = false;
 	bool day_elapsed = false;
 
+	TArray<int> MyTurn;
+	TArray<move_request_t> MoveRequests;
+	TArray<damage_request_t> DamageRequests;
+
 	void RunCalendar();
 	void RunHunger();
 	void RunSettlerSpawner();
-	TArray<int> RunInitiative();
+	void RunInitiative(TArray<int> &MyTurn);
 	void RunAI(const int &entity);
+	void ProcessMovement();
+
+	// AI Functions
+	void SettlerNewArrival(const int &entity, ai_settler_new_arrival_t * new_arrival);
+	shift_type_t GetSettlerShift(const int &entity, settler_ai_t * ai);
+	void WanderAimlessley(const int &entity, const position_t * pos);
 };
