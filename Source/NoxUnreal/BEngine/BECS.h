@@ -141,7 +141,7 @@ public:
 			for (size_t i = 0; i < sizeof ... (Cs); ++i) {
 				if (bitset.Value[ids[i]] != true) has_all = false;
 			}
-			if (has_all && bitset.Value[excludeId == false]) {
+			if (has_all && bitset.Value[excludeId] == false) {
 				f(bitset.Key, ComponentStorage.Get<Index<Cs, Components...>::value>()[bitset.Key]...);
 			}
 		}
@@ -197,7 +197,8 @@ public:
 		item_ranged_t, item_ammo_t, item_food_t, item_spice_t, item_drink_t, item_hide_t, item_bone_t, item_skull_t, item_leather_t,
 		item_farming_t, item_seed_t, item_topsoil_t, item_fertilizer_t, item_food_prepared_t, viewshed_t, lightsource_t, construct_power_t,
 		smoke_emitter_t, construct_door_t, receives_signal_t, turret_t, initiative_t, position_t, species_t, game_stats_t, skill_t,
-		health_t, settler_ai_t, renderable_composite_t, ai_settler_new_arrival_t, sleep_clock_t, hunger_t, thirst_t, item_carried_t>
+		health_t, settler_ai_t, renderable_composite_t, ai_settler_new_arrival_t, sleep_clock_t, hunger_t, thirst_t, item_carried_t,
+		claimed_t>
 		
 		ecs;
 	
@@ -244,4 +245,7 @@ private:
 	void SettlerNewArrival(const int &entity, ai_settler_new_arrival_t * new_arrival);
 	shift_type_t GetSettlerShift(const int &entity, settler_ai_t * ai);
 	void WanderAimlessley(const int &entity, const position_t * pos);
+	void BedTime(const int &entity, const position_t * pos);
+	void WorkTime(const int &entity, const position_t * pos);
+	void LeisureTime(const int &entity, const position_t * pos);
 };

@@ -273,7 +273,7 @@ void ANCharacter::SetEmote(const int &id, const FString &text) {
 	UFont * Font = Cast<UFont>(StaticLoadObject(UFont::StaticClass(), nullptr, TEXT("Font'/Game/Fonts/ThinFont.ThinFont'"), nullptr, LOAD_None, nullptr));
 	UMaterial * Material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/HUD/BillboardedFont.BillboardedFont'"), nullptr, LOAD_None, nullptr));
 	UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
-	DynMaterial->SetVectorParameterValue("Color", FLinearColor(0.0f, 1.0f, 1.0f));
+	DynMaterial->SetVectorParameterValue("Color", FLinearColor(1.0f, 1.0f, 0.0f));
 
 	if (emote == nullptr) emote = NewObject<UTextRenderComponent>(this);
 	emote->SetWorldRotation(FRotator(0, 0, 0));
@@ -282,7 +282,7 @@ void ANCharacter::SetEmote(const int &id, const FString &text) {
 	emote->SetHorizontalAlignment(EHTA_Center);
 	emote->VerticalAlignment = EVerticalTextAligment::EVRTA_TextBottom;
 	emote->SetWorldSize(40.0f);
-	emote->SetRelativeLocation(FVector(0.0f, 0.0f, 180.0f));
+	emote->SetRelativeLocation(FVector(0.0f, 0.0f, 170.0f));
 	//emote->SetTextRenderColor(FColor(0, 255, 255));
 	emote->SetMaterial(0, DynMaterial);
 	emote->SetFont(Font);

@@ -10,6 +10,289 @@ UNRegion * region;
 NRaws * raws;
 ANDisplayManager * dm;
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace astar {
+
+	namespace impl {
+
+		constexpr static float MAX_DIRECT_PATH_CHECK = 24.0f;
+		constexpr static int Z_WEIGHT = 10;
+		constexpr static int MAX_ASTAR_STEPS = 500;		
+
+		struct node_t
+		{
+			int idx = 0;
+			float f = 0.0f;
+			float g = 0.0f; // Movement cost to this square
+			float h = 0.0f; // Estimated cost from here to the final destination
+
+			bool operator<(const node_t &other) const
+			{
+				return f < other.f; // We're inverting the priority queue!
+			}
+		};
+
+
+		class a_star_t
+		{
+		public:
+			a_star_t(const position_t &start_pos, const position_t &end_pos) noexcept : start_(region->mapidx(start_pos.x, start_pos.y, start_pos.z)), end_(region->mapidx(end_pos.x, end_pos.y, end_pos.z)), end_loc_(end_pos)
+			{
+				end_x_ = end_pos.x;
+				end_y_ = end_pos.y;
+				end_z_ = end_pos.z;
+				open_list_.Reserve(500);
+				closed_list_.Reserve(300);
+				parents_.Reserve(600);
+
+				open_list_.Emplace(node_t{ start_, 0.0f, 0.0f, 0.0f });
+			}
+
+			float distance_to_end(const int &idx) const
+			{
+				const auto IDX = region->idxmap(idx);
+				auto x = IDX.Get<0>();
+				auto y = IDX.Get<1>();
+				auto z = IDX.Get<2>();
+				return distance3d_squared(x, y, z*Z_WEIGHT, end_x_, end_y_, end_z_*Z_WEIGHT); // We're weighting zs because stairs tend to not be where you want them
+			}
+
+			bool add_successor(const node_t &q, const int &idx)
+			{
+				// Did we reach our goal?
+				if (idx == end_)
+				{
+					parents_.Add(idx, q.idx);
+					return true;
+				}
+				else
+				{
+					const auto distance = distance_to_end(idx);
+					const node_t s{ idx, distance + 1.0f, 1.0f, distance };
+
+					auto should_add = true;
+
+					// If a node with the same possition as successor is in the open list with a lower f, skip add
+					for (const auto &e : open_list_)
+					{
+						if (e.f <= s.f) {
+							if (e.idx == idx)
+							{
+								should_add = false;
+								goto skipper;
+							}
+						}
+						else
+						{
+							goto skipper;
+						}
+					}
+
+				skipper:
+
+					// If a node with the same position as successor is in the closed list, with a lower f, skip add
+					{
+						const auto closed_finder = closed_list_.Find(idx);
+						if (closed_finder != nullptr)
+						{
+							if (*closed_finder <= s.f) should_add = false;
+						}
+					}
+
+					if (should_add) {
+						open_list_.Emplace(s);
+						//if (parents_.find(idx) != parents_.end()) parents_.erase(idx);
+						parents_.Add(idx, q.idx);
+					}
+				}
+				return false;
+			}
+
+			navigation_path_t found_it(const int &idx) const noexcept
+			{
+				auto result = navigation_path_t{};
+				result.success = true;
+				result.destination = end_loc_;
+
+				result.steps.Insert(end_loc_, 0);
+				auto current = end_;
+				while (current != start_)
+				{
+					const auto parent = parents_.Find(current);
+					auto IDX = region->idxmap(*parent);
+					auto x = IDX.Get<0>();
+					auto y = IDX.Get<1>();
+					auto z = IDX.Get<2>();
+					if (*parent != start_) result.steps.Insert(position_t{ x,y,z }, 0);
+					current = *parent;
+				}
+
+				return result;
+			}
+
+			navigation_path_t search() noexcept
+			{
+				auto result = navigation_path_t();
+
+				while (!open_list_.Num()==0 && step_counter_ < MAX_ASTAR_STEPS)
+				{
+					++step_counter_;
+
+					// Pop Q off of the list
+					const auto q = open_list_[0];
+					open_list_.RemoveAt(0);
+					auto IDX = region->idxmap(q.idx);
+					auto x = IDX.Get<0>();
+					auto y = IDX.Get<1>();
+					auto z = IDX.Get<2>();
+
+					// Generate successors
+					TArray<int> successors;
+					if (testbit(regiondefs::tile_flags::CAN_GO_NORTH, region->TileFlags[q.idx])) successors.Emplace(region->mapidx(x, y - 1, z));
+					if (testbit(regiondefs::tile_flags::CAN_GO_SOUTH, region->TileFlags[q.idx])) successors.Emplace(region->mapidx(x, y + 1, z));
+					if (testbit(regiondefs::tile_flags::CAN_GO_WEST, region->TileFlags[q.idx])) successors.Emplace(region->mapidx(x - 1, y, z));
+					if (testbit(regiondefs::tile_flags::CAN_GO_EAST, region->TileFlags[q.idx])) successors.Emplace(region->mapidx(x + 1, y, z));
+					if (testbit(regiondefs::tile_flags::CAN_GO_UP, region->TileFlags[q.idx])) successors.Emplace(region->mapidx(x, y, z + 1));
+					if (testbit(regiondefs::tile_flags::CAN_GO_DOWN, region->TileFlags[q.idx])) successors.Emplace(region->mapidx(x, y, z - 1));
+					if (testbit(regiondefs::tile_flags::CAN_GO_NORTH_EAST, region->TileFlags[q.idx])) successors.Emplace(region->mapidx(x + 1, y - 1, z));
+					if (testbit(regiondefs::tile_flags::CAN_GO_NORTH_WEST, region->TileFlags[q.idx])) successors.Emplace(region->mapidx(x - 1, y - 1, z));
+					if (testbit(regiondefs::tile_flags::CAN_GO_SOUTH_EAST, region->TileFlags[q.idx])) successors.Emplace(region->mapidx(x + 1, y + 1, z));
+					if (testbit(regiondefs::tile_flags::CAN_GO_SOUTH_WEST, region->TileFlags[q.idx])) successors.Emplace(region->mapidx(x - 1, y + 1, z));
+
+					for (const auto &s : successors)
+					{
+						if (add_successor(q, s))
+						{
+							// We found it!
+							const auto success = found_it(s);
+							result.success = success.success;
+							result.steps = success.steps;
+							result.destination = success.destination;
+							goto BAILOUT;
+						}
+					}
+
+					if (closed_list_.Find(q.idx) != nullptr) closed_list_.Remove(q.idx);
+					closed_list_.Add(q.idx, q.f);
+					open_list_.Sort();
+				}
+				result.success = false;
+			BAILOUT:
+				/*
+				std::cout << "Usage stats from completed search:\n";
+				std::cout << "Open list size: " << open_list_.size() << "\n";
+				std::cout << "Closed list size: " << closed_list_.size() << "\n";
+				std::cout << "Parents size: " << parents_.size() << "\n";
+				*/
+				return result;
+			}
+
+		private:
+			int start_;
+			int end_;
+			int end_x_, end_y_, end_z_;
+			TArray<node_t> open_list_;
+			TMap<int, float> closed_list_;
+			TMap<int, int> parents_;
+			position_t end_loc_;
+			int step_counter_ = 0;
+		};
+
+		static navigation_path_t a_star(const position_t &start, const position_t &end) noexcept
+		{
+			a_star_t searcher(start, end);
+			return searcher.search();
+		}
+
+		static navigation_path_t short_direct_line_optimization(const position_t &start, const position_t &end) noexcept
+		{
+			auto result = navigation_path_t();
+			auto blocked = false;
+			TSet<int> seen_nodes;
+			line_func(start.x, start.y, end.x, end.y, [&blocked, &start, &result, &seen_nodes](const int &x, const int &y)
+			{
+				const auto idx = region->mapidx(x, y, start.z);
+				if (!seen_nodes.Contains(idx)) {
+					if (idx != region->mapidx(start.x, start.y, start.z)) result.steps.Emplace(position_t{ x, y, start.z });
+					seen_nodes.Add(idx);
+				}
+				if (!testbit(regiondefs::tile_flags::CAN_STAND_HERE, region->TileFlags[idx])) blocked = true;
+			});
+			if (!blocked) result.success = true;
+
+			return result;
+		}
+
+		static navigation_path_t find_path(const position_t &start, const position_t &end) noexcept
+		{
+			// Step 2 - check for the simple straight line option on short, flat paths
+			/*const auto distance = bengine::distance3d(start.x, start.y, start.z, end.x, end.y, end.z);
+			if (distance < MAX_DIRECT_PATH_CHECK && start.z == end.z)
+			{
+			auto result = short_direct_line_optimization(start, end);
+			if (result->success) {
+			return result;
+			}
+			}*/
+
+			// Step 3 - Try A*
+			auto result = a_star(start, end);
+			return result;
+		}
+
+	}
+
+	navigation_path_t find_path(const position_t &start, const position_t &end, const bool find_adjacent, const std::size_t civ) noexcept
+	{
+		using namespace nfu;
+
+		// Step 1 - check clipping on both ends; the path auto-fails fast if there is an out-of-bounds issue.
+		if (start.x < 1 || start.x > REGION_WIDTH - 1 || start.y < 1 || start.y > REGION_HEIGHT - 1 || start.z < 1 || start.z > REGION_DEPTH + 1
+			|| end.x < 1 || end.x > REGION_WIDTH - 1 || end.y < 1 || end.y > REGION_HEIGHT - 1 || end.z < 1 || end.z > REGION_DEPTH + 1)
+		{
+			auto fail = navigation_path_t();
+			fail.success = false;
+			return fail;
+		}
+
+		if (start == end)
+		{
+			auto stay = navigation_path_t();
+			stay.success = true;
+			stay.destination = end;
+			stay.steps.Insert(start, 0);
+			return stay;
+		}
+
+		constexpr auto num_paths = 10;
+
+		auto result = impl::find_path(start, end);
+		if (find_adjacent && !result.success) {
+			TArray<position_t> candidates{
+				position_t{ end.x - 1, end.y, end.z },
+				position_t{ end.x + 1, end.y, end.z },
+				position_t{ end.x, end.y - 1, end.z },
+				position_t{ end.x, end.y + 1, end.z },
+				position_t{ end.x + 1, end.y + 1, end.z },
+				position_t{ end.x - 1, end.y + 1, end.z },
+				position_t{ end.x + 1, end.y - 1, end.z },
+				position_t{ end.x - 1, end.y - 1, end.z },
+				position_t{ end.x, end.y, end.z - 1 },
+				position_t{ end.x, end.y, end.z + 1 },
+			};
+			for (const auto &candidate : candidates)
+			{
+				result = impl::find_path(start, candidate);
+				if (result.success) return result;
+			}
+		}
+		return result;
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
 void UBECS::LinkMasters(UNPlanet * p, UNRegion * r, NRaws * raw) {
 	planet = p;
 	region = r;
@@ -286,6 +569,10 @@ void UBECS::RunAI(const int &entity) {
 		// Should we keep doing a task?
 		if (settler->busy) {
 			// Keep doing it...
+			switch (settler->major_task) {
+			case major_tasks::SLEEP: BedTime(entity, pos); break;
+			default: { settler->busy = false; settler->minor_task = 0; }
+			}
 			return;
 		}
 
@@ -293,13 +580,13 @@ void UBECS::RunAI(const int &entity) {
 		auto shift = GetSettlerShift(entity, settler);
 		switch (shift) {
 		case SLEEP_SHIFT: {
-			WanderAimlessley(entity, pos);
+			BedTime(entity, pos);
 		} break;
 		case LEISURE_SHIFT: {
-			WanderAimlessley(entity, pos);
+			LeisureTime(entity, pos);
 		} break;
 		case WORK_SHIFT: {
-			WanderAimlessley(entity, pos);
+			WorkTime(entity, pos);
 		}break;
 		}
 	}
@@ -404,4 +691,98 @@ void UBECS::WanderAimlessley(const int &entity, const position_t * pos) {
 
 	const auto destIdx = region->mapidx(destX, destY, destZ);
 	if (destIdx != tile_index && region->WaterLevel[destIdx] < 3) MoveRequests.Emplace(move_request_t{ entity, pos->x, pos->y, pos->z, destX, destY, destZ });
+}
+
+void UBECS::BedTime(const int &entity, const position_t * pos) {
+	auto settler = ecs.GetComponent<settler_ai_t>(entity);
+	if (!settler) return;
+
+	if (!settler->busy) {
+		settler->busy = true;
+		settler->major_task = major_tasks::SLEEP;
+		settler->minor_task = 1;
+	}
+
+	if (settler->minor_task == 1) {
+		// Find a bed
+		int chosen_bed = -1;
+		position_t chosen_pos;
+		int distance = 10000;
+		ecs.EachWithout<claimed_t, position_t, construct_provides_sleep_t>([&chosen_pos, &distance, &pos, &chosen_bed](const int &bed, position_t &bedpos, construct_provides_sleep_t &sleep) {
+			const auto dist = distance3d_squared(pos->x, pos->y, pos->z, bedpos.x, bedpos.y, bedpos.z);
+			if (dist < distance) {
+				distance = dist;
+				chosen_pos = bedpos;
+				chosen_bed = bed;
+			}
+		});
+
+		if (chosen_bed > -1) {
+			auto path = astar::find_path(*pos, chosen_pos, false, 0);
+			if (path.success) {
+				settler->claimed_entity = chosen_bed;
+				ecs.Assign(chosen_bed, claimed_t{ entity });
+				settler->target_position = chosen_pos;
+				settler->path = path;
+				settler->minor_task = 2;
+				return;
+			}
+		}
+
+		if (chosen_bed == -1) {
+			dm->onEmote(entity, TEXT("Sleeping on the ground SUCKS"));
+			settler->minor_task = 3;
+			auto SleepClock = ecs.GetComponent<sleep_clock_t>(entity);
+			SleepClock->sleep_requirement = 12;
+			SleepClock->is_sleeping = true;
+			settler->claimed_entity = -1;
+		}
+	}
+	else if (settler->minor_task == 2) {
+		if (settler->path.success) {
+			if (settler->path.steps.Num() > 0) {
+				auto next_pos = settler->path.steps[0];
+				settler->path.steps.RemoveAt(0);
+				MoveRequests.Emplace(move_request_t{ entity, pos->x, pos->y, pos->z, next_pos.x, next_pos.y, next_pos.z });
+			}
+			else {
+				settler->minor_task = 3;
+				auto SleepClock = ecs.GetComponent<sleep_clock_t>(entity);
+				SleepClock->sleep_requirement = 8;
+				SleepClock->is_sleeping = true;
+				dm->onEmote(entity, "Sleeping in bed");
+			}
+		}
+		else {
+			settler->minor_task = 1;
+		}
+	}	
+
+	if (hour_elapsed) {
+		auto SleepClock = ecs.GetComponent<sleep_clock_t>(entity);
+		if (SleepClock) {
+			if (SleepClock->is_sleeping) {
+				if (SleepClock->sleep_requirement > 0) {
+					--SleepClock->sleep_requirement;
+					dm->onEmote(entity, TEXT("Zzzz"));
+				}
+				else {
+					dm->onEmote(entity, TEXT("*YAWN*"));
+					settler->busy = false;
+					settler->major_task = 0;
+					settler->minor_task = 0;
+					SleepClock->sleep_requirement = 8;
+					if (settler->claimed_entity > -1) ecs.Remove<claimed_t>(settler->claimed_entity);
+				}
+			}
+		}
+	}
+}
+
+void UBECS::WorkTime(const int &entity, const position_t * pos) {
+	dm->onEmote(entity, TEXT("Time for work"));
+}
+
+void UBECS::LeisureTime(const int &entity, const position_t * pos) {
+	dm->onEmote(entity, TEXT("ME time!"));
 }

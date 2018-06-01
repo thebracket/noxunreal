@@ -6,6 +6,29 @@
 #include "../Raws/NRaws.h"
 #include "../BEngine/RandomNumberGenerator.h"
 
+struct position_t {
+	int x = 0;
+	int y = 0;
+	int z = 0;
+	int rotation = 0;
+
+	position_t() = default;
+	position_t(const int &nx, const int &ny, const int &nz) noexcept : x(nx), y(ny), z(nz) {}
+	position_t(const float &nx, const float &ny, const int &nz) noexcept : x(static_cast<int>(nx)), y(static_cast<int>(ny)), z(nz) {}
+	position_t(const int &nx, const int &ny, const int &nz, const int &rot) noexcept : x(nx), y(ny), z(nz), rotation(rot) {}
+	position_t(const float &nx, const float &ny, const int &nz, const int &rot) noexcept : x(static_cast<int>(nx)), y(static_cast<int>(ny)), z(nz), rotation(rot) {}
+	bool operator==(const position_t &rhs) const { return (x == rhs.x && y == rhs.y && z == rhs.z); }
+};
+
+namespace astar {
+	struct navigation_path_t
+	{
+		bool success = false;
+		TArray<position_t> steps{};
+		position_t destination{ 0,0,0 };
+	};
+}
+
 struct world_position_t {
 	int world_x = 0;
 	int world_y = 0;
@@ -50,20 +73,6 @@ struct calendar_t {
 
 	FString get_date_time() const;
 	void next_minute();
-};
-
-struct position_t {
-	int x = 0;
-	int y = 0;
-	int z = 0;
-	int rotation = 0;
-
-	position_t() = default;
-	position_t(const int &nx, const int &ny, const int &nz) noexcept : x(nx), y(ny), z(nz) {}
-	position_t(const float &nx, const float &ny, const int &nz) noexcept : x(static_cast<int>(nx)), y(static_cast<int>(ny)), z(nz) {}
-	position_t(const int &nx, const int &ny, const int &nz, const int &rot) noexcept : x(nx), y(ny), z(nz), rotation(rot) {}
-	position_t(const float &nx, const float &ny, const int &nz, const int &rot) noexcept : x(static_cast<int>(nx)), y(static_cast<int>(ny)), z(nz), rotation(rot) {}
-	bool operator==(const position_t &rhs) const { return (x == rhs.x && y == rhs.y && z == rhs.z); }
 };
 
 struct unbuild_t {
@@ -643,9 +652,19 @@ inline health_t create_health_component_creature(const FString &tag, NRaws * raw
 	return result;
 }
 
+namespace major_tasks {
+	constexpr int SLEEP = 1;
+}
+
 struct settler_ai_t {
 	int shift_id = 0;
 	bool busy = false;
+	int major_task = 0;
+	int minor_task = 0;
+
+	int claimed_entity = -1;
+	position_t target_position;
+	astar::navigation_path_t path;
 };
 
 enum render_mode_t { RENDER_SETTLER, RENDER_SENTIENT };
@@ -703,5 +722,10 @@ struct item_carried_t {
 	int carried_by;
 	item_carried_t() = default;
 	item_carried_t(const ecs_item_location_t loc, const int carrier) : location(loc), carried_by(carrier) {}
+};
 
+struct claimed_t {
+	claimed_t() = default;
+	explicit claimed_t(const int &id) noexcept : claimed_by(id) {}
+	int claimed_by = 0;
 };

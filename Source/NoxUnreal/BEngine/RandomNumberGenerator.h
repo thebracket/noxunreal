@@ -34,6 +34,22 @@ inline float distance2d_squared(const int &x1, const int &y1, const int &x2, con
 	return (dx*dx) + (dy*dy);
 }
 
+inline float distance3d(const int &x1, const int &y1, const int &z1, const int &x2, const int &y2, const int &z2) noexcept
+{
+	const float dx = (float)x1 - (float)x2;
+	const float dy = (float)y1 - (float)y2;
+	const float dz = (float)z1 - (float)z2;
+	return FMath::Sqrt((dx*dx) + (dy*dy) + (dz*dz));
+}
+
+inline float distance3d_squared(const int &x1, const int &y1, const int &z1, const int &x2, const int &y2, const int &z2) noexcept
+{
+	float dx = (float)x1 - (float)x2;
+	float dy = (float)y1 - (float)y2;
+	float dz = (float)z1 - (float)z2;
+	return (dx*dx) + (dy*dy) + (dz*dz);
+}
+
 /*
 * Perform a function for each line element between x1/y1 and x2/y2. We used to use Bresenham's line,
 * but benchmarking showed a simple float-based setup to be faster.

@@ -375,8 +375,10 @@ inline TMap<FString, const TFunction<void()>> lua_parser(std::initializer_list<l
 
 inline FString to_proper_noun_case(const FString &original)
 {
+	FString result = original.Mid(1, original.Len()-1).ToLower();
+	result = original.Mid(0, 1).ToUpper() + result;
 	// TODO:
-	return original;
+	return result;
 }
 
 /**
