@@ -828,7 +828,7 @@ void UNRegion::BuildGameComponents(const int &crash_x, const int &crash_y, const
 		});
 
 	auto game_id = ecs->ecs.AddEntity();
-	ecs->ecs.Assign(game_id, world_position_t{ RegionX, RegionY, crash_x, crash_y, crash_z });
+	ecs->ecs.Assign(game_id, world_position_t{ RegionX, RegionY, crash_x, crash_y, crash_z+1 });
 	ecs->ecs.Assign(game_id, std::move(calendar));
 	ecs->ecs.Assign(game_id, designations_t{});
 	ecs->ecs.Assign(game_id, logger_t{});

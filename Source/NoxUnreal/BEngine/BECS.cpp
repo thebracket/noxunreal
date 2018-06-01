@@ -363,7 +363,7 @@ void UBECS::SettlerNewArrival(const int &entity, ai_settler_new_arrival_t * new_
 	if (new_arrival->turns_since_arrival == 0 && rng.RollDice(1, 6) == 1) {
 		// Send a quip!
 		const FString quip = raws->string_tables[string_tables::NEW_ARRIVAL_QUIPS].random_entry(rng);
-		dm->OnEmote.Broadcast(entity, quip);
+		dm->OnSettlerEmote.Broadcast(entity, quip);
 	}
 
 	++new_arrival->turns_since_arrival;

@@ -109,7 +109,7 @@ public:
 	FCompositeMoved OnCompositeMoved;
 
 	UPROPERTY(BlueprintAssignable, Category = "Render")
-	FEmote OnEmote;
+	FEmote OnSettlerEmote;
 
 	UFUNCTION(BlueprintCallable)
 	void SetPauseStatus(int p);
@@ -141,6 +141,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void onCompositeMove(const int id);
+
+	UFUNCTION(BlueprintCallable)
+	void onEmote(const int id, const FString text);
 
 	UPROPERTY(BlueprintReadOnly)
 	TMap<int, UStaticMeshComponent *> Buildings;

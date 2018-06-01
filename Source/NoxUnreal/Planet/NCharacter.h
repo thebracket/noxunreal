@@ -35,6 +35,12 @@ public:
 	UTextRenderComponent * label;
 
 	UPROPERTY(BlueprintReadOnly)
+	UTextRenderComponent * emote = nullptr;
+
+	UPROPERTY(BlueprintReadOnly)
+	int emoteTimer = 0;
+
+	UPROPERTY(BlueprintReadOnly)
 	int x;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -50,6 +56,7 @@ public:
 	void AddModel(int modelId, int componentId, FNColor tint);
 
 	void Show(const bool &state);
+	void SetEmote(const int &id, const FString &text);
 
 protected:
 	// Called when the game starts or when spawned

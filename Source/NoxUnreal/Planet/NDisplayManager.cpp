@@ -161,6 +161,7 @@ void ANDisplayManager::BeginPlay()
 		cd->ZLevelChanged.AddDynamic(this, &ANDisplayManager::onZChange);
 	}
 	OnCompositeMoved.AddDynamic(this, &ANDisplayManager::onCompositeMove);
+	OnSettlerEmote.AddDynamic(this, &ANDisplayManager::onEmote);
 
 	// Single step and start the timer
 	ecs->SetPauseMode(1);
@@ -493,7 +494,7 @@ void ANDisplayManager::InitialComposites() {
 			const float my = pos.y + 0.5f;
 			const float mz = pos.z;
 
-			FRotator rot = FRotator(0, pos.rotation + 90.0f, 0);
+			FRotator rot = FRotator(0, pos.rotation, 0);
 			FVector loc = FVector(mx * WORLD_SCALE, my * WORLD_SCALE, mz * WORLD_SCALE);
 			FTransform trans = FTransform(rot, loc, FVector(1.0f, 1.0f, 1.0f));
 			auto newModel = GetWorld()->SpawnActorDeferred<ANCharacter>(ANCharacter::StaticClass(), trans, this);
@@ -1181,6 +1182,19 @@ void GeometryChunk::CreateWater(int x, int y, int z, int w, int h, float d) {
 
 void ANDisplayManager::TickTock() {
 	ecs->GameTick();
+
+	// Destroy emotes
+	for (auto &cr : CompositeRender) {
+		if (cr.Value->emote != nullptr && cr.Value->emoteTimer > 0) {
+			--cr.Value->emoteTimer;
+			if (cr.Value->emoteTimer < 1) {
+				cr.Value->emote->SetVisibility(false);
+				cr.Value->emote->DestroyComponent();
+				cr.Value->emote = nullptr;
+				cr.Value->emoteTimer = 0;
+			}
+		}
+	}
 }
 
 void ANDisplayManager::SetPauseStatus(int p) {
@@ -1192,6 +1206,14 @@ void ANDisplayManager::onCompositeMove(const int id) {
 		auto pos = ecs->ecs.GetComponent<position_t>(id);
 		if (pos) {
 			CompositeRender[id]->SetActorLocationAndRotation(FVector(pos->x * WORLD_SCALE, pos->y * WORLD_SCALE, pos->z * WORLD_SCALE), FRotator(0, pos->rotation + 90.0f, 0));
+			CompositeRender[id]->label->SetWorldRotation(FRotator(0, 0, 0));
+			if (CompositeRender[id]->emote) CompositeRender[id]->emote->SetWorldRotation(FRotator(0, 0, 0));
 		}
+	}
+}
+
+void ANDisplayManager::onEmote(const int id, const FString text) {
+	if (CompositeRender.Contains(id)) {
+		CompositeRender[id]->SetEmote(id, text);
 	}
 }

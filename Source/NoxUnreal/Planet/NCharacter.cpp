@@ -3,6 +3,7 @@
 #include "NCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "../Public/NoxGameInstance.h"
+#include "Runtime/Engine/Classes/Engine/Font.h"
 
 // Sets default values
 ANCharacter::ANCharacter()
@@ -22,12 +23,20 @@ void ANCharacter::BeginPlay()
 	ActorName.AppendInt(id);
 	SetActorLabel(ActorName);
 	RefreshModels();
+
+	UFont * Font = Cast<UFont>(StaticLoadObject(UFont::StaticClass(), nullptr, TEXT("Font'/Game/Fonts/ThinFont.ThinFont'"), nullptr, LOAD_None, nullptr));
+	UMaterial * Material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/HUD/BillboardedFont.BillboardedFont'"), nullptr, LOAD_None, nullptr));
+	UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
+	DynMaterial->SetVectorParameterValue("Color", FLinearColor(1.0f, 1.0f, 1.0f));
+
 	label = NewObject<UTextRenderComponent>(this);
 	label->RegisterComponent();
 	label->SetText(FirstName);
 	label->SetHorizontalAlignment(EHTA_Center);
 	label->SetWorldSize(50.0f);
 	label->SetRelativeLocation(FVector(0.0f, 0.0f, 200.0f));
+	label->SetFont(Font);
+	label->SetMaterial(0, DynMaterial);
 	label->AttachTo(RootComponent);
 }
 
@@ -256,4 +265,28 @@ void ANCharacter::Show(const bool &state) {
 	for (auto &cr : components) {
 		cr.Value->SetVisibility(state);
 	}
+	label->SetVisibility(state);
+	if (emote) emote->SetVisibility(state);
+}
+
+void ANCharacter::SetEmote(const int &id, const FString &text) {
+	UFont * Font = Cast<UFont>(StaticLoadObject(UFont::StaticClass(), nullptr, TEXT("Font'/Game/Fonts/ThinFont.ThinFont'"), nullptr, LOAD_None, nullptr));
+	UMaterial * Material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/HUD/BillboardedFont.BillboardedFont'"), nullptr, LOAD_None, nullptr));
+	UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
+	DynMaterial->SetVectorParameterValue("Color", FLinearColor(0.0f, 1.0f, 1.0f));
+
+	if (emote == nullptr) emote = NewObject<UTextRenderComponent>(this);
+	emote->SetWorldRotation(FRotator(0, 0, 0));
+	emote->RegisterComponent();
+	emote->SetText(text);
+	emote->SetHorizontalAlignment(EHTA_Center);
+	emote->VerticalAlignment = EVerticalTextAligment::EVRTA_TextBottom;
+	emote->SetWorldSize(40.0f);
+	emote->SetRelativeLocation(FVector(0.0f, 0.0f, 180.0f));
+	//emote->SetTextRenderColor(FColor(0, 255, 255));
+	emote->SetMaterial(0, DynMaterial);
+	emote->SetFont(Font);
+	emote->SetVisibility(true);
+	emote->AttachTo(RootComponent);
+	emoteTimer = 200;
 }
