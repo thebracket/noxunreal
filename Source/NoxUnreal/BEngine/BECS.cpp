@@ -778,14 +778,82 @@ void UBECS::BedTime(const int &entity, const position_t * pos) {
 }
 
 void UBECS::WorkTime(const int &entity, const position_t * pos) {
-	dm->onEmote(entity, TEXT("Time for work"));
+	auto settler = ecs.GetComponent<settler_ai_t>(entity);
+	if (!settler) return;
+
+	if (settler->designated_lumberjack) {
+		if (LumberjackStart(entity, settler, pos)) return;
+	}
+	if (settler->designated_miner) {
+		if (MiningStart(entity, settler, pos)) return;
+	}
+	if (settler->designated_farmer) {
+		if (FarmingStart(entity, settler, pos)) return;
+	}
+	if (settler->designated_hunter) {
+		if (HuntingStart(entity, settler, pos)) return;
+	}
+	if (BuildingStart(entity, settler, pos)) return;
+	if (WorkOrdersStart(entity, settler, pos)) return;
+	if (ArchitectureStart(entity, settler, pos)) return;
+	if (ButcherStart(entity, settler, pos)) return;
+	if (StockpilesStart(entity, settler, pos)) return;
+	if (DeconstructionStart(entity, settler, pos)) return;
+
+	// We still don't have anything to do!
+	WanderAimlessley(entity, pos);
 }
 
 void UBECS::LeisureTime(const int &entity, const position_t * pos) {
 	dm->onEmote(entity, TEXT("ME time!"));
+	// Eating and drinking
+
+	WanderAimlessley(entity, pos);
 }
 
 bool UBECS::CanEnterTile(const position_t &pos) {
 	const int idx = region->mapidx(pos.x, pos.y, pos.z);
 	return testbit(regiondefs::tile_flags::CAN_STAND_HERE, region->TileFlags[idx]);
+}
+
+bool UBECS::LumberjackStart(const int &entity, settler_ai_t * settler, const position_t *pos) {
+	if (Designations->chopping.Num() == 0) return false; // No chopping to do
+	return false;
+}
+
+bool UBECS::MiningStart(const int &entity, settler_ai_t * settler, const position_t *pos) {
+	if (MiningDesignations->mining_targets.Num() == 0) return false;
+	return false;
+}
+
+bool UBECS::FarmingStart(const int &entity, settler_ai_t * settler, const position_t *pos) {
+	return false;
+}
+
+bool UBECS::HuntingStart(const int &entity, settler_ai_t * settler, const position_t *pos) {
+	return false;
+}
+
+bool UBECS::BuildingStart(const int &entity, settler_ai_t * settler, const position_t *pos) {
+	return false;
+}
+
+bool UBECS::WorkOrdersStart(const int &entity, settler_ai_t * settler, const position_t *pos) {
+	return false;
+}
+
+bool UBECS::ArchitectureStart(const int &entity, settler_ai_t * settler, const position_t *pos) {
+	return false;
+}
+
+bool UBECS::ButcherStart(const int &entity, settler_ai_t * settler, const position_t *pos) {
+	return false;
+}
+
+bool UBECS::StockpilesStart(const int &entity, settler_ai_t * settler, const position_t *pos) {
+	return false;
+}
+
+bool UBECS::DeconstructionStart(const int &entity, settler_ai_t * settler, const position_t *pos) {
+	return false;
 }

@@ -249,6 +249,17 @@ private:
 	void WorkTime(const int &entity, const position_t * pos);
 	void LeisureTime(const int &entity, const position_t * pos);
 
+	bool LumberjackStart(const int &entity, settler_ai_t * settler, const position_t *pos);
+	bool MiningStart(const int &entity, settler_ai_t * settler, const position_t *pos);
+	bool FarmingStart(const int &entity, settler_ai_t * settler, const position_t *pos);
+	bool HuntingStart(const int &entity, settler_ai_t * settler, const position_t *pos);
+	bool BuildingStart(const int &entity, settler_ai_t * settler, const position_t *pos);
+	bool WorkOrdersStart(const int &entity, settler_ai_t * settler, const position_t *pos);
+	bool ArchitectureStart(const int &entity, settler_ai_t * settler, const position_t *pos);
+	bool ButcherStart(const int &entity, settler_ai_t * settler, const position_t *pos);
+	bool StockpilesStart(const int &entity, settler_ai_t * settler, const position_t *pos);
+	bool DeconstructionStart(const int &entity, settler_ai_t * settler, const position_t *pos);
+
 	// Helpers
 	bool CanEnterTile(const position_t &pos);
 

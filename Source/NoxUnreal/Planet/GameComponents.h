@@ -662,6 +662,11 @@ struct settler_ai_t {
 	int major_task = 0;
 	int minor_task = 0;
 
+	bool designated_lumberjack = false;
+	bool designated_miner = false;
+	bool designated_farmer = false;
+	bool designated_hunter = false;
+
 	int claimed_entity = -1;
 	position_t target_position;
 	astar::navigation_path_t path;
