@@ -1205,7 +1205,10 @@ void ANDisplayManager::onCompositeMove(const int id) {
 	if (CompositeRender.Contains(id)) {
 		auto pos = ecs->ecs.GetComponent<position_t>(id);
 		if (pos) {
-			CompositeRender[id]->SetActorLocationAndRotation(FVector(pos->x * WORLD_SCALE, pos->y * WORLD_SCALE, pos->z * WORLD_SCALE), FRotator(0, pos->rotation + 90.0f, 0));
+			const float mx = (pos->x + 0.5f) * WORLD_SCALE;
+			const float my = (pos->y + 0.5f) * WORLD_SCALE;
+			const float mz = pos->z * WORLD_SCALE;
+			CompositeRender[id]->SetActorLocationAndRotation(FVector(mx, my, mz), FRotator(0, pos->rotation + 90.0f, 0));
 			CompositeRender[id]->label->SetWorldRotation(FRotator(0, 0, 0));
 			if (CompositeRender[id]->emote) CompositeRender[id]->emote->SetWorldRotation(FRotator(0, 0, 0));
 		}
