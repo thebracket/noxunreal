@@ -1225,7 +1225,10 @@ TArray<FUnitListDisplaySettler> ANDisplayManager::GetSettlerList() {
 	TArray<FUnitListDisplaySettler> result;
 
 	ecs->ecs.Each<settler_ai_t, name_t, game_stats_t, health_t>([&result](const int &entity_id, settler_ai_t &settler, name_t &name, game_stats_t &stats, health_t &health) {
-		result.Emplace(FUnitListDisplaySettler{ entity_id, name.first_name + TEXT(" ") + name.last_name, stats.profession_tag, settler.status, health.max_hitpoints, health.current_hitpoints });
+		result.Emplace(FUnitListDisplaySettler{ entity_id, name.first_name + TEXT(" ") + name.last_name, stats.profession_tag, 
+			settler.status, health.max_hitpoints, health.current_hitpoints, settler.designated_lumberjack,
+			settler.designated_miner, settler.designated_farmer, settler.designated_hunter }
+		);
 	});
 
 	return result;

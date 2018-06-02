@@ -100,6 +100,18 @@ struct FUnitListDisplaySettler {
 
 	UPROPERTY(BlueprintReadOnly)
 	int currentHealth;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool isLumberjack = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool isMiner = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool isFarmer = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool isHunter = false;
 };
 
 UCLASS()
