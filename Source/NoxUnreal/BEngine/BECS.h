@@ -248,4 +248,33 @@ private:
 	void BedTime(const int &entity, const position_t * pos);
 	void WorkTime(const int &entity, const position_t * pos);
 	void LeisureTime(const int &entity, const position_t * pos);
+
+	// Helpers
+	bool CanEnterTile(const position_t &pos);
+
+	template <typename ONSUCCESS, typename ONFAIL>
+	void FollowPath(const int &entity, const position_t * pos, astar::navigation_path_t &path, const ONSUCCESS &onSuccess, const ONFAIL &onFail) {
+		// If we've reached the destination, exit with success
+		if (pos->x == path.destination.x && pos->y == path.destination.y && pos->z == path.destination.z) {
+			onSuccess();
+			return;
+		}
+
+		// Check for failure
+		if (!path.success || path.steps.Num()==0) {
+			onFail();
+			return;
+		}
+
+		// Get the next step
+		auto next_pos = path.steps[0];
+		path.steps.RemoveAt(0);
+		const auto CanEnter = CanEnterTile(next_pos);
+		if (!CanEnter) {
+			onFail();
+			return;
+		}
+
+		MoveRequests.Emplace(move_request_t{ entity, pos->x, pos->y, pos->z, next_pos.x, next_pos.y, next_pos.z });
+	}
 };

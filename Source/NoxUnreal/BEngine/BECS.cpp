@@ -739,23 +739,21 @@ void UBECS::BedTime(const int &entity, const position_t * pos) {
 		}
 	}
 	else if (settler->minor_task == 2) {
-		if (settler->path.success) {
-			if (settler->path.steps.Num() > 0) {
-				auto next_pos = settler->path.steps[0];
-				settler->path.steps.RemoveAt(0);
-				MoveRequests.Emplace(move_request_t{ entity, pos->x, pos->y, pos->z, next_pos.x, next_pos.y, next_pos.z });
-			}
-			else {
+
+		// Path to the bed
+		FollowPath(entity, pos, settler->path,
+			// On Success
+			[&settler, &entity, this]() {
 				settler->minor_task = 3;
 				auto SleepClock = ecs.GetComponent<sleep_clock_t>(entity);
 				SleepClock->sleep_requirement = 8;
 				SleepClock->is_sleeping = true;
 				dm->onEmote(entity, "Sleeping in bed");
-			}
-		}
-		else {
-			settler->minor_task = 1;
-		}
+			},
+
+			// On Fail
+			[&settler]() { settler->minor_task = 1; }
+		);
 	}	
 
 	if (hour_elapsed) {
@@ -785,4 +783,9 @@ void UBECS::WorkTime(const int &entity, const position_t * pos) {
 
 void UBECS::LeisureTime(const int &entity, const position_t * pos) {
 	dm->onEmote(entity, TEXT("ME time!"));
+}
+
+bool UBECS::CanEnterTile(const position_t &pos) {
+	const int idx = region->mapidx(pos.x, pos.y, pos.z);
+	return testbit(regiondefs::tile_flags::CAN_STAND_HERE, region->TileFlags[idx]);
 }
