@@ -55,7 +55,6 @@ public class NoxUnreal : ModuleRules
 
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "lua." + PlatformString + ".lib"));
             PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "zlib." + PlatformString + ".lib"));
-            PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "libnox." + PlatformString + ".lib"));
         }
 
         if (isLibrarySupported)
