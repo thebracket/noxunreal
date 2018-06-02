@@ -1220,3 +1220,13 @@ void ANDisplayManager::onEmote(const int id, const FString text) {
 		CompositeRender[id]->SetEmote(id, text);
 	}
 }
+
+TArray<FUnitListDisplaySettler> ANDisplayManager::GetSettlerList() {
+	TArray<FUnitListDisplaySettler> result;
+
+	ecs->ecs.Each<settler_ai_t, name_t>([&result](const int &entity_id, settler_ai_t &settler, name_t &name) {
+		result.Emplace(FUnitListDisplaySettler{ entity_id, name.first_name + TEXT(" ") + name.last_name });
+	});
+
+	return result;
+}

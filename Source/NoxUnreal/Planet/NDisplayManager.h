@@ -79,6 +79,17 @@ struct FNChunk
 	TArray<FNLayer> layers;
 };
 
+USTRUCT(BlueprintType)
+struct FUnitListDisplaySettler {
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	int id;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString name;
+};
+
 UCLASS()
 class NOXUNREAL_API ANDisplayManager : public AActor
 {
@@ -163,4 +174,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void TickTock();
+
+	UFUNCTION(BlueprintCallable)
+	TArray<FUnitListDisplaySettler> GetSettlerList();
 };
