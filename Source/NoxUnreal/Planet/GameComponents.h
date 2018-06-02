@@ -667,6 +667,8 @@ struct settler_ai_t {
 	bool designated_farmer = false;
 	bool designated_hunter = false;
 
+	FString status = "New Arrival";
+
 	int claimed_entity = -1;
 	position_t target_position;
 	astar::navigation_path_t path;

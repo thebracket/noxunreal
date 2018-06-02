@@ -1224,8 +1224,8 @@ void ANDisplayManager::onEmote(const int id, const FString text) {
 TArray<FUnitListDisplaySettler> ANDisplayManager::GetSettlerList() {
 	TArray<FUnitListDisplaySettler> result;
 
-	ecs->ecs.Each<settler_ai_t, name_t>([&result](const int &entity_id, settler_ai_t &settler, name_t &name) {
-		result.Emplace(FUnitListDisplaySettler{ entity_id, name.first_name + TEXT(" ") + name.last_name });
+	ecs->ecs.Each<settler_ai_t, name_t, game_stats_t, health_t>([&result](const int &entity_id, settler_ai_t &settler, name_t &name, game_stats_t &stats, health_t &health) {
+		result.Emplace(FUnitListDisplaySettler{ entity_id, name.first_name + TEXT(" ") + name.last_name, stats.profession_tag, settler.status, health.max_hitpoints, health.current_hitpoints });
 	});
 
 	return result;

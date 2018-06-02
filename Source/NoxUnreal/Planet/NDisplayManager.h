@@ -88,6 +88,18 @@ struct FUnitListDisplaySettler {
 
 	UPROPERTY(BlueprintReadOnly)
 	FString name;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString profession;
+
+	UPROPERTY(BlueprintReadOnly)
+	FString task;
+
+	UPROPERTY(BlueprintReadOnly)
+	int maxHealth;
+
+	UPROPERTY(BlueprintReadOnly)
+	int currentHealth;
 };
 
 UCLASS()
