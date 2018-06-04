@@ -596,11 +596,11 @@ void UNRegion::LayStrata(TArray<uint8> &HeightMap, RandomNumberGenerator * rng, 
 					}
 
 					SetWaterLevel(mapidx(x, y, Z), 10);
-					//while (w > 0) {
-					//    set_water_level(mapidx(x,y,Z), 10);
-					//    w -= 10;
-					//    ++Z;
-					//}
+					while (w > 0) {
+					    WaterLevel[mapidx(x,y,Z)] = 10;
+					    w -= 10;
+					    ++Z;
+					}
 				}
 				else {
 

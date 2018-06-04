@@ -249,7 +249,7 @@ void ANoxWorldMap::BeginPlay()
 			const float MZ = 10.0f;
 			
 			const auto RiverType = planet->Landblocks[idx].RiverMask;
-			if (RiverType > 0) {
+			if (RiverType > 0 && planet->Landblocks[idx].height > planet->water_height) {
 				if (testbit(RiverMaskBits::START, planet->Landblocks[idx].RiverMask) || planet->Landblocks[idx].RiverMask == 15) {
 					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
 					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
