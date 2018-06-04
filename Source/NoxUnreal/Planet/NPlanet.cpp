@@ -110,8 +110,8 @@ FastNoise UNPlanet::PlanetNoiseMap() {
 			Landblocks[idx(x, y)].height = static_cast<uint8_t>(total_height / n_tiles);
 			Landblocks[idx(x, y)].type = 0;
 			Landblocks[idx(x, y)].variance = max - min;
-			const auto altitude_deduction = std::abs(Landblocks[idx(x, y)].height - water_height) / 10.0F;
-			Landblocks[idx(x, y)].temperature_c = static_cast<int32>(base_temp_by_latitude - altitude_deduction) + rng.RollDice(1,20) - rng.RollDice(1,20);
+			const auto altitude_deduction = std::abs(Landblocks[idx(x, y)].height - water_height) / 20.0F;
+			Landblocks[idx(x, y)].temperature_c = base_temp_by_latitude;
 			if (Landblocks[idx(x, y)].temperature_c < -55) Landblocks[idx(x, y)].temperature_c = -55;
 			if (Landblocks[idx(x, y)].temperature_c > 55) Landblocks[idx(x, y)].temperature_c = 55;
 
@@ -243,8 +243,9 @@ void UNPlanet::Rainfall() {
 void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 	using namespace nfu;
 
-	const auto n_biomes = 512;
+	const auto n_biomes = 768;
 	Biomes.Empty();
+	Biomes.AddDefaulted(n_biomes);
 	//for (int i = 0; i < n_biomes; ++i)
 	//	Biomes.Emplace(FNBiome{});
 
@@ -276,7 +277,6 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 
 			if (!dupe) {
 				centroids.Emplace(TPair<int32, int32>(x, y));
-				Biomes.Emplace(FNBiome{});
 				ok = true;
 			}
 		}
@@ -294,8 +294,8 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 				const auto biome_y = centroids[i].Value;
 				const auto dx = std::abs(biome_x - x);
 				const auto dy = std::abs(biome_y - y);
-				const auto biome_distance = (dx*dx) + (dy*dy);
-				if (biome_distance < distance && Landblocks[idx(biome_x,biome_y)].type == mytype) {
+				const auto biome_distance = biome_x == x && biome_y == y ? 0 : (dx*dx) + (dy*dy);
+				if (biome_distance == 0 || biome_distance < distance && Landblocks[idx(biome_x,biome_y)].type == mytype) {
 					distance = biome_distance;
 					closest_index = i;
 				}
@@ -303,6 +303,7 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 
 			if (closest_index > -1) {
 				Landblocks[idx(x, y)].biome_idx = closest_index;
+				Biomes[closest_index].mean_temperature = Landblocks[idx(x, y)].temperature_c;
 			}
 			else {
 				for (auto i = 0; i<n_biomes; ++i) {
@@ -310,13 +311,15 @@ void UNPlanet::BuildBiomes(RandomNumberGenerator &rng) {
 					const auto biome_y = centroids[i].Value;
 					const auto dx = std::abs(biome_x - x);
 					const auto dy = std::abs(biome_y - y);
-					const auto biome_distance = (dx*dx) + (dy*dy);
-					if (biome_distance < distance) {
+					const auto biome_distance = biome_x == x && biome_y == y ? 0 : (dx*dx) + (dy*dy);
+					if (biome_distance == 0 || biome_distance < distance) {
 						distance = biome_distance;
 						closest_index = i;
 					}
 				}
+				if (closest_index == -1) closest_index = 1;
 				Landblocks[idx(x, y)].biome_idx = closest_index;
+				Biomes[closest_index].mean_temperature = Landblocks[idx(x, y)].temperature_c;
 			}
 		}
 	}
@@ -367,21 +370,19 @@ TMap<uint8, double> UNPlanet::BiomeMembership(const int32_t &bidx) {
 	TMap<uint8, double>  percents;
 	TMap<uint8, long>  counts;
 	auto n_cells = 0L;
-	auto total_temperature = 0L;
 	auto total_rainfall = 0L;
 	auto total_height = 0L;
 	auto total_variance = 0L;
 	auto total_x = 0L;
 	auto total_y = 0L;
 
-	for (auto y = 0; y<WORLD_HEIGHT; ++y) {
-		for (auto x = 0; x<WORLD_WIDTH; ++x) {
+	for (auto y = 0; y<WORLD_HEIGHT-1; ++y) {
+		for (auto x = 0; x<WORLD_WIDTH-1; ++x) {
 			const auto block_idx = idx(x, y);
 
 			if (Landblocks[block_idx].biome_idx == bidx) {
 				// Increment total counters
 				++n_cells;
-				total_temperature += Landblocks[block_idx].temperature_c;
 				total_rainfall += Landblocks[block_idx].rainfall;
 				total_height += Landblocks[block_idx].height;
 				total_variance += Landblocks[block_idx].variance;
@@ -403,13 +404,12 @@ TMap<uint8, double> UNPlanet::BiomeMembership(const int32_t &bidx) {
 	// Calculate the averages
 	if (n_cells == 0) {
 		//std::unordered_map<uint8_t, double>();
-		n_cells = 1;
+		return percents;
 	}
 
 	const auto counter = static_cast<double>(n_cells);
 	Biomes[bidx].mean_altitude = static_cast<uint8_t>(static_cast<double>(total_height) / counter);
 	Biomes[bidx].mean_rainfall = static_cast<uint8_t>(static_cast<double>(total_rainfall) / counter);
-	Biomes[bidx].mean_temperature = static_cast<int32>(static_cast<double>(total_temperature) / counter);
 	Biomes[bidx].mean_variance = static_cast<uint8_t>(static_cast<double>(total_variance) / counter);
 	Biomes[bidx].center_x = total_x / n_cells;
 	Biomes[bidx].center_y = total_y / n_cells;
@@ -447,17 +447,16 @@ TArray<TPair<double, size_t>> UNPlanet::FindPossibleBiomes(TMap<uint8, double> &
 	
 	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
 	NRaws * raws = game->GetRaws();
-	raws->each_biome([&biome, &idx, &result, &percents](rawdefs::biome_type_t *bt) {
-		for (const auto &occur : bt->occurs) {
+	for (idx = 0; idx < raws->biome_defs.Num(); ++idx) {
+		const auto bt = &raws->biome_defs[idx];
+		/*for (const auto &occur : bt->occurs) {
 			auto finder = percents.Find(occur);
 			if (finder != nullptr && *finder > 0) {
 				result.Emplace(TPair<double, size_t>(25.0, idx));
 			}
-		}
+		}*/
 		
-		/*if (biome.mean_temperature >= bt->min_temp && biome.mean_temperature <= bt->max_temp
-			&& biome.mean_rainfall >= bt->min_rain && biome.mean_rainfall <= bt->max_rain
-			&& biome.warp_mutation >= bt->min_mutation && biome.warp_mutation <= bt->max_mutation) {
+		if (biome.mean_temperature >= bt->min_temp && biome.mean_temperature <= bt->max_temp) {
 
 			// It's possible, so check to see if tile types are available
 			for (const auto &occur : bt->occurs) {
@@ -469,9 +468,8 @@ TArray<TPair<double, size_t>> UNPlanet::FindPossibleBiomes(TMap<uint8, double> &
 					//result.Emplace(TPair<double, size_t>(25.0, idx));
 				}
 			}
-		}*/
-		++idx;
-	});
+		}
+	};
 
 	return result;
 }
@@ -684,7 +682,7 @@ FString UNPlanet::NameBiome(RandomNumberGenerator &rng, FNBiome &biome) {
 void UNPlanet::RunRivers(RandomNumberGenerator &rng) {
 	using namespace nfu;
 
-	const int n_rivers = WORLD_WIDTH / 2;
+	const int n_rivers = WORLD_WIDTH;
 	TSet<int> used_starts;
 
 	for (int i = 0; i<n_rivers; ++i) {
