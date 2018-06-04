@@ -50,8 +50,8 @@ void UNPlanet::ZeroFillPlanet() {
 
 constexpr int REGION_FRACTION_TO_CONSIDER = 64;
 constexpr unsigned int octaves = 5;
-constexpr float persistence = 0.5F;
-constexpr float frequency = 2.0F;
+constexpr float persistence = 0.25F;
+constexpr float frequency = 4.0F;
 
 inline uint8_t noise_to_planet_height(const float &n) {
 	return static_cast<uint8_t>((n + 1.0F) * 150.0F);
