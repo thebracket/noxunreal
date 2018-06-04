@@ -347,6 +347,28 @@ void ANoxWorldMap::BeginPlay()
 					FTransform trans = FTransform(FRotator(), loc, FVector(20.0, 20.0, 20.0));
 					grass->AddInstance(trans);
 				}*/				
+
+				if (planet->Landblocks[idx].Features == 1) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					UStaticMeshComponent * tree2 = NewObject<UStaticMeshComponent>(this);
+					tree2->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_antmound.wm_antmound'"), nullptr, LOAD_None, nullptr)));
+					tree2->SetRelativeLocation(loc);
+					tree2->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					tree2->AttachTo(RootComponent);
+					tree2->RegisterComponent();
+					features.Emplace(tree2);
+				}
+				if (planet->Landblocks[idx].Features == 2) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					UStaticMeshComponent * tree2 = NewObject<UStaticMeshComponent>(this);
+					tree2->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_hut.wm_hut'"), nullptr, LOAD_None, nullptr)));
+					tree2->SetRelativeLocation(loc);
+					tree2->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					tree2->AttachTo(RootComponent);
+					tree2->RegisterComponent();
+					features.Emplace(tree2);
+				}
+
 			}
 		}
 	}
@@ -444,12 +466,12 @@ void ANoxWorldMap::BeginPlay()
 				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_Trees.WM_Trees'";
 			}
 			else {
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, biome_info->name);
+				//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, biome_info->name);
 				MaterialAddress = "MaterialInstanceConstant'/Game/Materials/12Water_I.12Water_I'";
 			}
 		}
 		else {
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("No Biome!"));
+			//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("No Biome!"));
 			MaterialAddress = "MaterialInstanceConstant'/Game/Materials/12Water_I.12Water_I'";
 		}
 

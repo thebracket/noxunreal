@@ -80,6 +80,7 @@ struct FNPlanetBlock
 	int32 biome_idx = -1;
 
 	uint32 RiverMask = 0;
+	uint32 Features = 0;
 };
 
 USTRUCT(BlueprintType)
@@ -154,6 +155,16 @@ struct FNRiver
 	TArray<FNRiverStep> steps;
 };
 
+USTRUCT(BlueprintType)
+struct FNCivilization {
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	FString SpeciesTag;
+
+
+};
+
 /**
  * Holds basic information about the whole planet.
  */
@@ -165,6 +176,9 @@ class NOXUNREAL_API UNPlanet : public UObject
 public:
 	UNPlanet() {
 	}
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FNCivilization> civilizations;
 
 	UPROPERTY(BlueprintReadOnly)
 	FString name = "Test World";

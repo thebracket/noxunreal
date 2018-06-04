@@ -35,6 +35,41 @@ void UNPlanet::BuildPlanet(const int seed, const int water_divisor, const int pl
 
 	// Rivers
 	RunRivers(rng);
+
+	// Build initial civilizations
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	NRaws * raws = game->GetRaws();
+
+	const int n_civs = 128;
+	for (int i = 0; i < n_civs; ++i) {
+		const int roll = rng.RollDice(1, raws->species_defs.Num())-1;
+		FNCivilization civ;
+
+		int bidx = 0;
+		for (const auto &species : raws->species_defs) {
+			if (bidx == roll) civ.SpeciesTag = species.Value.tag;
+			++bidx;
+		}
+
+		bool ok = false;
+		int x = 0;
+		int y = 0;
+		bidx = idx(x, y);
+		while (!ok) {
+			x = rng.RollDice(1, nfu::WORLD_WIDTH-1);
+			y = rng.RollDice(1, nfu::WORLD_HEIGHT-1);
+			bidx = idx(x, y);
+			if (Landblocks[bidx].height > water_height && !Biomes[Landblocks[bidx].biome_idx].BiomeTypeName.Contains("Ocean") && !Biomes[Landblocks[bidx].biome_idx].BiomeTypeName.Contains("Desert")) ok = true;
+		}
+		if (civ.SpeciesTag.Contains("emmet")) {
+			Landblocks[bidx].Features = 1;
+		}
+		else {
+			Landblocks[bidx].Features = 2;
+		}
+
+		civilizations.Emplace(civ);
+	}
 }
 
 void UNPlanet::ZeroFillPlanet() {
