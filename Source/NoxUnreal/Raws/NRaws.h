@@ -412,6 +412,7 @@ public:
 	}
 
 	inline rawdefs::biome_type_t * get_biome_def(const size_t &index) {
+		if (index > biome_defs.Num()-1) return nullptr;
 		return &biome_defs[index];
 	}
 

@@ -742,6 +742,62 @@ void UNPlanet::RunRivers(RandomNumberGenerator &rng) {
 		}
 
 		Rivers.Emplace(river);
+
+		int rx = river.start_x;
+		int ry = river.start_y;
+		int block = idx(rx, ry);
+		setbit(RiverMaskBits::START, Landblocks[block].RiverMask);
+
+		int step = 0;
+		for (const auto &r : river.steps) {
+			rx = r.x;
+			ry = r.y;
+			block = idx(rx, ry);
+
+			if (step < river.steps.Num() - 1) {
+				const int nextX = river.steps[step + 1].x;
+				const int nextY = river.steps[step + 1].y;
+
+				if (nextX > rx) {
+					setbit(RiverMaskBits::EAST, Landblocks[block].RiverMask);
+				}
+				else if (nextX < rx) {
+					setbit(RiverMaskBits::WEST, Landblocks[block].RiverMask);
+				}
+				else if (nextY < ry) {
+					setbit(RiverMaskBits::NORTH, Landblocks[block].RiverMask);
+				}
+				else if (nextY > ry) {
+					setbit(RiverMaskBits::SOUTH, Landblocks[block].RiverMask);
+				}
+				else {
+					setbit(RiverMaskBits::START, Landblocks[block].RiverMask);
+				}
+			}
+
+			if (step > 0) {
+				const int nextX = river.steps[step - 1].x;
+				const int nextY = river.steps[step - 1].y;
+
+				if (nextX > rx) {
+					setbit(RiverMaskBits::EAST, Landblocks[block].RiverMask);
+				}
+				else if (nextX < rx) {
+					setbit(RiverMaskBits::WEST, Landblocks[block].RiverMask);
+				}
+				else if (nextY < ry) {
+					setbit(RiverMaskBits::NORTH, Landblocks[block].RiverMask);
+				}
+				else if (nextY > ry) {
+					setbit(RiverMaskBits::SOUTH, Landblocks[block].RiverMask);
+				}
+				else {
+					setbit(RiverMaskBits::START, Landblocks[block].RiverMask);
+				}
+			}
+
+			++step;
+		}
 	}
 }
 

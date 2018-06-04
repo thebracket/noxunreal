@@ -22,6 +22,15 @@ namespace BlockType {
 	constexpr uint8_t SALT_MARSH = 9;
 }
 
+namespace RiverMaskBits {
+	constexpr uint8 NONE = 0;
+	constexpr uint8 NORTH = 1;
+	constexpr uint8 EAST = 2;
+	constexpr uint8 SOUTH = 4;
+	constexpr uint8 WEST = 8;
+	constexpr uint8 START = 16;
+}
+
 namespace nfu {
 
 	constexpr int WORLD_HEIGHT = 128;
@@ -69,6 +78,8 @@ struct FNPlanetBlock
 
 	UPROPERTY(BlueprintReadOnly)
 	int32 biome_idx = -1;
+
+	uint32 RiverMask = 0;
 };
 
 USTRUCT(BlueprintType)

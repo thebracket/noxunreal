@@ -33,9 +33,11 @@ public:
 	NRaws * raws = nullptr;
 
 	UPROPERTY(VisibleAnywhere)
+	USceneComponent * scene;
+
+	UPROPERTY(VisibleAnywhere)
 	UProceduralMeshComponent * mesh;
 
-	UHierarchicalInstancedStaticMeshComponent * tree1 = nullptr;
-	UHierarchicalInstancedStaticMeshComponent * tree2 = nullptr;
-	UHierarchicalInstancedStaticMeshComponent * grass = nullptr;
+	UPROPERTY(VisibleAnywhere)
+	TArray<UStaticMeshComponent *> features;
 };

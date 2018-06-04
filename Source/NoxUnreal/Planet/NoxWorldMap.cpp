@@ -4,7 +4,7 @@
 #include "../Public/NoxGameInstance.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
-constexpr float zscaler = 10.0f;
+constexpr float zscaler = 0.0f;
 
 // Sets default values
 ANoxWorldMap::ANoxWorldMap()
@@ -12,10 +12,7 @@ ANoxWorldMap::ANoxWorldMap()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	mesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh"));
-	RootComponent = mesh;
-	mesh->bUseAsyncCooking = true;
-	mesh->bCastHiddenShadow = true;
+	scene = CreateDefaultSubobject<USceneComponent>("Scene");
 }
 
 inline FVector NormalCalc(const int x, const int y, const float WORLD_SCALE, const float Z_SCALE, UNPlanet * Planet) {
@@ -68,11 +65,11 @@ struct worldgen_map_geometry {
 		const float HRD = zrd + 2.0f + z_bonus;
 
 		// Face up
-		vertices.Add(FVector(x + w, y + h, HRD));
-		vertices.Add(FVector(x + w, y, HR));
+		vertices.Add(FVector(x + w, y + h, H));
+		vertices.Add(FVector(x + w, y, H));
 		vertices.Add(FVector(x, y, H));
-		vertices.Add(FVector(x, y + h, HD));
-		vertices.Add(FVector(x + w, y + h, HRD));
+		vertices.Add(FVector(x, y + h, H));
+		vertices.Add(FVector(x + w, y + h, H));
 		vertices.Add(FVector(x, y, H));
 
 		Triangles.Add(TriangleCounter);
@@ -220,30 +217,13 @@ void ANoxWorldMap::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Initialize foliage
-	UStaticMesh* tree;
-	tree = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/TileMaterials/Foliage/FastTree/tree_1__tree.tree_1__tree'"), nullptr, LOAD_None, nullptr));
-	tree1 = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
-	tree1->RegisterComponent();
-	tree1->SetStaticMesh(tree);
-	//target->SetFlags(RF_Transactional);
-	AddInstanceComponent(tree1);
+	mesh = NewObject<UProceduralMeshComponent>(this, TEXT("GeneratedMesh"));
 
-	UStaticMesh* treel;
-	treel = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/TileMaterials/Foliage/FastTree/tree_1__leaves.tree_1__leaves'"), nullptr, LOAD_None, nullptr));
-	tree2 = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
-	tree2->RegisterComponent();
-	tree2->SetStaticMesh(treel);
-	//target->SetFlags(RF_Transactional);
-	AddInstanceComponent(tree2);
-
-	UStaticMesh* g;
-	g = Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/Meshes/Grass/SM_grass_patch1.SM_grass_patch1'"), nullptr, LOAD_None, nullptr));
-	grass = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
-	grass->RegisterComponent();
-	grass->SetStaticMesh(g);
-	//target->SetFlags(RF_Transactional);
-	AddInstanceComponent(grass);
+	RootComponent = scene;
+	mesh->bUseAsyncCooking = true;
+	mesh->bCastHiddenShadow = true;
+	mesh->AttachTo(RootComponent);
+	mesh->RegisterComponent();
 
 	// Go
 	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
@@ -256,28 +236,118 @@ void ANoxWorldMap::BeginPlay()
 			const int idx = planet->idx(X, Y);
 			const auto type = planet->Landblocks[idx].type;
 			const auto biome_idx = planet->Landblocks[idx].biome_idx;
-			const auto biome_type = planet->Biomes[biome_idx].type;
+			const auto biome_type = planet->Landblocks[idx].height < planet->water_height ? -1 : planet->Biomes[biome_idx].type;
 
 			if (!geometry.Contains(biome_type)) {
 				geometry.Add(biome_type, worldgen_map_geometry());
 			}
 			geometry[biome_type].AddWorldTile(planet, X, Y);
 
-			const auto name = raws->get_biome_def(biome_type)->name;
-			if (name.Contains("Evergreen") || name.Contains("Deciduous") || name == "Rainforest") {
-				FVector loc = FVector(X * 200.0f, Y * 200.0f, planet->Landblocks[idx].height * zscaler);
-				FTransform trans = FTransform(FRotator(), loc, FVector(30.0, 30.0, 30.0));
-				//tree1->AddInstance(trans);
-				//tree2->AddInstance(trans);
+			const float WATER_SCALE = 1.00;
+			const float MX = X + 0.5f;
+			const float MY = Y + 0.5f;
+			const float MZ = 10.0f;
+			
+			const auto RiverType = planet->Landblocks[idx].RiverMask;
+			if (RiverType > 0) {
+				if (testbit(RiverMaskBits::START, planet->Landblocks[idx].RiverMask) || planet->Landblocks[idx].RiverMask == 15) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_pool.wm_pool'"), nullptr, LOAD_None, nullptr)));
+					pool->SetRelativeLocation(loc);
+					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					pool->SetMobility(EComponentMobility::Movable);
+					pool->AttachTo(RootComponent);
+					pool->RegisterComponent();
+					features.Emplace(pool);
+				}
+				if (testbit(RiverMaskBits::NORTH, planet->Landblocks[idx].RiverMask)) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+
+					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_river.wm_river'"), nullptr, LOAD_None, nullptr)));
+					pool->SetRelativeLocation(loc);
+					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					pool->SetWorldRotation(FRotator(0.0f, 90.0f, 0.0f));
+					pool->SetMobility(EComponentMobility::Movable);
+					pool->AttachTo(RootComponent);
+					pool->RegisterComponent();
+					features.Emplace(pool);
+				}
+				if (testbit(RiverMaskBits::SOUTH, planet->Landblocks[idx].RiverMask)) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					
+					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_river.wm_river'"), nullptr, LOAD_None, nullptr)));
+					pool->SetRelativeLocation(loc);
+					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					pool->SetRelativeRotation(FRotator(0.0f, 270.0f, 0.0f));
+					pool->SetMobility(EComponentMobility::Movable);
+					pool->AttachTo(RootComponent);
+					pool->RegisterComponent();
+					features.Emplace(pool);
+				}				
+				if (testbit(RiverMaskBits::EAST, planet->Landblocks[idx].RiverMask)) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					
+					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_river.wm_river'"), nullptr, LOAD_None, nullptr)));
+					pool->SetRelativeLocation(loc);
+					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					pool->SetRelativeRotation(FRotator(0.0f, 180.0f, 0.0f));
+					pool->SetMobility(EComponentMobility::Movable);
+					pool->AttachTo(RootComponent);
+					pool->RegisterComponent();
+					features.Emplace(pool);
+				}
+				if (testbit(RiverMaskBits::WEST, planet->Landblocks[idx].RiverMask)) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					
+					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_river.wm_river'"), nullptr, LOAD_None, nullptr)));
+					pool->SetRelativeLocation(loc);
+					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					//pool->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
+					pool->SetMobility(EComponentMobility::Movable);
+					pool->AttachTo(RootComponent);
+					pool->RegisterComponent();
+					features.Emplace(pool);
+				}				
 			}
-			/*
-			if (name.Contains("Grass")) {
-				FVector loc = FVector(X * 200.0f, Y * 200.0f, planet->Landblocks[idx].height * 20.0f);
-				FTransform trans = FTransform(FRotator(), loc, FVector(20.0, 20.0, 20.0));
-				tree1->AddInstance(trans);
-				tree2->AddInstance(trans);
+
+			if (planet->Landblocks[idx].height > planet->water_height) {
+				const auto name = raws->get_biome_def(biome_type)->name;
+				if (name.Contains("Evergreen") || name.Contains("Deciduous") || name == "Rainforest") {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					FTransform trans = FTransform(FRotator(), loc, FVector(30.0, 30.0, 30.0));
+
+					UStaticMeshComponent * tree = NewObject<UStaticMeshComponent>(this);
+					tree->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/TileMaterials/Foliage/FastTree/tree_1__tree.tree_1__tree'"), nullptr, LOAD_None, nullptr)));
+					tree->SetRelativeLocation(loc);
+					tree->SetRelativeScale3D(FVector(30.0, 30.0, 30.0));
+					tree->AttachTo(RootComponent);
+					tree->RegisterComponent();
+					features.Emplace(tree);
+
+					UStaticMeshComponent * tree2 = NewObject<UStaticMeshComponent>(this);
+					tree2->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/TileMaterials/Foliage/FastTree/tree_1__leaves.tree_1__leaves'"), nullptr, LOAD_None, nullptr)));
+					tree2->SetRelativeLocation(loc);
+					tree2->SetRelativeScale3D(FVector(30.0, 30.0, 30.0));
+					tree2->AttachTo(RootComponent);
+					tree2->RegisterComponent();
+					features.Emplace(tree2);
+				}
+				/*if (name.Contains("Grass")) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, planet->Landblocks[idx].height * zscaler);
+					FTransform trans = FTransform(FRotator(), loc, FVector(20.0, 20.0, 20.0));
+					grass->AddInstance(trans);
+				}*/				
 			}
-			*/
 		}
 	}
 
@@ -286,9 +356,12 @@ void ANoxWorldMap::BeginPlay()
 		FString MaterialAddress;
 
 		const auto biome_idx = g.Key;
+		if (biome_idx == -1) {
+			MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_GrassPlain.WM_GrassPlain'";
+		}
 		const auto biome_info = raws->get_biome_def(biome_idx);
 
-		if (biome_info) {
+		if (biome_info && biome_idx > -1) {
 			if (biome_info->name == "Grass Plain" || biome_info->name == "Temperate Coast" || biome_info->name == "Ocean") {
 				MaterialAddress = "MaterialInstanceConstant'/Game/WorldMap/Materials/WM_GrassPlain.WM_GrassPlain'";
 			}
@@ -372,12 +445,12 @@ void ANoxWorldMap::BeginPlay()
 			}
 			else {
 				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, biome_info->name);
-				MaterialAddress = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MZ_Plastic.MZ_Plastic'";
+				MaterialAddress = "MaterialInstanceConstant'/Game/Materials/12Water_I.12Water_I'";
 			}
 		}
 		else {
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("No Biome!"));
-			MaterialAddress = "MaterialInstanceConstant'/Game/TileMaterials/Instances/MZ_Plastic.MZ_Plastic'";
+			MaterialAddress = "MaterialInstanceConstant'/Game/Materials/12Water_I.12Water_I'";
 		}
 
 		UMaterialInstance* material;
@@ -389,14 +462,14 @@ void ANoxWorldMap::BeginPlay()
 	}
 
 	// Add ocean
-	worldgen_map_geometry sealevel;
-	sealevel.CreateWater(0, 0, planet->water_height * sealevel.Z_SCALE, nfu::WORLD_WIDTH * sealevel.WORLD_SCALE, nfu::WORLD_HEIGHT * sealevel.WORLD_SCALE, 10.0f);	
+	//worldgen_map_geometry sealevel;
+	//sealevel.CreateWater(0, 0, planet->water_height * sealevel.Z_SCALE, nfu::WORLD_WIDTH * sealevel.WORLD_SCALE, nfu::WORLD_HEIGHT * sealevel.WORLD_SCALE, 10.0f);	
 
-	UMaterial* material;
-	material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/WorldMap/Materials/WorldMapWater.WorldMapWater'"), nullptr, LOAD_None, nullptr));
-	mesh->SetMaterial(sectionCount, material);
-	mesh->CreateMeshSection_LinearColor(sectionCount, sealevel.vertices, sealevel.Triangles, sealevel.normals, sealevel.UV0, sealevel.vertexColors, sealevel.tangents, true);
-	++sectionCount;
+	//UMaterial* material;
+	//material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/WorldMap/Materials/WorldMapWater.WorldMapWater'"), nullptr, LOAD_None, nullptr));
+	//mesh->SetMaterial(sectionCount, material);
+	//mesh->CreateMeshSection_LinearColor(sectionCount, sealevel.vertices, sealevel.Triangles, sealevel.normals, sealevel.UV0, sealevel.vertexColors, sealevel.tangents, true);
+	//++sectionCount;
 
 	/*
 	worldgen_map_geometry riviera;

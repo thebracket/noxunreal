@@ -1233,3 +1233,46 @@ TArray<FUnitListDisplaySettler> ANDisplayManager::GetSettlerList() {
 
 	return result;
 }
+
+FUnitListDisplaySettler ANDisplayManager::GetSettlerForList(const int id) {
+	FUnitListDisplaySettler result;
+
+	ecs->ecs.Each<settler_ai_t, name_t, game_stats_t, health_t>([&result, &id](const int &entity_id, settler_ai_t &settler, name_t &name, game_stats_t &stats, health_t &health) {
+		if (id == entity_id) {
+			result = FUnitListDisplaySettler{ entity_id, name.first_name + TEXT(" ") + name.last_name, stats.profession_tag,
+				settler.status, health.max_hitpoints, health.current_hitpoints, settler.designated_lumberjack,
+				settler.designated_miner, settler.designated_farmer, settler.designated_hunter };
+		}
+		
+	});
+
+	return result;
+}
+
+void ANDisplayManager::SetSettlerProfession(const int id, const int profession) {
+	auto settler = ecs->ecs.GetComponent<settler_ai_t>(id);
+	auto stats = ecs->ecs.GetComponent<game_stats_t>(id);
+
+	bool * target = nullptr;
+	switch (profession) {
+	case 0: target = &settler->designated_lumberjack; break;
+	case 1: target = &settler->designated_miner; break;
+	case 2: target = &settler->designated_farmer; break;
+	case 3: target = &settler->designated_hunter; break;
+	}
+
+	if (*target) {
+		stats->profession_tag = stats->original_profession;
+		*target = false;
+	}
+	else {
+		*target = true;
+		stats->original_profession = stats->profession_tag;
+		switch (profession) {
+		case 0: stats->profession_tag = "Lumberjack"; break;
+		case 1: stats->profession_tag = "Miner"; break;
+		case 2: stats->profession_tag = "Farmer"; break;
+		case 3: stats->profession_tag = "Hunter"; break;
+		}
+	}
+}

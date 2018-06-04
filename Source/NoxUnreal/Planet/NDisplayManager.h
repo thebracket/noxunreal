@@ -201,4 +201,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	TArray<FUnitListDisplaySettler> GetSettlerList();
+
+	UFUNCTION(BlueprintCallable)
+	FUnitListDisplaySettler GetSettlerForList(const int id);
+
+	UFUNCTION(BlueprintCallable)
+	void SetSettlerProfession(const int id, const int profession);
 };
