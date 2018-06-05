@@ -38,6 +38,11 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	UProceduralMeshComponent * mesh;
 
-	UPROPERTY(VisibleAnywhere)
-	TArray<UStaticMeshComponent *> features;
+	TMap<int, TArray<UStaticMeshComponent *>> features;
+
+	UFUNCTION(BlueprintCallable)
+	void RefreshModels();
+
+private:
+	void AddFeatureToMap(const int &mapidx, UStaticMeshComponent * mesh);
 };

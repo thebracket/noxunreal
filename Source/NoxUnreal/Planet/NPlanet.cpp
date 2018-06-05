@@ -36,40 +36,8 @@ void UNPlanet::BuildPlanet(const int seed, const int water_divisor, const int pl
 	// Rivers
 	RunRivers(rng);
 
-	// Build initial civilizations
-	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
-	NRaws * raws = game->GetRaws();
-
-	const int n_civs = 128;
-	for (int i = 0; i < n_civs; ++i) {
-		const int roll = rng.RollDice(1, raws->species_defs.Num())-1;
-		FNCivilization civ;
-
-		int bidx = 0;
-		for (const auto &species : raws->species_defs) {
-			if (bidx == roll) civ.SpeciesTag = species.Value.tag;
-			++bidx;
-		}
-
-		bool ok = false;
-		int x = 0;
-		int y = 0;
-		bidx = idx(x, y);
-		while (!ok) {
-			x = rng.RollDice(1, nfu::WORLD_WIDTH-1);
-			y = rng.RollDice(1, nfu::WORLD_HEIGHT-1);
-			bidx = idx(x, y);
-			if (Landblocks[bidx].height > water_height && !Biomes[Landblocks[bidx].biome_idx].BiomeTypeName.Contains("Ocean") && !Biomes[Landblocks[bidx].biome_idx].BiomeTypeName.Contains("Desert")) ok = true;
-		}
-		if (civ.SpeciesTag.Contains("emmet")) {
-			Landblocks[bidx].Features = 1;
-		}
-		else {
-			Landblocks[bidx].Features = 2;
-		}
-
-		civilizations.Emplace(civ);
-	}
+	// Initial Civs
+	BuildCivilizations(rng);
 }
 
 void UNPlanet::ZeroFillPlanet() {
@@ -842,4 +810,113 @@ FNPlanetBlock UNPlanet::GetWorldBlock(const int x, const int y) {
 FNBiome UNPlanet::GetWorldBiome(const int x, const int y) {
 	const int pidx = idx(x, y);
 	return Biomes[Landblocks[pidx].biome_idx];
+}
+
+void UNPlanet::BuildCivilizations(RandomNumberGenerator &rng) {
+	// Build initial civilizations
+	PlaceStartingCivs(rng);
+}
+
+void UNPlanet::PlaceStartingCivs(RandomNumberGenerator &rng) {
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	NRaws * raws = game->GetRaws();
+
+	for (int i = 0; i < n_civs; ++i) {
+		const int roll = rng.RollDice(1, raws->species_defs.Num()) - 1;
+		FNCivilization civ;
+
+		int bidx = 0;
+		for (const auto &species : raws->species_defs) {
+			if (bidx == roll) civ.SpeciesTag = species.Value.tag;
+			++bidx;
+		}
+
+		bool ok = false;
+		int x = 0;
+		int y = 0;
+		bidx = idx(x, y);
+		while (!ok) {
+			x = rng.RollDice(1, nfu::WORLD_WIDTH - 1);
+			y = rng.RollDice(1, nfu::WORLD_HEIGHT - 1);
+			bidx = idx(x, y);
+			bool far_enough = true;
+
+			for (const auto &other : civilizations) {
+				const float d = distance2d_squared(other.StartX, other.StartY, x, y);
+				if (d < 10.0f) far_enough = false;
+			}
+
+			if (far_enough && Landblocks[bidx].height > water_height && !Biomes[Landblocks[bidx].biome_idx].BiomeTypeName.Contains("Ocean") && !Biomes[Landblocks[bidx].biome_idx].BiomeTypeName.Contains("Desert")) ok = true;
+		}
+		setbit(FeatureMaskBits::HUTS, Landblocks[bidx].Features);
+		setbit(FeatureMaskBits::ROAD_N, Landblocks[bidx].Features);
+		setbit(FeatureMaskBits::ROAD_S, Landblocks[bidx].Features);
+		setbit(FeatureMaskBits::ROAD_E, Landblocks[bidx].Features);
+		setbit(FeatureMaskBits::ROAD_W, Landblocks[bidx].Features);
+		Landblocks[bidx].OwnerCiv = i;
+
+		civ.StartX = x;
+		civ.StartY = y;
+		civ.Color = FLinearColor(rng.RollDice(1, 255)/255.0f, rng.RollDice(1, 255)/255.0f, rng.RollDice(1, 255)/255.0f, 1.0f);
+		civilizations.Emplace(civ);
+
+		FSettlement settlement;
+		settlement.x = x;
+		settlement.y = y;
+		settlement.Civilization = i;
+		settlement.size = 1;
+		settlements.Add(bidx, settlement);		
+	}
+}
+
+void UNPlanet::RunWorldgenYear() {
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	NRaws * raws = game->GetRaws();
+
+	for (auto &settlement : settlements) {
+		const int n_available_improvements = settlement.Value.size * 2;
+		const int radius = settlement.Value.size;
+
+		// Claim radius tiles and mark resource availability
+		TArray<TPair<int, int>> FarmableTiles;
+
+		for (int cx = -radius; cx < radius+1; ++cx) {
+			for (int cy = -radius; cy < radius+1; ++cy) {
+				int sx = settlement.Value.x + cx;
+				int sy = settlement.Value.y + cy;
+				if (sx > 0 && sx < nfu::WORLD_WIDTH - 1 && sy > 0 && sy < nfu::WORLD_HEIGHT - 1) {
+					int currentOwner = Landblocks[idx(sx, sy)].OwnerCiv;
+					if (currentOwner == -1 || currentOwner == settlement.Value.Civilization) {
+						Landblocks[idx(sx, sy)].OwnerCiv = settlement.Value.Civilization;
+						if (Landblocks[idx(sx, sy)].height > water_height && (cx != 0 && cy != 0)) {
+							FarmableTiles.Emplace(TPair<int, int>(idx(sx, sy), raws->get_biome_def(Biomes[Landblocks[idx(sx, sy)].biome_idx].type)->food_bonus));
+						}
+					}
+				}
+			}
+		}
+
+		// If we can use additional tiles, do so.
+		if (settlement.Value.DevelopedTiles.Num() < n_available_improvements) {
+			int to_build = FMath::Min(n_available_improvements - settlement.Value.DevelopedTiles.Num(), FarmableTiles.Num());
+			FarmableTiles.Sort([](auto &a, auto &b) { return a.Value < b.Value; });
+			for (int i = 0; i < to_build; ++i) {
+				settlement.Value.DevelopedTiles.Emplace(FarmableTiles[i].Key);
+				setbit(FeatureMaskBits::FARM, Landblocks[FarmableTiles[i].Key].Features);
+			}
+		}
+
+		// Expand the food supply
+		int addedFood = 0;
+		for (const auto &i : settlement.Value.DevelopedTiles) {
+			addedFood += (1 + raws->get_biome_def(Biomes[Landblocks[i].biome_idx].type)->food_bonus);
+		}
+		settlement.Value.FoodStock += addedFood;
+		if (settlement.Value.FoodStock > settlement.Value.size * 10) {
+			settlement.Value.FoodStock = 1;
+			++settlement.Value.size;
+		}
+	}
+
+	++Year;
 }

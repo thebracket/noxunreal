@@ -31,6 +31,15 @@ namespace RiverMaskBits {
 	constexpr uint8 START = 16;
 }
 
+namespace FeatureMaskBits {
+	constexpr uint32 HUTS = 1;
+	constexpr uint32 ROAD_N = 2;
+	constexpr uint32 ROAD_E = 4;
+	constexpr uint32 ROAD_S = 8;
+	constexpr uint32 ROAD_W = 16;
+	constexpr uint32 FARM = 32;
+}
+
 namespace nfu {
 
 	constexpr int WORLD_HEIGHT = 128;
@@ -81,6 +90,9 @@ struct FNPlanetBlock
 
 	uint32 RiverMask = 0;
 	uint32 Features = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 OwnerCiv = -1;
 };
 
 USTRUCT(BlueprintType)
@@ -162,6 +174,40 @@ struct FNCivilization {
 	UPROPERTY(BlueprintReadOnly)
 	FString SpeciesTag;
 
+	UPROPERTY(BlueprintReadOnly)
+	int StartX;
+
+	UPROPERTY(BlueprintReadOnly)
+	int StartY;
+
+	UPROPERTY(BlueprintReadOnly)
+	FLinearColor Color;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool Extinct = false;
+};
+
+USTRUCT(BlueprintType)
+struct FSettlement {
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	int Civilization;
+
+	UPROPERTY(BlueprintReadOnly)
+	int x;
+
+	UPROPERTY(BlueprintReadOnly)
+	int y;
+
+	UPROPERTY(BlueprintReadOnly)
+	int size;
+
+	UPROPERTY(BlueprintReadOnly)
+	int FoodStock = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<int> DevelopedTiles;
 
 };
 
@@ -179,6 +225,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FNCivilization> civilizations;
+
+	UPROPERTY(BlueprintReadOnly)
+	TMap<int, FSettlement> settlements;
 
 	UPROPERTY(BlueprintReadOnly)
 	FString name = "Test World";
@@ -242,7 +291,15 @@ public:
 
 	FastNoise GetNoiseMap() { return noiseMap; }
 
+	UPROPERTY(BlueprintReadOnly)
+	int32 Year = 0;
+
+	UFUNCTION(BlueprintCallable)
+	void RunWorldgenYear();
+
 private:
+	const int n_civs = 128;
+
 	FastNoise noiseMap;
 	RandomNumberGenerator rng;
 	void ZeroFillPlanet();
@@ -256,4 +313,6 @@ private:
 	TArray<TPair<double, size_t>> FindPossibleBiomes(TMap<uint8, double> &percents, const FNBiome &biome);
 	FString NameBiome(RandomNumberGenerator &rng, FNBiome &biome);
 	void RunRivers(RandomNumberGenerator &rng);
+	void BuildCivilizations(RandomNumberGenerator &rng);
+	void PlaceStartingCivs(RandomNumberGenerator &rng);
 };

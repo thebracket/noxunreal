@@ -75,6 +75,7 @@ namespace rawdefs {
 		int deciduous_tree_chance = 0;
 		int evergreen_tree_chance = 0;
 		TArray<FString> nouns;
+		int food_bonus = 0;
 	};
 
 	/*

@@ -13,9 +13,6 @@ humanoid_parts = {
     right_foot = { qty=1, size = 2 } 
 }
 
--- This is a prototype of what the new species system should look like.
-civilizations = {}
-
 human_skin_tones = {
    Pale = { r=237, g=232, b=226 },
    Peach = { r=255, g=216, b=173 },
@@ -68,3 +65,4 @@ species_sentient = {
         base_male_glyph = 352, base_female_glyph = 353
     }
 }
+

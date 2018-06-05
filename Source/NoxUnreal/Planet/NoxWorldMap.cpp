@@ -231,8 +231,8 @@ void ANoxWorldMap::BeginPlay()
 	raws = game->GetRaws();
 	TMap<int32, worldgen_map_geometry> geometry;
 
-	for (int Y = 1; Y < nfu::WORLD_HEIGHT-2; ++Y) {
-		for (int X = 1; X < nfu::WORLD_WIDTH-2; ++X) {
+	for (int Y = 1; Y < nfu::WORLD_HEIGHT - 2; ++Y) {
+		for (int X = 1; X < nfu::WORLD_WIDTH - 2; ++X) {
 			const int idx = planet->idx(X, Y);
 			const auto type = planet->Landblocks[idx].type;
 			const auto biome_idx = planet->Landblocks[idx].biome_idx;
@@ -243,135 +243,9 @@ void ANoxWorldMap::BeginPlay()
 			}
 			geometry[biome_type].AddWorldTile(planet, X, Y);
 
-			const float WATER_SCALE = 1.00;
-			const float MX = X + 0.5f;
-			const float MY = Y + 0.5f;
-			const float MZ = 10.0f;
-			
-			const auto RiverType = planet->Landblocks[idx].RiverMask;
-			if (RiverType > 0 && planet->Landblocks[idx].height > planet->water_height) {
-				if (testbit(RiverMaskBits::START, planet->Landblocks[idx].RiverMask) || planet->Landblocks[idx].RiverMask == 15) {
-					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
-					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
-					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
-					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_pool.wm_pool'"), nullptr, LOAD_None, nullptr)));
-					pool->SetRelativeLocation(loc);
-					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
-					pool->SetMobility(EComponentMobility::Movable);
-					pool->AttachTo(RootComponent);
-					pool->RegisterComponent();
-					features.Emplace(pool);
-				}
-				if (testbit(RiverMaskBits::NORTH, planet->Landblocks[idx].RiverMask)) {
-					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
-					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
-
-					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
-					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_river.wm_river'"), nullptr, LOAD_None, nullptr)));
-					pool->SetRelativeLocation(loc);
-					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
-					pool->SetWorldRotation(FRotator(0.0f, 90.0f, 0.0f));
-					pool->SetMobility(EComponentMobility::Movable);
-					pool->AttachTo(RootComponent);
-					pool->RegisterComponent();
-					features.Emplace(pool);
-				}
-				if (testbit(RiverMaskBits::SOUTH, planet->Landblocks[idx].RiverMask)) {
-					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
-					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
-					
-					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
-					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_river.wm_river'"), nullptr, LOAD_None, nullptr)));
-					pool->SetRelativeLocation(loc);
-					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
-					pool->SetRelativeRotation(FRotator(0.0f, 270.0f, 0.0f));
-					pool->SetMobility(EComponentMobility::Movable);
-					pool->AttachTo(RootComponent);
-					pool->RegisterComponent();
-					features.Emplace(pool);
-				}				
-				if (testbit(RiverMaskBits::EAST, planet->Landblocks[idx].RiverMask)) {
-					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
-					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
-					
-					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
-					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_river.wm_river'"), nullptr, LOAD_None, nullptr)));
-					pool->SetRelativeLocation(loc);
-					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
-					pool->SetRelativeRotation(FRotator(0.0f, 180.0f, 0.0f));
-					pool->SetMobility(EComponentMobility::Movable);
-					pool->AttachTo(RootComponent);
-					pool->RegisterComponent();
-					features.Emplace(pool);
-				}
-				if (testbit(RiverMaskBits::WEST, planet->Landblocks[idx].RiverMask)) {
-					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
-					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
-					
-					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
-					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_river.wm_river'"), nullptr, LOAD_None, nullptr)));
-					pool->SetRelativeLocation(loc);
-					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
-					//pool->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
-					pool->SetMobility(EComponentMobility::Movable);
-					pool->AttachTo(RootComponent);
-					pool->RegisterComponent();
-					features.Emplace(pool);
-				}				
-			}
-
-			if (planet->Landblocks[idx].height > planet->water_height) {
-				const auto name = raws->get_biome_def(biome_type)->name;
-				if (name.Contains("Evergreen") || name.Contains("Deciduous") || name == "Rainforest") {
-					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
-					FTransform trans = FTransform(FRotator(), loc, FVector(30.0, 30.0, 30.0));
-
-					UStaticMeshComponent * tree = NewObject<UStaticMeshComponent>(this);
-					tree->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/TileMaterials/Foliage/FastTree/tree_1__tree.tree_1__tree'"), nullptr, LOAD_None, nullptr)));
-					tree->SetRelativeLocation(loc);
-					tree->SetRelativeScale3D(FVector(30.0, 30.0, 30.0));
-					tree->AttachTo(RootComponent);
-					tree->RegisterComponent();
-					features.Emplace(tree);
-
-					UStaticMeshComponent * tree2 = NewObject<UStaticMeshComponent>(this);
-					tree2->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/TileMaterials/Foliage/FastTree/tree_1__leaves.tree_1__leaves'"), nullptr, LOAD_None, nullptr)));
-					tree2->SetRelativeLocation(loc);
-					tree2->SetRelativeScale3D(FVector(30.0, 30.0, 30.0));
-					tree2->AttachTo(RootComponent);
-					tree2->RegisterComponent();
-					features.Emplace(tree2);
-				}
-				/*if (name.Contains("Grass")) {
-					FVector loc = FVector(MX * 200.0f, MY * 200.0f, planet->Landblocks[idx].height * zscaler);
-					FTransform trans = FTransform(FRotator(), loc, FVector(20.0, 20.0, 20.0));
-					grass->AddInstance(trans);
-				}*/				
-
-				if (planet->Landblocks[idx].Features == 1) {
-					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
-					UStaticMeshComponent * tree2 = NewObject<UStaticMeshComponent>(this);
-					tree2->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_antmound.wm_antmound'"), nullptr, LOAD_None, nullptr)));
-					tree2->SetRelativeLocation(loc);
-					tree2->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
-					tree2->AttachTo(RootComponent);
-					tree2->RegisterComponent();
-					features.Emplace(tree2);
-				}
-				if (planet->Landblocks[idx].Features == 2) {
-					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
-					UStaticMeshComponent * tree2 = NewObject<UStaticMeshComponent>(this);
-					tree2->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_hut.wm_hut'"), nullptr, LOAD_None, nullptr)));
-					tree2->SetRelativeLocation(loc);
-					tree2->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
-					tree2->AttachTo(RootComponent);
-					tree2->RegisterComponent();
-					features.Emplace(tree2);
-				}
-
-			}
 		}
 	}
+	RefreshModels();
 
 	int sectionCount = 0;
 	for (auto &g : geometry) {
@@ -483,34 +357,6 @@ void ANoxWorldMap::BeginPlay()
 		++sectionCount;
 	}
 
-	// Add ocean
-	//worldgen_map_geometry sealevel;
-	//sealevel.CreateWater(0, 0, planet->water_height * sealevel.Z_SCALE, nfu::WORLD_WIDTH * sealevel.WORLD_SCALE, nfu::WORLD_HEIGHT * sealevel.WORLD_SCALE, 10.0f);	
-
-	//UMaterial* material;
-	//material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/WorldMap/Materials/WorldMapWater.WorldMapWater'"), nullptr, LOAD_None, nullptr));
-	//mesh->SetMaterial(sectionCount, material);
-	//mesh->CreateMeshSection_LinearColor(sectionCount, sealevel.vertices, sealevel.Triangles, sealevel.normals, sealevel.UV0, sealevel.vertexColors, sealevel.tangents, true);
-	//++sectionCount;
-
-	/*
-	worldgen_map_geometry riviera;
-	for (const auto &river : planet->Rivers) {
-		if (river.start_x > 2 && river.start_x < nfu::WORLD_WIDTH - 2 && river.start_y > 2 && river.start_y < nfu::WORLD_HEIGHT - 2)
-			riviera.AddWorldTile(planet, river.start_x, river.start_y, 10.0f);
-		for (const auto &step : river.steps) {
-			if (step.x > 2 && step.x < nfu::WORLD_WIDTH-2 && step.y > 2 && step.y < nfu::WORLD_HEIGHT-2)
-				riviera.AddWorldTile(planet, step.x, step.y, 10.0f);
-		}
-	}
-
-	UMaterial* material2;
-	material2 = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/WorldMap/Materials/WorldMapWater.WorldMapWater'"), nullptr, LOAD_None, nullptr));
-	mesh->SetMaterial(sectionCount, material2);
-	mesh->CreateMeshSection_LinearColor(sectionCount, riviera.vertices, riviera.Triangles, riviera.normals, riviera.UV0, riviera.vertexColors, riviera.tangents, true);
-	*/
-
-
 	mesh->ContainsPhysicsTriMeshData(true);
 }
 
@@ -521,3 +367,223 @@ void ANoxWorldMap::Tick(float DeltaTime)
 
 }
 
+void ANoxWorldMap::AddFeatureToMap(const int &mapidx, UStaticMeshComponent * mesh) {
+	if (!features.Contains(mapidx)) {
+		features.Add(mapidx, TArray<UStaticMeshComponent *>());
+	}
+	features[mapidx].Add(mesh);
+}
+
+void ANoxWorldMap::RefreshModels() {
+	features.Empty();
+
+	for (int Y = 1; Y < nfu::WORLD_HEIGHT - 2; ++Y) {
+		for (int X = 1; X < nfu::WORLD_WIDTH - 2; ++X) {
+			const int idx = planet->idx(X, Y);
+			const auto type = planet->Landblocks[idx].type;
+			const auto biome_idx = planet->Landblocks[idx].biome_idx;
+			const auto biome_type = planet->Landblocks[idx].height < planet->water_height ? -1 : planet->Biomes[biome_idx].type;
+
+			const float WATER_SCALE = 1.00;
+			const float MX = X + 0.5f;
+			const float MY = Y + 0.5f;
+			const float MZ = 10.0f;
+
+			const auto RiverType = planet->Landblocks[idx].RiverMask;
+			if (RiverType > 0 && planet->Landblocks[idx].height > planet->water_height) {
+				if (testbit(RiverMaskBits::START, planet->Landblocks[idx].RiverMask) || planet->Landblocks[idx].RiverMask == 15) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_pool.wm_pool'"), nullptr, LOAD_None, nullptr)));
+					pool->SetRelativeLocation(loc);
+					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					pool->SetMobility(EComponentMobility::Movable);
+					pool->AttachTo(RootComponent);
+					pool->RegisterComponent();
+					AddFeatureToMap(idx, pool);
+				}
+				if (testbit(RiverMaskBits::NORTH, planet->Landblocks[idx].RiverMask)) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+
+					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_river.wm_river'"), nullptr, LOAD_None, nullptr)));
+					pool->SetRelativeLocation(loc);
+					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					pool->SetWorldRotation(FRotator(0.0f, 90.0f, 0.0f));
+					pool->SetMobility(EComponentMobility::Movable);
+					pool->AttachTo(RootComponent);
+					pool->RegisterComponent();
+					AddFeatureToMap(idx, pool);
+				}
+				if (testbit(RiverMaskBits::SOUTH, planet->Landblocks[idx].RiverMask)) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+
+					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_river.wm_river'"), nullptr, LOAD_None, nullptr)));
+					pool->SetRelativeLocation(loc);
+					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					pool->SetRelativeRotation(FRotator(0.0f, 270.0f, 0.0f));
+					pool->SetMobility(EComponentMobility::Movable);
+					pool->AttachTo(RootComponent);
+					pool->RegisterComponent();
+					AddFeatureToMap(idx, pool);
+				}
+				if (testbit(RiverMaskBits::EAST, planet->Landblocks[idx].RiverMask)) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+
+					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_river.wm_river'"), nullptr, LOAD_None, nullptr)));
+					pool->SetRelativeLocation(loc);
+					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					pool->SetRelativeRotation(FRotator(0.0f, 180.0f, 0.0f));
+					pool->SetMobility(EComponentMobility::Movable);
+					pool->AttachTo(RootComponent);
+					pool->RegisterComponent();
+					AddFeatureToMap(idx, pool);
+				}
+				if (testbit(RiverMaskBits::WEST, planet->Landblocks[idx].RiverMask)) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+
+					UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+					pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_river.wm_river'"), nullptr, LOAD_None, nullptr)));
+					pool->SetRelativeLocation(loc);
+					pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					//pool->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
+					pool->SetMobility(EComponentMobility::Movable);
+					pool->AttachTo(RootComponent);
+					pool->RegisterComponent();
+					AddFeatureToMap(idx, pool);
+				}
+			}
+
+			if (planet->Landblocks[idx].height > planet->water_height) {
+				const auto name = raws->get_biome_def(biome_type)->name;
+				if ((name.Contains("Evergreen") || name.Contains("Deciduous") || name == "Rainforest") && planet->Landblocks[idx].Features == 0) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					FTransform trans = FTransform(FRotator(), loc, FVector(30.0, 30.0, 30.0));
+
+					UStaticMeshComponent * tree = NewObject<UStaticMeshComponent>(this);
+					tree->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/TileMaterials/Foliage/FastTree/tree_1__tree.tree_1__tree'"), nullptr, LOAD_None, nullptr)));
+					tree->SetRelativeLocation(loc);
+					tree->SetRelativeScale3D(FVector(30.0, 30.0, 30.0));
+					tree->AttachTo(RootComponent);
+					tree->RegisterComponent();
+					AddFeatureToMap(idx, tree);
+
+					UStaticMeshComponent * tree2 = NewObject<UStaticMeshComponent>(this);
+					tree2->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/TileMaterials/Foliage/FastTree/tree_1__leaves.tree_1__leaves'"), nullptr, LOAD_None, nullptr)));
+					tree2->SetRelativeLocation(loc);
+					tree2->SetRelativeScale3D(FVector(30.0, 30.0, 30.0));
+					tree2->AttachTo(RootComponent);
+					tree2->RegisterComponent();
+					AddFeatureToMap(idx, tree2);
+				}
+
+				if (testbit(FeatureMaskBits::HUTS, planet->Landblocks[idx].Features)) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					UStaticMeshComponent * tree2 = NewObject<UStaticMeshComponent>(this);
+					tree2->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_hut.wm_hut'"), nullptr, LOAD_None, nullptr)));
+					tree2->SetRelativeLocation(loc);
+					tree2->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					tree2->AttachTo(RootComponent);
+					tree2->RegisterComponent();
+					AddFeatureToMap(idx, tree2);
+				}
+
+				if (testbit(FeatureMaskBits::FARM, planet->Landblocks[idx].Features)) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					UStaticMeshComponent * tree2 = NewObject<UStaticMeshComponent>(this);
+					tree2->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_farm.wm_farm'"), nullptr, LOAD_None, nullptr)));
+					tree2->SetRelativeLocation(loc);
+					tree2->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					tree2->AttachTo(RootComponent);
+					tree2->RegisterComponent();
+					AddFeatureToMap(idx, tree2);
+				}
+
+			}
+
+			// Flags
+			if (planet->Landblocks[idx].OwnerCiv > -1) {
+				FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+				UStaticMeshComponent * flag = NewObject<UStaticMeshComponent>(this);
+				flag->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_flag.wm_flag'"), nullptr, LOAD_None, nullptr)));
+				flag->SetRelativeLocation(loc);
+				flag->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+
+				UMaterial * Material = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("Material'/Game/Models/VoxMat/VoxelMaterial.VoxelMaterial'"), nullptr, LOAD_None, nullptr));
+				UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
+				DynMaterial->SetVectorParameterValue("TintRGB", planet->civilizations[planet->Landblocks[idx].OwnerCiv].Color);
+				flag->SetMaterial(0, DynMaterial);
+				flag->MarkRenderStateDirty();
+				flag->AttachTo(RootComponent);
+				flag->RegisterComponent();
+
+				AddFeatureToMap(idx, flag);
+			}
+
+			// Roads
+			if (testbit(FeatureMaskBits::ROAD_N, planet->Landblocks[idx].Features)) {
+				FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+				FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+
+				UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+				pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_road.wm_road'"), nullptr, LOAD_None, nullptr)));
+				pool->SetRelativeLocation(loc);
+				pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+				pool->SetWorldRotation(FRotator(0.0f, 90.0f, 0.0f));
+				pool->SetMobility(EComponentMobility::Movable);
+				pool->AttachTo(RootComponent);
+				pool->RegisterComponent();
+				AddFeatureToMap(idx, pool);
+			}
+			if (testbit(FeatureMaskBits::ROAD_S, planet->Landblocks[idx].Features)) {
+				FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+				FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+
+				UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+				pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_road.wm_road'"), nullptr, LOAD_None, nullptr)));
+				pool->SetRelativeLocation(loc);
+				pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+				pool->SetRelativeRotation(FRotator(0.0f, 270.0f, 0.0f));
+				pool->SetMobility(EComponentMobility::Movable);
+				pool->AttachTo(RootComponent);
+				pool->RegisterComponent();
+				AddFeatureToMap(idx, pool);
+			}
+			if (testbit(FeatureMaskBits::ROAD_E, planet->Landblocks[idx].Features)) {
+				FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+				FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+
+				UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+				pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_road.wm_road'"), nullptr, LOAD_None, nullptr)));
+				pool->SetRelativeLocation(loc);
+				pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+				pool->SetRelativeRotation(FRotator(0.0f, 180.0f, 0.0f));
+				pool->SetMobility(EComponentMobility::Movable);
+				pool->AttachTo(RootComponent);
+				pool->RegisterComponent();
+				AddFeatureToMap(idx, pool);
+			}
+			if (testbit(FeatureMaskBits::ROAD_W, planet->Landblocks[idx].Features)) {
+				FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+				FTransform trans = FTransform(FRotator(), loc, FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+
+				UStaticMeshComponent * pool = NewObject<UStaticMeshComponent>(this);
+				pool->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_road.wm_road'"), nullptr, LOAD_None, nullptr)));
+				pool->SetRelativeLocation(loc);
+				pool->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+				//pool->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
+				pool->SetMobility(EComponentMobility::Movable);
+				pool->AttachTo(RootComponent);
+				pool->RegisterComponent();
+				AddFeatureToMap(idx, pool);
+			}
+		}
+	}
+}

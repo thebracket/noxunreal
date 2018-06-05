@@ -840,6 +840,7 @@ void NRaws::ReadBiomeTypes() {
 			if (field == "min_mutation") b.min_mutation = static_cast<uint8_t>(lua_tonumber(lua_state, -1));
 			if (field == "max_mutation") b.max_mutation = static_cast<uint8_t>(lua_tonumber(lua_state, -1));
 			if (field == "worldgen_texture_index") b.worldgen_texture_index = static_cast<unsigned int>(lua_tonumber(lua_state, -1));
+			if (field == "food_bonus") b.food_bonus = lua_tonumber(lua_state, -1);
 			if (field == "soils") {
 				lua_pushstring(lua_state, TCHAR_TO_ANSI(*field));
 				lua_gettable(lua_state, -2);
