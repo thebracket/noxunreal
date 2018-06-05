@@ -1196,7 +1196,12 @@ void UNPlanet::RunWorldgenYear() {
 		if (settlement.Value.FoodStock > settlement.Value.size * 10) {
 			settlement.Value.FoodStock = 1;
 			++settlement.Value.size;
-		}		
+		}
+
+		if (settlement.Value.LumberStock > 15 && !testbit(FeatureMaskBits::PALLISADE, Landblocks[idx(settlement.Value.x, settlement.Value.y)].Features)) {
+			settlement.Value.LumberStock -= 15;
+			setbit(FeatureMaskBits::PALLISADE, Landblocks[idx(settlement.Value.x, settlement.Value.y)].Features);
+		}
 
 		// Income from trade
 		for (const auto &tr : settlement.Value.TradeRoutes) {

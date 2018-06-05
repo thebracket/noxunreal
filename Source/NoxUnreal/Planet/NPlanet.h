@@ -40,6 +40,7 @@ namespace FeatureMaskBits {
 	constexpr uint32 FARM = 32;
 	constexpr uint32 LUMBER = 64;
 	constexpr uint32 MINE = 128;
+	constexpr uint32 PALLISADE = 256;
 }
 
 namespace nfu {
