@@ -66,3 +66,33 @@ species_sentient = {
     }
 }
 
+government_types = {
+    theocratic_monarchy = {
+        name = "Theocratic Monarchy",
+        tax = 0.3
+    },
+    feudal = {
+        name = "Feudal",
+        tax = 0.2
+    },
+    slave_democracy = {
+        name = "Slave-owning Democracy",
+        tax = 0.2
+    },
+    democracy = {
+        name = "Democracy",
+        tax = 0.1
+    },
+    clans = {
+        name = "Clans",
+        tax = 0.1
+    },
+    mercantile = {
+        name = "Mercantile",
+        tax = 0.1
+    },
+    kleptocracy = {
+        name = "Kleptocracy",
+        tax = 0.5
+    }    
+}

@@ -54,6 +54,7 @@ void NRaws::LoadGameTables() {
 	//read_biome_textures();
 	ReadSpeciesTypes();
 	ReadCreatureTypes();
+	ReadGovernmentTypes();
 }
 
 void NRaws::InitLua() {
@@ -1187,4 +1188,36 @@ void NRaws::read_lua_table_inner_p(const FString &table, const TFunction<void(FS
 
 		lua_pop(lua_state, 1);
 	}
+}
+
+void NRaws::ReadGovernmentTypes() {
+	using namespace rawdefs;
+
+	lua_getglobal(lua_state, "government_types");
+	lua_pushnil(lua_state);
+
+	while (lua_next(lua_state, -2) != 0)
+	{
+		FString key = lua_tostring(lua_state, -2);
+
+		raw_government_t b;
+		b.tag = key;
+
+		lua_pushstring(lua_state, TCHAR_TO_ANSI(*key));
+		lua_gettable(lua_state, -2);
+		while (lua_next(lua_state, -2) != 0) {
+			FString field = lua_tostring(lua_state, -2);
+
+			if (field == "name") b.name = lua_tostring(lua_state, -1);
+			if (field == "tax") b.tax = lua_tonumber(lua_state, -1);
+
+			lua_pop(lua_state, 1);
+		}
+
+		government_defs.Emplace(b);
+
+		lua_pop(lua_state, 1);
+	}
+
+	government_defs.Sort([](auto &a, auto &b) { return a.tag < b.tag; });
 }

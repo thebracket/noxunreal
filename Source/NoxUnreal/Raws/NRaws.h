@@ -356,7 +356,17 @@ namespace rawdefs {
 		int group_size_n_dice, group_size_dice, group_size_mod;
 	};
 
+
+	/*
+	* Defines systems of government
+	*/
+	struct raw_government_t {
+		FString tag = "";
+		FString name = "";
+		float tax = 0.0f;
+	};
 }
+
 
 
 // Helpers
@@ -505,6 +515,7 @@ public:
 	TArray<rawdefs::biome_type_t> biome_defs;
 	TMap<FString, rawdefs::raw_species_t> species_defs;
 	TMap<FString, rawdefs::raw_creature_t> creature_defs;
+	TArray<rawdefs::raw_government_t> government_defs;
 
 	void ReadMaterialTypes();
 	void ReadClothing();
@@ -518,6 +529,7 @@ public:
 	void ReadBiomeTypes();
 	void ReadSpeciesTypes();
 	void ReadCreatureTypes();
+	void ReadGovernmentTypes();
 
 	// Templatey Stuff
 	inline void call_functor_key(const TMap<FString, const TFunction<void()>> &parser, const FString &field, const FString &table) {

@@ -93,6 +93,9 @@ struct FNPlanetBlock
 
 	UPROPERTY(BlueprintReadOnly)
 	int32 OwnerCiv = -1;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 OwnerSettlement = -1;
 };
 
 USTRUCT(BlueprintType)
@@ -175,6 +178,9 @@ struct FNCivilization {
 	FString SpeciesTag;
 
 	UPROPERTY(BlueprintReadOnly)
+	int GovernmentIndex;
+
+	UPROPERTY(BlueprintReadOnly)
 	int StartX;
 
 	UPROPERTY(BlueprintReadOnly)
@@ -188,6 +194,18 @@ struct FNCivilization {
 
 	UPROPERTY(BlueprintReadOnly)
 	TMap<int32, int32> Relations;
+
+	UPROPERTY(BlueprintReadOnly)
+	float FoodWealth = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly)
+	float MineralWealth = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly)
+	float LumberWealth = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly)
+	float CashWealth = 0.0f;
 };
 
 USTRUCT(BlueprintType)
@@ -210,7 +228,13 @@ struct FSettlement {
 	int FoodStock = 0;
 
 	UPROPERTY(BlueprintReadOnly)
+	int CashStock = 0;
+
+	UPROPERTY(BlueprintReadOnly)
 	TArray<int> DevelopedTiles;
+
+	UPROPERTY(BlueprintReadOnly)
+	TSet<int> TradeRoutes;
 
 };
 
@@ -280,6 +304,12 @@ public:
 	// TODO: CivHolder and History
 
 	constexpr inline int idx(const int x, const int y) const { return y * nfu::WORLD_WIDTH + x; }
+	inline FVector2D idxmap(const int index) {
+		FVector2D result;
+		result.X = index % nfu::WORLD_WIDTH;
+		result.Y = index / nfu::WORLD_WIDTH;
+		return result;
+	}
 
 	UFUNCTION(BlueprintCallable)
 	void BuildPlanet(const int seed, const int water_divisor, const int plains_divisor, const int starting_settlers, const bool strict_beamdown);

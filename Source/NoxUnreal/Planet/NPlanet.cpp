@@ -5,7 +5,244 @@
 #include "../Public/NoxGameInstance.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+namespace planet_astar {
+
+	struct navigation_path_t
+	{
+		bool success = false;
+		TArray<FVector2D> steps{};
+		FVector2D destination{ 0,0 };
+	};
+
+	namespace impl {
+		UNPlanet * planet;
+
+		constexpr static float MAX_DIRECT_PATH_CHECK = 24.0f;
+		constexpr static int Z_WEIGHT = 10;
+		constexpr static int MAX_ASTAR_STEPS = 500;
+
+		struct node_t
+		{
+			int idx = 0;
+			float f = 0.0f;
+			float g = 0.0f; // Movement cost to this square
+			float h = 0.0f; // Estimated cost from here to the final destination
+
+			bool operator<(const node_t &other) const
+			{
+				return f < other.f; // We're inverting the priority queue!
+			}
+		};
+
+
+		class a_star_t
+		{
+		public:
+			a_star_t(const FVector2D &start_pos, const FVector2D &end_pos) noexcept : start_(planet->idx(start_pos.X, start_pos.Y)), end_(planet->idx(end_pos.X, end_pos.Y)), end_loc_(end_pos)
+			{
+				end_x_ = end_pos.X;
+				end_y_ = end_pos.Y;
+				open_list_.Reserve(500);
+				closed_list_.Reserve(300);
+				parents_.Reserve(600);
+
+				open_list_.Emplace(node_t{ start_, 0.0f, 0.0f, 0.0f });
+			}
+
+			float distance_to_end(const int &idx) const
+			{
+				const auto IDX = planet->idxmap(idx);
+				auto x = IDX.X;
+				auto y = IDX.Y;
+				return distance2d_squared(x, y, end_x_, end_y_);
+			}
+
+			bool add_successor(const node_t &q, const int &idx)
+			{
+				// Did we reach our goal?
+				if (idx == end_)
+				{
+					parents_.Add(idx, q.idx);
+					return true;
+				}
+				else
+				{
+					const auto distance = distance_to_end(idx);
+					const node_t s{ idx, distance + 1.0f, 1.0f, distance };
+
+					auto should_add = true;
+
+					// If a node with the same possition as successor is in the open list with a lower f, skip add
+					for (const auto &e : open_list_)
+					{
+						if (e.f <= s.f) {
+							if (e.idx == idx)
+							{
+								should_add = false;
+								goto skipper;
+							}
+						}
+						else
+						{
+							goto skipper;
+						}
+					}
+
+				skipper:
+
+					// If a node with the same position as successor is in the closed list, with a lower f, skip add
+					{
+						const auto closed_finder = closed_list_.Find(idx);
+						if (closed_finder != nullptr)
+						{
+							if (*closed_finder <= s.f) should_add = false;
+						}
+					}
+
+					if (should_add) {
+						open_list_.Emplace(s);
+						//if (parents_.find(idx) != parents_.end()) parents_.erase(idx);
+						parents_.Add(idx, q.idx);
+					}
+				}
+				return false;
+			}
+
+			navigation_path_t found_it(const int &idx) const noexcept
+			{
+				auto result = navigation_path_t{};
+				result.success = true;
+				result.destination = end_loc_;
+
+				result.steps.Insert(end_loc_, 0);
+				auto current = end_;
+				while (current != start_)
+				{
+					const auto parent = parents_.Find(current);
+					auto IDX = planet->idxmap(*parent);
+					auto x = IDX.X;
+					auto y = IDX.Y;
+					if (*parent != start_) result.steps.Insert(FVector2D{ x,y }, 0);
+					current = *parent;
+				}
+
+				return result;
+			}
+
+			navigation_path_t search() noexcept
+			{
+				auto result = navigation_path_t();
+
+				while (!open_list_.Num() == 0 && step_counter_ < MAX_ASTAR_STEPS)
+				{
+					++step_counter_;
+
+					// Pop Q off of the list
+					const auto q = open_list_[0];
+					open_list_.RemoveAt(0);
+					auto IDX = planet->idxmap(q.idx);
+					auto x = IDX.X;
+					auto y = IDX.Y;
+
+					// Generate successors
+					TArray<int> successors;
+					if (x > 0 && planet->Landblocks[planet->idx(x - 1, y)].height > planet->water_height) successors.Emplace(planet->idx(x - 1, y));
+					if (x < nfu::WORLD_WIDTH-1 && planet->Landblocks[planet->idx(x + 1, y)].height > planet->water_height) successors.Emplace(planet->idx(x + 1, y));
+					if (y > 0 && planet->Landblocks[planet->idx(x, y-1)].height > planet->water_height) successors.Emplace(planet->idx(x, y-1));
+					if (y < nfu::WORLD_HEIGHT-1 && planet->Landblocks[planet->idx(x, y+1)].height > planet->water_height) successors.Emplace(planet->idx(x, y+1));
+
+					for (const auto &s : successors)
+					{
+						if (add_successor(q, s))
+						{
+							// We found it!
+							const auto success = found_it(s);
+							result.success = success.success;
+							result.steps = success.steps;
+							result.destination = success.destination;
+							goto BAILOUT;
+						}
+					}
+
+					if (closed_list_.Find(q.idx) != nullptr) closed_list_.Remove(q.idx);
+					closed_list_.Add(q.idx, q.f);
+					open_list_.Sort();
+				}
+				result.success = false;
+			BAILOUT:
+				/*
+				std::cout << "Usage stats from completed search:\n";
+				std::cout << "Open list size: " << open_list_.size() << "\n";
+				std::cout << "Closed list size: " << closed_list_.size() << "\n";
+				std::cout << "Parents size: " << parents_.size() << "\n";
+				*/
+				return result;
+			}
+
+		private:
+			int start_;
+			int end_;
+			int end_x_, end_y_, end_z_;
+			TArray<node_t> open_list_;
+			TMap<int, float> closed_list_;
+			TMap<int, int> parents_;
+			FVector2D end_loc_;
+			int step_counter_ = 0;
+		};
+
+		static navigation_path_t a_star(const FVector2D &start, const FVector2D &end) noexcept
+		{
+			a_star_t searcher(start, end);
+			return searcher.search();
+		}
+
+		static navigation_path_t find_path(const FVector2D &start, const FVector2D &end) noexcept
+		{
+			// Step 3 - Try A*
+			auto result = a_star(start, end);
+			return result;
+		}
+
+	}
+
+	navigation_path_t find_path(const FVector2D &start, const FVector2D &end) noexcept
+	{
+		using namespace nfu;
+
+		// Step 1 - check clipping on both ends; the path auto-fails fast if there is an out-of-bounds issue.
+		if (start.X < 1 || start.X > WORLD_WIDTH - 1 || start.Y < 1 || start.Y > WORLD_HEIGHT - 1
+			|| end.X < 1 || end.X > WORLD_WIDTH - 1 || end.Y < 1 || end.Y > WORLD_HEIGHT - 1)
+		{
+			auto fail = navigation_path_t();
+			fail.success = false;
+			return fail;
+		}
+
+		if (start == end)
+		{
+			auto stay = navigation_path_t();
+			stay.success = true;
+			stay.destination = end;
+			stay.steps.Insert(start, 0);
+			return stay;
+		}
+
+		auto result = impl::find_path(start, end);
+		if (result.success) return result;
+
+		return result;
+	}
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 void UNPlanet::BuildPlanet(const int seed, const int water_divisor, const int plains_divisor, const int starting_settlers, const bool strict_beamdown) {
+	planet_astar::impl::planet = this;
+
 	// Set incoming parameters
 	RngSeed = seed;	
 	WaterDivisor = 3;
@@ -858,6 +1095,8 @@ void UNPlanet::PlaceStartingCivs(RandomNumberGenerator &rng) {
 		civ.StartX = x;
 		civ.StartY = y;
 		civ.Color = FLinearColor(rng.RollDice(1, 255)/255.0f, rng.RollDice(1, 255)/255.0f, rng.RollDice(1, 255)/255.0f, 1.0f);
+		const auto govroll = rng.RollDice(1, raws->government_defs.Num())-1;
+		civ.GovernmentIndex = govroll;
 		civilizations.Emplace(civ);
 
 		FSettlement settlement;
@@ -891,6 +1130,7 @@ void UNPlanet::RunWorldgenYear() {
 					int currentOwner = Landblocks[idx(sx, sy)].OwnerCiv;
 					if (currentOwner == -1 || currentOwner == settlement.Value.Civilization) {
 						Landblocks[idx(sx, sy)].OwnerCiv = settlement.Value.Civilization;
+						Landblocks[idx(sx, sy)].OwnerSettlement = settlement.Key;
 						if (Landblocks[idx(sx, sy)].height > water_height && (cx != 0 && cy != 0)) {
 							FarmableTiles.Emplace(TPair<int, int>(idx(sx, sy), raws->get_biome_def(Biomes[Landblocks[idx(sx, sy)].biome_idx].type)->food_bonus));
 						}
@@ -900,6 +1140,7 @@ void UNPlanet::RunWorldgenYear() {
 		}
 
 		// Determine adjacent civilizations
+		TArray<int> AdjacentCities;
 		const int radius2 = radius * 2;
 		for (int cx = -radius2; cx < radius2 + 1; ++cx) {
 			for (int cy = -radius2; cy < radius2 + 1; ++cy) {
@@ -909,6 +1150,7 @@ void UNPlanet::RunWorldgenYear() {
 					int OtherCiv = Landblocks[idx(sx, sy)].OwnerCiv;
 					if (OtherCiv != -1 && OtherCiv != settlement.Value.Civilization && !AdjacentCivs.Contains(OtherCiv)) {
 						AdjacentCivs.Add(OtherCiv);
+						AdjacentCities.Add(Landblocks[idx(sx, sy)].OwnerSettlement);
 					}
 				}
 			}
@@ -944,6 +1186,11 @@ void UNPlanet::RunWorldgenYear() {
 			}
 		}
 
+		// Income from trade
+		for (const auto &tr : settlement.Value.TradeRoutes) {
+			settlement.Value.CashStock += settlement.Value.TradeRoutes.Num() * 100;
+		}
+
 		// Adjacency
 		for (const auto &OtherCiv : AdjacentCivs) {
 			if (!civilizations[settlement.Value.Civilization].Relations.Contains(OtherCiv)) {
@@ -954,6 +1201,49 @@ void UNPlanet::RunWorldgenYear() {
 				civilizations[OtherCiv].Relations.Add(settlement.Value.Civilization, 0);
 			}
 		}
+		for (const auto &OtherCity : AdjacentCities) {
+			if (!settlement.Value.TradeRoutes.Contains(OtherCity)) {
+				auto path = planet_astar::find_path(FVector2D(settlement.Value.x, settlement.Value.y), FVector2D(settlements[OtherCity].x, settlements[OtherCity].y));
+
+				if (path.success) {
+					settlement.Value.TradeRoutes.Add(OtherCity);
+					settlements[OtherCity].TradeRoutes.Add(settlement.Key);
+
+					for (int step = 0; step < path.steps.Num() - 1; ++step) {
+						int MyX = path.steps[step].X;
+						int MyY = path.steps[step].Y;
+						int NextX = path.steps[step + 1].X;
+						int NextY = path.steps[step + 1].Y;
+
+						if (MyX > NextX) {
+							// We're going west
+							setbit(FeatureMaskBits::ROAD_W, Landblocks[idx(MyX, MyY)].Features);
+							setbit(FeatureMaskBits::ROAD_E, Landblocks[idx(NextX, NextY)].Features);
+						}
+						else if (MyX < NextX) {
+							// We're going east
+							setbit(FeatureMaskBits::ROAD_E, Landblocks[idx(MyX, MyY)].Features);
+							setbit(FeatureMaskBits::ROAD_W, Landblocks[idx(NextX, NextY)].Features);
+						}
+						else if (MyY < NextY) {
+							// We're going south
+							setbit(FeatureMaskBits::ROAD_S, Landblocks[idx(MyX, MyY)].Features);
+							setbit(FeatureMaskBits::ROAD_N, Landblocks[idx(NextX, NextY)].Features);
+						}
+						else if (MyY > NextY) {
+							// We're going north
+							setbit(FeatureMaskBits::ROAD_N, Landblocks[idx(MyX, MyY)].Features);
+							setbit(FeatureMaskBits::ROAD_S, Landblocks[idx(NextX, NextY)].Features);
+						}
+					}
+				}
+			}
+		}
+
+		// Tithe to the civ
+		const float TaxRate = raws->government_defs[civilizations[settlement.Value.Civilization].GovernmentIndex].tax;
+		if (settlement.Value.FoodStock > 0) civilizations[settlement.Value.Civilization].FoodWealth += ((float)settlement.Value.FoodStock * TaxRate);
+		civilizations[settlement.Value.Civilization].CashWealth += ((float)settlement.Value.CashStock * TaxRate);
 	}
 
 	// Dead settlement removal
