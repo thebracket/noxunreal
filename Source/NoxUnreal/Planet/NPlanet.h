@@ -348,4 +348,5 @@ private:
 	void RunRivers(RandomNumberGenerator &rng);
 	void BuildCivilizations(RandomNumberGenerator &rng);
 	void PlaceStartingCivs(RandomNumberGenerator &rng);
+	int DetermineInitialRelationship(const int &civ1, const int &civ2);
 };

@@ -375,6 +375,12 @@ void ANoxWorldMap::AddFeatureToMap(const int &mapidx, UStaticMeshComponent * mes
 }
 
 void ANoxWorldMap::RefreshModels() {
+	for (auto &f : features) {
+		for (auto c : f.Value) {
+			c->DestroyComponent();
+		}
+	}
+
 	features.Empty();
 
 	for (int Y = 1; Y < nfu::WORLD_HEIGHT - 2; ++Y) {

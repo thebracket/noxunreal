@@ -69,30 +69,44 @@ species_sentient = {
 government_types = {
     theocratic_monarchy = {
         name = "Theocratic Monarchy",
-        tax = 0.3
+        tax = 0.3,
+        black_market = 1,
+        base_relationship_mod = -3
     },
     feudal = {
         name = "Feudal",
-        tax = 0.2
+        tax = 0.2,
+        black_market = 1,
+        base_relationship_mod = -1
     },
     slave_democracy = {
         name = "Slave-owning Democracy",
-        tax = 0.2
+        tax = 0.2,
+        black_market = 2,
+        base_relationship_mod = 1
     },
     democracy = {
         name = "Democracy",
-        tax = 0.1
+        tax = 0.1,
+        black_market = 2,
+        base_relationship_mod = 3
     },
     clans = {
         name = "Clans",
-        tax = 0.1
+        tax = 0.1,
+        black_market = 1,
+        base_relationship_mod = 0
     },
     mercantile = {
         name = "Mercantile",
-        tax = 0.1
+        tax = 0.1,
+        black_market = 20,
+        base_relationship_mod = 10
     },
     kleptocracy = {
         name = "Kleptocracy",
-        tax = 0.5
+        tax = 0.5,
+        black_market = 50,
+        base_relationship_mod = 5
     }    
 }

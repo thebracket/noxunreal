@@ -1210,6 +1210,8 @@ void NRaws::ReadGovernmentTypes() {
 
 			if (field == "name") b.name = lua_tostring(lua_state, -1);
 			if (field == "tax") b.tax = lua_tonumber(lua_state, -1);
+			if (field == "black_market") b.black_market = lua_tonumber(lua_state, -1);
+			if (field == "base_relationship_mod") b.base_relationship_mod = lua_tonumber(lua_state, -1);
 
 			lua_pop(lua_state, 1);
 		}

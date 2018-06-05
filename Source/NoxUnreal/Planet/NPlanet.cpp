@@ -1175,6 +1175,43 @@ void UNPlanet::RunWorldgenYear() {
 		if (settlement.Value.FoodStock > settlement.Value.size * 10) {
 			settlement.Value.FoodStock = 1;
 			++settlement.Value.size;
+		}		
+
+		// Income from trade
+		for (const auto &tr : settlement.Value.TradeRoutes) {
+			if (settlements.Contains(tr)) {
+				auto OtherCiv = settlements[tr].Civilization;
+				auto relationship = civilizations[settlement.Value.Civilization].Relations.Find(OtherCiv);
+				if (relationship != nullptr && *relationship > -1) {
+					// Only profit if not at war
+					settlement.Value.CashStock += settlement.Value.TradeRoutes.Num() * 100;
+					*relationship++; // Trade makes friends
+					if (settlement.Value.FoodStock < 1 && settlement.Value.CashStock > 0) {
+						settlement.Value.CashStock -= 1; // Buy food
+						settlement.Value.FoodStock = 1;
+					}
+				}
+				else {
+					if (relationship == nullptr) {
+						civilizations[settlement.Value.Civilization].Relations.Add(OtherCiv, DetermineInitialRelationship(settlement.Value.Civilization, OtherCiv));
+						relationship = civilizations[settlement.Value.Civilization].Relations.Find(OtherCiv);
+					}
+
+					// Black market
+					settlement.Value.CashStock += settlement.Value.TradeRoutes.Num() * raws->government_defs[civilizations[settlement.Value.Civilization].GovernmentIndex].black_market;
+					*relationship++; // Trade makes friends
+
+				}
+
+				// Learn about other civilizations, and start a relationship by proxy.
+				for (const auto &DistantCiv : civilizations[OtherCiv].Relations) {
+					if (!civilizations[settlement.Value.Civilization].Relations.Contains(DistantCiv.Key)) {
+						int base = DetermineInitialRelationship(settlement.Value.Civilization, DistantCiv.Key) / 2;
+						base += DistantCiv.Value / 2;
+						civilizations[settlement.Value.Civilization].Relations.Add(DistantCiv.Key, base);
+					}
+				}
+			}
 		}
 
 		// Fail if insufficient food
@@ -1186,23 +1223,17 @@ void UNPlanet::RunWorldgenYear() {
 			}
 		}
 
-		// Income from trade
-		for (const auto &tr : settlement.Value.TradeRoutes) {
-			settlement.Value.CashStock += settlement.Value.TradeRoutes.Num() * 100;
-		}
-
 		// Adjacency
 		for (const auto &OtherCiv : AdjacentCivs) {
 			if (!civilizations[settlement.Value.Civilization].Relations.Contains(OtherCiv)) {
 				// Determine initial relations
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("First encounter"));
-
-				civilizations[settlement.Value.Civilization].Relations.Add(OtherCiv, 0);
-				civilizations[OtherCiv].Relations.Add(settlement.Value.Civilization, 0);
+				int InitialRelationship = DetermineInitialRelationship(settlement.Value.Civilization, OtherCiv);
+				civilizations[settlement.Value.Civilization].Relations.Add(OtherCiv, InitialRelationship);
+				civilizations[OtherCiv].Relations.Add(settlement.Value.Civilization, InitialRelationship);
 			}
 		}
 		for (const auto &OtherCity : AdjacentCities) {
-			if (!settlement.Value.TradeRoutes.Contains(OtherCity)) {
+			if (!settlement.Value.TradeRoutes.Contains(OtherCity) && settlements.Contains(OtherCity)) {
 				auto path = planet_astar::find_path(FVector2D(settlement.Value.x, settlement.Value.y), FVector2D(settlements[OtherCity].x, settlements[OtherCity].y));
 
 				if (path.success) {
@@ -1268,4 +1299,24 @@ void UNPlanet::RunWorldgenYear() {
 	}
 
 	++Year;
+}
+
+int UNPlanet::DetermineInitialRelationship(const int &civ1, const int &civ2) {
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	NRaws * raws = game->GetRaws();
+
+	int base = rng.RollDice(1, 10) - 5;
+
+	if (civilizations[civ1].SpeciesTag == civilizations[civ2].SpeciesTag) {
+		base += 3; // Bonus for liking same species
+	}
+	else {
+		base -= 3; // Penalty for other species
+	}
+
+	// Modify for government types
+	base += raws->government_defs[civilizations[civ1].GovernmentIndex].base_relationship_mod;
+	base += raws->government_defs[civilizations[civ2].GovernmentIndex].base_relationship_mod;
+
+	return base;
 }

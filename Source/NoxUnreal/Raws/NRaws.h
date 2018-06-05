@@ -364,6 +364,8 @@ namespace rawdefs {
 		FString tag = "";
 		FString name = "";
 		float tax = 0.0f;
+		int black_market = 0;
+		int base_relationship_mod = 0;
 	};
 }
 
