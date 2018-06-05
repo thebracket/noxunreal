@@ -185,6 +185,9 @@ struct FNCivilization {
 
 	UPROPERTY(BlueprintReadOnly)
 	bool Extinct = false;
+
+	UPROPERTY(BlueprintReadOnly)
+	TMap<int32, int32> Relations;
 };
 
 USTRUCT(BlueprintType)

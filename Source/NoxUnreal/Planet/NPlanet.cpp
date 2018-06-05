@@ -873,12 +873,15 @@ void UNPlanet::RunWorldgenYear() {
 	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
 	NRaws * raws = game->GetRaws();
 
+	TArray<int> DeadSettlements;
+
 	for (auto &settlement : settlements) {
 		const int n_available_improvements = settlement.Value.size * 2;
 		const int radius = settlement.Value.size;
 
 		// Claim radius tiles and mark resource availability
 		TArray<TPair<int, int>> FarmableTiles;
+		TSet<int> AdjacentCivs;
 
 		for (int cx = -radius; cx < radius+1; ++cx) {
 			for (int cy = -radius; cy < radius+1; ++cy) {
@@ -896,10 +899,25 @@ void UNPlanet::RunWorldgenYear() {
 			}
 		}
 
+		// Determine adjacent civilizations
+		const int radius2 = radius * 2;
+		for (int cx = -radius2; cx < radius2 + 1; ++cx) {
+			for (int cy = -radius2; cy < radius2 + 1; ++cy) {
+				int sx = settlement.Value.x + cx;
+				int sy = settlement.Value.y + cy;
+				if (sx > 0 && sx < nfu::WORLD_WIDTH - 1 && sy > 0 && sy < nfu::WORLD_HEIGHT - 1) {
+					int OtherCiv = Landblocks[idx(sx, sy)].OwnerCiv;
+					if (OtherCiv != -1 && OtherCiv != settlement.Value.Civilization && !AdjacentCivs.Contains(OtherCiv)) {
+						AdjacentCivs.Add(OtherCiv);
+					}
+				}
+			}
+		}
+
 		// If we can use additional tiles, do so.
 		if (settlement.Value.DevelopedTiles.Num() < n_available_improvements) {
 			int to_build = FMath::Min(n_available_improvements - settlement.Value.DevelopedTiles.Num(), FarmableTiles.Num());
-			FarmableTiles.Sort([](auto &a, auto &b) { return a.Value < b.Value; });
+			FarmableTiles.Sort([](auto &a, auto &b) { return a.Value > b.Value; });
 			for (int i = 0; i < to_build; ++i) {
 				settlement.Value.DevelopedTiles.Emplace(FarmableTiles[i].Key);
 				setbit(FeatureMaskBits::FARM, Landblocks[FarmableTiles[i].Key].Features);
@@ -916,6 +934,47 @@ void UNPlanet::RunWorldgenYear() {
 			settlement.Value.FoodStock = 1;
 			++settlement.Value.size;
 		}
+
+		// Fail if insufficient food
+		if (settlement.Value.FoodStock < 0) {
+			--settlement.Value.size;
+			if (settlement.Value.size == 0) {
+				// The settlement died!
+				DeadSettlements.Emplace(settlement.Key);
+			}
+		}
+
+		// Adjacency
+		for (const auto &OtherCiv : AdjacentCivs) {
+			if (!civilizations[settlement.Value.Civilization].Relations.Contains(OtherCiv)) {
+				// Determine initial relations
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("First encounter"));
+
+				civilizations[settlement.Value.Civilization].Relations.Add(OtherCiv, 0);
+				civilizations[OtherCiv].Relations.Add(settlement.Value.Civilization, 0);
+			}
+		}
+	}
+
+	// Dead settlement removal
+	for (const auto &id : DeadSettlements) {
+		const int radius = settlements[id].size;
+		for (int cx = -radius; cx < radius + 1; ++cx) {
+			for (int cy = -radius; cy < radius + 1; ++cy) {
+				int sx = settlements[id].x + cx;
+				int sy = settlements[id].y + cy;
+				if (sx > 0 && sx < nfu::WORLD_WIDTH - 1 && sy > 0 && sy < nfu::WORLD_HEIGHT - 1) {
+					int currentOwner = Landblocks[idx(sx, sy)].OwnerCiv;
+					if (currentOwner == settlements[id].Civilization) {
+						Landblocks[idx(sx, sy)].OwnerCiv = -1;
+						resetbit(FeatureMaskBits::HUTS, Landblocks[idx(sx, sy)].Features);
+						resetbit(FeatureMaskBits::FARM, Landblocks[idx(sx, sy)].Features);
+					}
+				}
+			}
+		}
+		settlements.Remove(id);
+		// TODO: Civilization extinction
 	}
 
 	++Year;
