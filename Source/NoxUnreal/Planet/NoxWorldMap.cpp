@@ -511,6 +511,26 @@ void ANoxWorldMap::RefreshModels() {
 					tree2->RegisterComponent();
 					AddFeatureToMap(idx, tree2);
 				}
+				if (testbit(FeatureMaskBits::MINE, planet->Landblocks[idx].Features)) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					UStaticMeshComponent * tree2 = NewObject<UStaticMeshComponent>(this);
+					tree2->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_mine.wm_mine'"), nullptr, LOAD_None, nullptr)));
+					tree2->SetRelativeLocation(loc);
+					tree2->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					tree2->AttachTo(RootComponent);
+					tree2->RegisterComponent();
+					AddFeatureToMap(idx, tree2);
+				}
+				if (testbit(FeatureMaskBits::LUMBER, planet->Landblocks[idx].Features)) {
+					FVector loc = FVector(MX * 200.0f, MY * 200.0f, MZ);
+					UStaticMeshComponent * tree2 = NewObject<UStaticMeshComponent>(this);
+					tree2->SetStaticMesh(Cast<UStaticMesh>(StaticLoadObject(UStaticMesh::StaticClass(), nullptr, TEXT("StaticMesh'/Game/WorldMap/Models/wm_lumber.wm_lumber'"), nullptr, LOAD_None, nullptr)));
+					tree2->SetRelativeLocation(loc);
+					tree2->SetRelativeScale3D(FVector(WATER_SCALE, WATER_SCALE, WATER_SCALE));
+					tree2->AttachTo(RootComponent);
+					tree2->RegisterComponent();
+					AddFeatureToMap(idx, tree2);
+				}
 
 			}
 

@@ -1161,17 +1161,38 @@ void UNPlanet::RunWorldgenYear() {
 			int to_build = FMath::Min(n_available_improvements - settlement.Value.DevelopedTiles.Num(), FarmableTiles.Num());
 			FarmableTiles.Sort([](auto &a, auto &b) { return a.Value > b.Value; });
 			for (int i = 0; i < to_build; ++i) {
-				settlement.Value.DevelopedTiles.Emplace(FarmableTiles[i].Key);
-				setbit(FeatureMaskBits::FARM, Landblocks[FarmableTiles[i].Key].Features);
+				auto biomeType = raws->get_biome_def(Biomes[Landblocks[FarmableTiles[i].Key].biome_idx].type);
+
+				if ((biomeType->deciduous_tree_chance > 0 || biomeType->evergreen_tree_chance > 0) && rng.RollDice(1,6)<3) {
+					settlement.Value.DevelopedTiles.Emplace(FarmableTiles[i].Key);
+					setbit(FeatureMaskBits::LUMBER, Landblocks[FarmableTiles[i].Key].Features);
+				}
+				else if (rng.RollDice(1, 6) < 3) {
+					settlement.Value.DevelopedTiles.Emplace(FarmableTiles[i].Key);
+					setbit(FeatureMaskBits::MINE, Landblocks[FarmableTiles[i].Key].Features);
+				}
+				else {
+					settlement.Value.DevelopedTiles.Emplace(FarmableTiles[i].Key);
+					setbit(FeatureMaskBits::FARM, Landblocks[FarmableTiles[i].Key].Features);
+				}
 			}
 		}
 
 		// Expand the food supply
 		int addedFood = 0;
+		int addedLumber = 0;
+		int addedMinerals = 0;
 		for (const auto &i : settlement.Value.DevelopedTiles) {
 			addedFood += (1 + raws->get_biome_def(Biomes[Landblocks[i].biome_idx].type)->food_bonus);
+			if (testbit(FeatureMaskBits::FARM, Landblocks[i].Features)) addedFood += 1;
+
+			if (testbit(FeatureMaskBits::LUMBER, Landblocks[i].Features)) addedLumber += 1;
+			if (testbit(FeatureMaskBits::MINE, Landblocks[i].Features)) addedMinerals += 1;
 		}
 		settlement.Value.FoodStock += addedFood;
+		settlement.Value.LumberStock += addedLumber;
+		settlement.Value.MineralStock += addedMinerals;
+
 		if (settlement.Value.FoodStock > settlement.Value.size * 10) {
 			settlement.Value.FoodStock = 1;
 			++settlement.Value.size;
@@ -1274,6 +1295,8 @@ void UNPlanet::RunWorldgenYear() {
 		// Tithe to the civ
 		const float TaxRate = raws->government_defs[civilizations[settlement.Value.Civilization].GovernmentIndex].tax;
 		if (settlement.Value.FoodStock > 0) civilizations[settlement.Value.Civilization].FoodWealth += ((float)settlement.Value.FoodStock * TaxRate);
+		if (settlement.Value.LumberStock > 0) civilizations[settlement.Value.Civilization].LumberWealth += ((float)settlement.Value.LumberStock * TaxRate);
+		if (settlement.Value.MineralStock > 0) civilizations[settlement.Value.Civilization].MineralWealth += ((float)settlement.Value.MineralStock * TaxRate);
 		civilizations[settlement.Value.Civilization].CashWealth += ((float)settlement.Value.CashStock * TaxRate);
 	}
 

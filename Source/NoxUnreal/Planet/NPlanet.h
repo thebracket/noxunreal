@@ -38,6 +38,8 @@ namespace FeatureMaskBits {
 	constexpr uint32 ROAD_S = 8;
 	constexpr uint32 ROAD_W = 16;
 	constexpr uint32 FARM = 32;
+	constexpr uint32 LUMBER = 64;
+	constexpr uint32 MINE = 128;
 }
 
 namespace nfu {
@@ -229,6 +231,12 @@ struct FSettlement {
 
 	UPROPERTY(BlueprintReadOnly)
 	int CashStock = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	int LumberStock = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	int MineralStock = 0;
 
 	UPROPERTY(BlueprintReadOnly)
 	TArray<int> DevelopedTiles;
