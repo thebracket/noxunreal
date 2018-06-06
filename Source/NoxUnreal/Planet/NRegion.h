@@ -295,6 +295,7 @@ public:
 	void BuildRoads(TSet<int> &used_tiles);
 	void BuildFarms(RandomNumberGenerator *rng, TSet<int> &used_tiles);
 	void BuildMines(RandomNumberGenerator *rng, TSet<int> &used_tiles);
+	void AddBuilding(FString path, int x, int y, TSet<int> &used_tiles, RandomNumberGenerator * rng);
 
 	void decorate_item_categories(int &item, TBitArray<> &categories) noexcept;
 	void spawn_item_in_container(const int container_id, const FString &tag, const std::size_t &material, uint8_t quality, uint8_t wear, int creator_id, FString creator_name) noexcept;

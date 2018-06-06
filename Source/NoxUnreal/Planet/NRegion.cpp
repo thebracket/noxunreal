@@ -2140,6 +2140,11 @@ void UNRegion::BuildFarms(RandomNumberGenerator *rng, TSet<int> &used_tiles) {
 				}
 			}
 		}
+
+		for (int i = 0; i < rng->RollDice(1, 6); ++i) {
+			FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir() + FString("rex/mud-hut.xp"));
+			AddBuilding(ThePath, fx, fy, used_tiles, rng);
+		}
 	}
 
 	// TODO: Build farmhouses
@@ -2153,67 +2158,144 @@ void UNRegion::BuildMines(RandomNumberGenerator *rng, TSet<int> &used_tiles) {
 
 	if (!testbit(FeatureMaskBits::MINE, planet->Landblocks[planet->idx(RegionX, RegionY)].Features)) return;
 
-	int mx = rng->RollDice(1, nfu::REGION_WIDTH - 32) + 16;
-	int my = rng->RollDice(1, nfu::REGION_HEIGHT - 32) + 16;
+	int n_mines = rng->RollDice(1, 6);
+	for (int mine = 0; mine < n_mines; ++mine) {
+
+		int mx = rng->RollDice(1, nfu::REGION_WIDTH - 32) + 16;
+		int my = rng->RollDice(1, nfu::REGION_HEIGHT - 32) + 16;
+
+		bool ok = false;
+		while (!ok) {
+			int mz = GroundZ(mx, my);
+			const int idx = mapidx(mx, my, mz);
+			ok = true;
+			if (used_tiles.Contains(idx)) ok = false;
+
+			if (!ok) {
+				mx = rng->RollDice(1, nfu::REGION_WIDTH - 32) + 16;
+				my = rng->RollDice(1, nfu::REGION_HEIGHT - 32) + 16;
+			}
+		}
+
+		// Place the mine head
+		int x = mx;
+		int y = my;
+		int z = GroundZ(x, y);
+		int idx = mapidx(x, y, z);
+		used_tiles.Add(idx);
+
+		for (int Y = y - 5; Y < y + 5; ++Y) {
+			for (int X = x - 5; X < x + 5; ++X) {
+				const int clearidx = mapidx(X, Y, GroundZ(X, Y));
+				TileVegetationType[clearidx] = 0;
+				used_tiles.Add(clearidx);
+			}
+		}
+
+		TileType[idx] = tile_type::STAIRS_DOWN;
+		if (TreeId[idx] > 0) TreeId[idx] = 0;
+		if (TileType[idx] == regiondefs::tile_type::TREE_TRUNK) TileType[idx] = regiondefs::tile_type::FLOOR;
+
+		TArray<int> open;
+		int drill = rng->RollDice(1, 6) + 3;
+		for (int i = 0; i < drill; ++i) {
+			--z;
+			idx = mapidx(x, y, z);
+			TileType[idx] = tile_type::STAIRS_UPDOWN;
+			setbit(tile_flags::REVEALED, TileFlags[idx]);
+			open.Add(idx);
+		}
+		--z;
+		idx = mapidx(x, y, z);
+		TileType[idx] = tile_type::STAIRS_UP;
+		setbit(tile_flags::REVEALED, TileFlags[idx]);
+
+		const int owner_settlement = planet->Landblocks[planet->idx(RegionX, RegionY)].OwnerSettlement;
+		const int n_digs = owner_settlement > -1 ? planet->settlements[owner_settlement].size * 100 : rng->RollDice(10, 6);
+
+		open.Add(idx);
+		while (open.Num() < n_digs) {
+			int target = open.Num() == 1 ? open[0] : open[rng->RollDice(1, open.Num()) - 1];
+
+			int roll = rng->RollDice(1, 4);
+			switch (roll) {
+			case 1: --target; break;
+			case 2: ++target; break;
+			case 3: target -= nfu::REGION_WIDTH; break;
+			case 4: target += nfu::REGION_WIDTH; break;
+			}
+
+			if (target > 0 && target < nfu::REGION_TILES_COUNT - 1 && TileType[target] == tile_type::SOLID) {
+				open.Add(target);
+				TileType[target] = tile_type::FLOOR;
+				setbit(tile_flags::REVEALED, TileFlags[target]);
+			}
+		}
+
+		// TODO: Add Miner's houses and buildings
+		for (int i = 0; i < rng->RollDice(1, 6); ++i) {
+			FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir() + FString("rex/mud-hut.xp"));
+			AddBuilding(ThePath, mx, my, used_tiles, rng);
+		}
+	}
+}
+
+void UNRegion::AddBuilding(FString path, int x, int y, TSet<int> &used_tiles, RandomNumberGenerator * rng) {
+
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+
+	const auto wood = raws->get_material_by_tag("wood");
+
+	char * path_c_str = TCHAR_TO_ANSI(*path);
+	RexReader rr;
+	rr.LoadFile(path_c_str);
+
+	const int n_layers = rr.GetLayerCount();
+	auto building = rr.GetTileMap();
 
 	bool ok = false;
 	while (!ok) {
-		int mz = GroundZ(mx, my);
-		const int idx = mapidx(mx, my, mz);
 		ok = true;
-		if (used_tiles.Contains(idx)) ok = false;
+
+		int gz = GroundZ(x, y);
+		for (int Y = y; Y < y + rr.GetLayerHeight(); ++Y) {
+			for (int X = x; X < x + rr.GetLayerWidth(); ++X) {
+				int Z = GroundZ(X, Y);
+				int idx = mapidx(X, Y, Z);
+				if (used_tiles.Contains(idx) || gz != Z) ok = false;
+			}
+		}
 
 		if (!ok) {
-			mx = rng->RollDice(1, nfu::REGION_WIDTH - 32) + 16;
-			my = rng->RollDice(1, nfu::REGION_HEIGHT - 32) + 16;
+			x = rng->RollDice(1, nfu::REGION_WIDTH - 10);
+			y= rng->RollDice(1, nfu::REGION_HEIGHT - 10);
 		}
 	}
 
-	// Place the mine head
-	int x = mx;
-	int y = my;
-	int z = GroundZ(x, y);
-	int idx = mapidx(x, y, z);
+	if (x + rr.GetLayerWidth() < nfu::REGION_WIDTH - 1) {
 
-	TileType[idx] = tile_type::STAIRS_DOWN;
-	if (TreeId[idx] > 0) TreeId[idx] = 0;
-	if (TileType[idx] == regiondefs::tile_type::TREE_TRUNK) TileType[idx] = regiondefs::tile_type::FLOOR;
-
-	TArray<int> open;
-	int drill = rng->RollDice(1, 6) + 3;
-	for (int i = 0; i < drill; ++i) {
-		--z;
-		idx = mapidx(x, y, z);
-		TileType[idx] = tile_type::STAIRS_UPDOWN;
-		setbit(tile_flags::REVEALED, TileFlags[idx]);
-		open.Add(idx);
-	}
-	--z;
-	idx = mapidx(x, y, z);
-	TileType[idx] = tile_type::STAIRS_UP;
-	setbit(tile_flags::REVEALED, TileFlags[idx]);
-
-	const int owner_settlement = planet->Landblocks[planet->idx(RegionX, RegionY)].OwnerSettlement;
-	const int n_digs = owner_settlement > -1 ? planet->settlements[owner_settlement].size * 100 : rng->RollDice(10, 6);
-
-	open.Add(idx);
-	while (open.Num() < n_digs) {
-		int target = open.Num() == 1 ? open[0] : open[rng->RollDice(1, open.Num()) - 1];
-
-		int roll = rng->RollDice(1, 4);
-		switch (roll) {
-		case 1: --target; break;
-		case 2: ++target; break;
-		case 3: target -= nfu::REGION_WIDTH; break;
-		case 4: target += nfu::REGION_WIDTH; break;
+		for (int layer = 0; layer < n_layers; ++layer) {
+			for (int Y = 0; Y < rr.GetLayerHeight(); ++Y) {
+				for (int X = 0; X < rr.GetLayerWidth(); ++X) {
+					auto tile = building->Layers[layer].Tiles[(Y * rr.GetLayerWidth()) + X];
+					int idx = mapidx(X + x, Y + y, GroundZ(X + x, Y + y) + layer);
+					TileVegetationType[idx] = 0;
+					setbit(regiondefs::tile_flags::CONSTRUCTION, TileFlags[idx]);
+					switch (tile.CharacterCode) {
+					case 176: set_tile(idx, regiondefs::tile_type::FLOOR, true, true, wood, 0, true, true); break; // Note: should be thatch
+					case 177: set_tile(idx, regiondefs::tile_type::FLOOR, true, true, wood, 0, true, true); break;
+					case 219: set_tile(idx, regiondefs::tile_type::WALL, true, true, wood, 0, true, true); break;
+					case 234: {
+						// Campfire
+						add_building("camp_fire", X+x, Y+y, GroundZ(X + x, Y + y) + layer, 0);
+					} break;
+					default: {} // Do nothing
+					}
+					used_tiles.Add(idx);
+				}
+			}
 		}
 
-		if (target>0 && target<nfu::REGION_TILES_COUNT-1 && TileType[target] == tile_type::SOLID) {
-			open.Add(target);
-			TileType[target] = tile_type::FLOOR;
-			setbit(tile_flags::REVEALED, TileFlags[target]);
-		}
 	}
-
-	// TODO: Add Miner's houses and buildings
 }
