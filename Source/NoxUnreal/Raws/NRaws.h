@@ -76,6 +76,7 @@ namespace rawdefs {
 		int evergreen_tree_chance = 0;
 		TArray<FString> nouns;
 		int food_bonus = 0;
+		float traversal_cost = 1.0f;
 	};
 
 	/*

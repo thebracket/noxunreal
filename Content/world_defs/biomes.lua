@@ -110,7 +110,8 @@ biomes = {
         trees = { deciduous = 0, evergreen = 5 },
         wildlife = { "deer","mammoth"},
         nouns = { "Arctic", "Tundra", "Devil's Icebox" },
-        worldgen_texture_index = biomeTex("tundra")
+        worldgen_texture_index = biomeTex("tundra"),
+        traversal_cost = 2.0
     },
     cold_salt = {
         name = "Cold Coast", min_temp = -5, max_temp = 5, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
@@ -119,14 +120,16 @@ biomes = {
         trees = { deciduous = 3, evergreen = 10 },
         wildlife = { "deer","mammoth"},
         nouns = { "Tundra", "Cold Desert" },
-        worldgen_texture_index = biomeTex("tundra")
+        worldgen_texture_index = biomeTex("tundra"),
+        traversal_cost = 2.0
     },
     temperate_salt = {
         name = "Temperate Coast", min_temp = 5, max_temp = 25, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
         occurs = { biome_types["salt_marsh"] }, soils = { soil=70, sand=30 },
         trees = { deciduous = 15, evergreen = 0 },
         wildlife = { "deer","boar"},
-        nouns = { "Badlands", "Waste", "Flats" }
+        nouns = { "Badlands", "Waste", "Flats" },
+        traversal_cost = 2.0
     },
     tropical_salt = {
         name = "Tropical Coast", min_temp = 25, max_temp = 55, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
@@ -134,7 +137,8 @@ biomes = {
         trees = { deciduous = 15, evergreen = 0 },
         wildlife = { "deer","boar"},
         nouns = { "Badlands", "Waste", "Flats", "Alkali Flat" },
-        worldgen_texture_index = biomeTex("badlands")
+        worldgen_texture_index = biomeTex("badlands"),
+        traversal_cost = 2.0
     },
 
     -- Flatlands
@@ -185,7 +189,8 @@ biomes = {
         trees = { deciduous = 0, evergreen = 1 },
         wildlife = { "deer","mammoth"},
         nouns = { "Ice Hill", "Hill", "Mound", "Roughs" },
-        worldgen_texture_index = biomeTex("tundra")
+        worldgen_texture_index = biomeTex("tundra"),
+        traversal_cost = 1.25
     },
     rocky_hills = {
         name = "Rocky Hills", min_temp = -5, max_temp = 5, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
@@ -194,7 +199,8 @@ biomes = {
         trees = { deciduous = 0, evergreen = 1 },
         wildlife = {"deer","horse"},
         nouns = { "Rocky Hills", "Hill", "Mound", "Bump", "Scree", "Scar" },
-        food_bonus = 1
+        food_bonus = 1,
+        traversal_cost = 1.25
     },
     grass_hills = {
         name = "Grass Hills", min_temp = 0, max_temp = 25, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
@@ -203,7 +209,8 @@ biomes = {
         trees = { deciduous = 5, evergreen = 3 },
         wildlife = { "deer","boar","horse"},
         nouns = { "Rolling Hill", "Hill", "Rolling Heath", "Moor" },
-        food_bonus = 2
+        food_bonus = 2,
+        traversal_cost = 1.25
     },
     savannah_hills = {
         name = "Savannah Hills", min_temp = 25, max_temp = 55, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
@@ -213,7 +220,8 @@ biomes = {
         wildlife = { "deer","boar","elephant","antelope","horse"},
         nouns = { "Savannah Hills", "Hill", "Rolling Savannah", "Savannah Moor" },
         worldgen_texture_index = biomeTex("brown_grass"),
-        food_bonus = 2
+        food_bonus = 2,
+        traversal_cost = 1.25
     },
 
      -- Plateau
@@ -260,7 +268,8 @@ biomes = {
         wildlife = { "deer","armadillo"},
         nouns = { "Devil's Table", "Badland Plateau" },
         worldgen_texture_index = biomeTex("badlands"),
-        food_bonus = -1
+        food_bonus = -1,
+        traversal_cost = 2.0
     },
 
     -- Highlands
@@ -270,7 +279,8 @@ biomes = {
         plants = { none=20, grass=10, lavendar=1, daisy=1, reeds=2, heather=2 },
         trees = { deciduous = 0, evergreen = 1 },
         wildlife = { "deer"},
-        nouns = { "High Waste", "High Tundra", "Hillock", "Promontary" }
+        nouns = { "High Waste", "High Tundra", "Hillock", "Promontary" },
+        traversal_cost = 1.5
     },
     rocky_highlands = {
         name = "Rocky Highlands", min_temp = -5, max_temp = 5, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
@@ -279,7 +289,8 @@ biomes = {
         trees = { deciduous = 0, evergreen = 5 },
         wildlife = { "deer","boar","horse"},
         nouns = { "Waste", "Scree", "Fell", "Promontary", "Dales", "Pike" },
-        food_bonus = 1
+        food_bonus = 1,
+        traversal_cost = 1.5
     },
     grass_highlands = {
         name = "Grass Highlands", min_temp = 0, max_temp = 25, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
@@ -288,7 +299,8 @@ biomes = {
         trees = { deciduous = 10, evergreen = 3 },
         wildlife = { "deer","badger","boar","horse"},
         nouns = { "Moor", "Heath", "Uplands", "Dales", "Scar" },
-        food_bonus = 2
+        food_bonus = 2,
+        traversal_cost = 1.5
     },
     savannah_highlands = {
         name = "Savannah Highlands", min_temp = 25, max_temp = 55, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
@@ -298,7 +310,8 @@ biomes = {
         wildlife = { "deer","armadillo","boar","horse"},
         nouns = { "Savannah Hills", "Highlands", "Uplands", "Peaks", "Mounds" },
         worldgen_texture_index = biomeTex("brown_grass"),
-        food_bonus = 2
+        food_bonus = 2,
+        traversal_cost = 1.5
     },
     badland_highlands = {
         name = "Badland Highlands", min_temp = 25, max_temp = 55, min_rain = 0, max_rain = 20, min_mutation = 0, max_mutation = 100,       
@@ -306,7 +319,8 @@ biomes = {
         trees = { deciduous = 1, evergreen = 0 },
         wildlife = { "deer","armadillo"},
         nouns = { "Scree", "Heights" },
-        food_bonus = -2
+        food_bonus = -2,
+        traversal_cost = 2.0
     },
 
     -- Mountains
@@ -316,7 +330,8 @@ biomes = {
         plants = { none=40, grass=20, lavendar=1, daisy=1, reeds=2, heather=2 },
         trees = { deciduous = 0, evergreen = 1 },
         wildlife = { "deer"},
-        nouns = { "Mountains", "Peaks", "Pikes", "Alps" }
+        nouns = { "Mountains", "Peaks", "Pikes", "Alps" },
+        traversal_cost = 2.5
     },
     rocky_mountains = {
         name = "Rocky Mountains", min_temp = -5, max_temp = 5, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
@@ -324,7 +339,8 @@ biomes = {
         plants = { none=25, grass=20, sage=1, daisy=1, reeds=2 },
         trees = { deciduous = 0, evergreen = 1 },
         wildlife = { "deer","horse"},
-        nouns = { "Mountains", "Peaks", "Pikes", "Alps" }
+        nouns = { "Mountains", "Peaks", "Pikes", "Alps" },
+        traversal_cost = 2.5
     },
     grass_mountains = {
         name = "Grass Mountains", min_temp = 0, max_temp = 25, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
@@ -333,7 +349,8 @@ biomes = {
         trees = { deciduous = 0, evergreen = 5 },
         wildlife = { "deer","boar","horse"},
         nouns = { "Mountains", "Peaks", "Pikes", "Alps" },
-        food_bonus = 1
+        food_bonus = 1,
+        traversal_cost = 2.5
     },
     savannah_mountains = {
         name = "Savannah Mountains", min_temp = 25, max_temp = 55, min_rain = 0, max_rain = 100, min_mutation = 0, max_mutation = 100,       
@@ -343,7 +360,8 @@ biomes = {
         wildlife = { "deer","armadillo","boar","horse"},
         nouns = { "Mountains", "Peaks", "Pikes", "Alps" },
         worldgen_texture_index = biomeTex("brown_grass"),
-        food_bonus = 1
+        food_bonus = 1,
+        traversal_cost = 2.5
     },
     badland_mountains = {
         name = "Badlands", min_temp = 25, max_temp = 55, min_rain = 0, max_rain = 20, min_mutation = 0, max_mutation = 100,       
@@ -352,7 +370,8 @@ biomes = {
         wildlife = { "deer","armadillo"},
         nouns = { "Mountains", "Peaks", "Pikes", "Alps" },
         worldgen_texture_index = biomeTex("badlands"),
-        food_bonus = -3
+        food_bonus = -3,
+        traversal_cost = 3.0
     },
 
     -- Low precipitation desert areas
@@ -363,7 +382,8 @@ biomes = {
         trees = { deciduous = 0, evergreen = 1 },
         wildlife = { "deer"},
         nouns = { "Tundra", "Waste", "Ice Waste" },
-        worldgen_texture_index = biomeTex("tundra")
+        worldgen_texture_index = biomeTex("tundra"),
+        traversal_cost = 1.25
     },
     cold_desert = {
         name = "Cold Desert", min_temp = 1, max_temp = 10, min_rain = 0, max_rain = 10, min_mutation = 0, max_mutation = 100,       
@@ -372,7 +392,8 @@ biomes = {
         trees = { deciduous = 0, evergreen = 1 },
         wildlife = { "deer"},
         nouns = { "Semi-Tundra", "Expanse", "Steppe" },
-        worldgen_texture_index = biomeTex("cold_desert")
+        worldgen_texture_index = biomeTex("cold_desert"),
+        traversal_cost = 1.25
     },
     sand_desert = {
         name = "Sand Desert", min_temp = 9, max_temp = 100, min_rain = 0, max_rain = 10, min_mutation = 0, max_mutation = 100,       
@@ -381,7 +402,8 @@ biomes = {
         wildlife = { "deer","horse"},
         nouns = { "Desert", "Waste", "Wild", "Dunes", "Barren" },
         worldgen_texture_index = biomeTex("desert"),
-        food_bonus = -1
+        food_bonus = -1,
+        traversal_cost = 1.25
     },
     rock_desert = {
         name = "Rocky Desert", min_temp = 9, max_temp = 100, min_rain = 0, max_rain = 10, min_mutation = 0, max_mutation = 100,       
@@ -391,7 +413,8 @@ biomes = {
         nouns = { "Barrens", "Platter" },
         worldgen_texture_index = biomeTex("desert"),
         worldgen_texture_index = biomeTex("badlands"),
-        food_bonus = -1
+        food_bonus = -1,
+        traversal_cost = 1.25
     },
 
     -- High-precipitation areas
@@ -401,7 +424,8 @@ biomes = {
         plants = { none=5, grass=20, sage=1, daisy=1, reeds=2, bambara_groundnut=1, strawberry=1, cucumber=1, eggplant=1, garlic=1, tomato=1, tomatillo=1, hemp=1 },
         trees = { deciduous = 100, evergreen = 0 },
         wildlife = { "deer","badger","boar","hedgehog","antelope","horse"},
-        nouns = { "Forest", "Backwoods", "Old Forest", "Grove", "Timberland", "Chase" }
+        nouns = { "Forest", "Backwoods", "Old Forest", "Grove", "Timberland", "Chase" },
+        traversal_cost = 1.25
     },
     deciduous_needleleaf = {
         name = "Deciduous Needleleaf", min_temp = 5, max_temp = 40, min_rain = 5, max_rain = 100, min_mutation = 0, max_mutation = 100,        
@@ -409,7 +433,8 @@ biomes = {
         plants = { none=5, grass=20, sage=1, daisy=1, reeds=2, cucumber=1, garlic=1, tomato=1, tomatillo=1, hemp=1 },
         trees = { deciduous = 100, evergreen = 5 },
         wildlife = { "deer","badger","boar","hedgehog","antelope","horse"},
-        nouns = { "Forest", "Woods", "Old WOods", "Grove", "Chase", "Weald" }
+        nouns = { "Forest", "Woods", "Old WOods", "Grove", "Chase", "Weald" },
+        traversal_cost = 1.25
     },
     evergreen_broadleef = {
         name = "Evergreen Broadleaf", min_temp = -5, max_temp = 30, min_rain = 5, max_rain = 100, min_mutation = 0, max_mutation = 100,        
@@ -417,7 +442,8 @@ biomes = {
         plants = { none=5, grass=20, sage=1, daisy=1, reeds=2, garlic=1, hemp=1 },
         trees = { deciduous = 0, evergreen = 100 },
         wildlife = { "deer","badger","boar","hedgehog","horse"},
-        nouns = { "Forest", "Coppice", "Chase", "Weald", "Pines" }
+        nouns = { "Forest", "Coppice", "Chase", "Weald", "Pines" },
+        traversal_cost = 1.25
     },
     evergreen_needleleef = {
         name = "Evergreen Broadleaf", min_temp = -15, max_temp = 40, min_rain = 5, max_rain = 100, min_mutation = 0, max_mutation = 100,        
@@ -425,13 +451,15 @@ biomes = {
         plants = { none=5, grass=20, sage=1, daisy=1, reeds=2, garlic=1, hemp=1 },
         trees = { deciduous = 5, evergreen = 100 },
         wildlife = { "deer","badger","boar","horse"},
-        nouns = { "Forest", "Coppice", "Chase", "Weald", "Pines", "Timber" }
+        nouns = { "Forest", "Coppice", "Chase", "Weald", "Pines", "Timber" },
+        traversal_cost = 1.25
     },
     rainforest = {
         name = "Rainforest", min_temp = 30, max_temp = 34, min_rain = 10, max_rain = 100, min_mutation = 0, max_mutation = 100,        
         occurs = { biome_types["plains"], biome_types["hills"], biome_types["coast"] }, soils = { soil=90, sand=10 },
         trees = { deciduous = 200, evergreen = 0 },
         wildlife = { "deer","antelope"},
-        nouns = { "Jungle", "Morass", "Tangle" }
+        nouns = { "Jungle", "Morass", "Tangle" },
+        traversal_cost = 1.25
     }
 }

@@ -19,6 +19,7 @@ namespace planet_astar {
 
 	namespace impl {
 		UNPlanet * planet;
+		NRaws * raws;
 
 		constexpr static float MAX_DIRECT_PATH_CHECK = 24.0f;
 		constexpr static int Z_WEIGHT = 10;
@@ -70,8 +71,11 @@ namespace planet_astar {
 				}
 				else
 				{
+					float cost = raws->get_biome_def(planet->Biomes[planet->Landblocks[idx].biome_idx].type)->traversal_cost;
+					if (testbit(FeatureMaskBits::ROAD_N, planet->Landblocks[idx].Features) || testbit(FeatureMaskBits::ROAD_S, planet->Landblocks[idx].Features) || testbit(FeatureMaskBits::ROAD_E, planet->Landblocks[idx].Features) || testbit(FeatureMaskBits::ROAD_W, planet->Landblocks[idx].Features))
+					cost /= 2.0f;
 					const auto distance = distance_to_end(idx);
-					const node_t s{ idx, distance + 1.0f, 1.0f, distance };
+					const node_t s{ idx, distance + cost, cost, distance };
 
 					auto should_add = true;
 
@@ -241,7 +245,11 @@ namespace planet_astar {
 
 
 void UNPlanet::BuildPlanet(const int seed, const int water_divisor, const int plains_divisor, const int starting_settlers, const bool strict_beamdown) {
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+
 	planet_astar::impl::planet = this;
+	planet_astar::impl::raws = raws;
 
 	// Set incoming parameters
 	RngSeed = seed;	
@@ -1142,6 +1150,7 @@ void UNPlanet::RunWorldgenYear() {
 		// Determine adjacent civilizations
 		TArray<int> AdjacentCities;
 		const int radius2 = radius * 2;
+		bool added_settlement = false;
 		for (int cx = -radius2; cx < radius2 + 1; ++cx) {
 			for (int cy = -radius2; cy < radius2 + 1; ++cy) {
 				int sx = settlement.Value.x + cx;
@@ -1151,6 +1160,39 @@ void UNPlanet::RunWorldgenYear() {
 					if (OtherCiv != -1 && OtherCiv != settlement.Value.Civilization && !AdjacentCivs.Contains(OtherCiv)) {
 						AdjacentCivs.Add(OtherCiv);
 						AdjacentCities.Add(Landblocks[idx(sx, sy)].OwnerSettlement);
+					}
+					else if (OtherCiv == -1 && !added_settlement) {
+						// Nobody owns this tile, maybe we should build here?
+						if (Landblocks[idx(sx,sy)].height > water_height && settlement.Value.CashStock > 100 && settlement.Value.FoodStock > 5 && rng.RollDice(1, 6) < 3) {
+
+							float minD = 200000.0f;
+							for (const auto &os : settlements) {
+								float D = distance2d(sx, sy, os.Value.x, os.Value.y);
+								if (D < minD) minD = D;
+							}
+							if (minD > 5.0f) {
+
+								added_settlement = true;
+								settlement.Value.CashStock -= 100;
+								settlement.Value.FoodStock -= 3;
+
+								FSettlement newSettlerment;
+								newSettlerment.x = sx;
+								newSettlerment.y = sy;
+								newSettlerment.Civilization = settlement.Value.Civilization;
+								newSettlerment.size = 1;
+								settlements.Add(idx(sx, sy), newSettlerment);
+
+								const int bidx = idx(sx, sy);
+								Landblocks[bidx].OwnerCiv = settlement.Value.Civilization;
+								Landblocks[bidx].OwnerSettlement = bidx;
+								setbit(FeatureMaskBits::HUTS, Landblocks[bidx].Features);
+								setbit(FeatureMaskBits::ROAD_N, Landblocks[bidx].Features);
+								setbit(FeatureMaskBits::ROAD_S, Landblocks[bidx].Features);
+								setbit(FeatureMaskBits::ROAD_E, Landblocks[bidx].Features);
+								setbit(FeatureMaskBits::ROAD_W, Landblocks[bidx].Features);
+							}
+						}
 					}
 				}
 			}
@@ -1303,6 +1345,10 @@ void UNPlanet::RunWorldgenYear() {
 		if (settlement.Value.LumberStock > 0) civilizations[settlement.Value.Civilization].LumberWealth += ((float)settlement.Value.LumberStock * TaxRate);
 		if (settlement.Value.MineralStock > 0) civilizations[settlement.Value.Civilization].MineralWealth += ((float)settlement.Value.MineralStock * TaxRate);
 		civilizations[settlement.Value.Civilization].CashWealth += ((float)settlement.Value.CashStock * TaxRate);
+
+		FString wealth;
+		wealth.AppendInt(civilizations[settlement.Value.Civilization].CashWealth);
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, wealth);
 	}
 
 	// Dead settlement removal
@@ -1323,7 +1369,28 @@ void UNPlanet::RunWorldgenYear() {
 			}
 		}
 		settlements.Remove(id);
-		// TODO: Civilization extinction
+	}
+
+	int id = 0;
+	for (auto &civ : civilizations) {
+		int n_settlements = 0;
+		for (const auto &s : settlements) {
+			if (s.Value.Civilization == id) ++n_settlements;
+		}
+		if (n_settlements == 0) {
+			civ.Extinct = true;
+			// TODO: What housekeeping do we need here?
+		}
+		else {
+			if (civ.armies.Num() > 0) {
+				// Iterate armies and restock/expand if needed
+			}
+			if (civ.armies.Num() < n_settlements) {
+				// Consider buying an army
+			}
+		}
+
+		++id;
 	}
 
 	++Year;

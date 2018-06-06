@@ -174,6 +174,28 @@ struct FNRiver
 };
 
 USTRUCT(BlueprintType)
+struct FUnit {
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 UnitType;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 MaxStrength;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 CurrentStrength;
+};
+
+USTRUCT(BlueprintType)
+struct FArmy {
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FUnit> units;
+};
+
+USTRUCT(BlueprintType)
 struct FNCivilization {
 	GENERATED_USTRUCT_BODY()
 
@@ -209,6 +231,9 @@ struct FNCivilization {
 
 	UPROPERTY(BlueprintReadOnly)
 	float CashWealth = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly)
+	TArray<FArmy> armies;
 };
 
 USTRUCT(BlueprintType)
@@ -340,7 +365,7 @@ public:
 	void RunWorldgenYear();
 
 private:
-	const int n_civs = 128;
+	const int n_civs = 32;
 
 	FastNoise noiseMap;
 	RandomNumberGenerator rng;
