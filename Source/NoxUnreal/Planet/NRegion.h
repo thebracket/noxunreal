@@ -295,6 +295,7 @@ public:
 	void BuildRoads(TSet<int> &used_tiles);
 	void BuildFarms(RandomNumberGenerator *rng, TSet<int> &used_tiles);
 	void BuildMines(RandomNumberGenerator *rng, TSet<int> &used_tiles);
+	void BuildHuts(RandomNumberGenerator *rng, TSet<int> &used_tiles);
 	void AddBuilding(FString path, int x, int y, TSet<int> &used_tiles, RandomNumberGenerator * rng);
 
 	void decorate_item_categories(int &item, TBitArray<> &categories) noexcept;

@@ -100,6 +100,7 @@ void UNRegion::BuildRegion(const int StartX, const int StartY, const bool Starti
 	BuildRoads(used_tiles);
 	BuildFarms(rng, used_tiles);
 	BuildMines(rng, used_tiles);
+	BuildHuts(rng, used_tiles);
 
 	// Debris Trail
 	if (StartingArea) BuildDebrisTrail(crash_x, crash_y);
@@ -2237,6 +2238,21 @@ void UNRegion::BuildMines(RandomNumberGenerator *rng, TSet<int> &used_tiles) {
 			FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir() + FString("rex/mud-hut.xp"));
 			AddBuilding(ThePath, mx, my, used_tiles, rng);
 		}
+	}
+}
+
+void UNRegion::BuildHuts(RandomNumberGenerator *rng, TSet<int> &used_tiles) {
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+
+	if (!testbit(FeatureMaskBits::HUTS, planet->Landblocks[planet->idx(RegionX, RegionY)].Features)) return;
+
+	const int owner_settlement = planet->Landblocks[planet->idx(RegionX, RegionY)].OwnerSettlement;
+	const int n_huts = owner_settlement > -1 ? planet->settlements[owner_settlement].size * 3 : rng->RollDice(4, 6);
+
+	for (int i = 0; i < n_huts; ++i) {
+		FString ThePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectContentDir() + FString("rex/mud-hut.xp"));
+		AddBuilding(ThePath, rng->RollDice(1, nfu::REGION_WIDTH-10), rng->RollDice(1, nfu::REGION_HEIGHT-10), used_tiles, rng);
 	}
 }
 
