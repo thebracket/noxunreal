@@ -91,6 +91,9 @@ void UNRegion::BuildRegion(const int StartX, const int StartY, const bool Starti
 		BuildTrees(rng, StartingArea);
 	}
 
+	// Add Features
+	BuildRoads();
+
 	// Debris Trail
 	if (StartingArea) BuildDebrisTrail(crash_x, crash_y);
 
@@ -119,7 +122,6 @@ void UNRegion::BuildRegion(const int StartX, const int StartY, const bool Starti
 		}
 	}
 
-	// Add Features
 
 	// Recalculate all tiles
 	TileRecalcAll();
@@ -1995,6 +1997,72 @@ void UNRegion::TilePathing(const int &x, const int &y, const int &z) {
 
 		if (z > 0 && TileType[idx] == tile_type::OPEN_SPACE && TileType[mapidx(x, y, z - 1)] == tile_type::RAMP) {
 			setbit(tile_flags::CAN_GO_DOWN, TileFlags[idx]);
+		}
+	}
+}
+
+void UNRegion::BuildRoads() {
+	UNoxGameInstance * game = Cast<UNoxGameInstance>(UGameplayStatics::GetGameInstance(this));
+	auto raws = game->GetRaws();
+
+	const auto brick_mat_id = raws->get_material_by_tag("brick");
+	const auto brick_mat = raws->get_material(brick_mat_id);
+
+	const int mid_x = nfu::REGION_WIDTH / 2;
+	const int mid_y = nfu::REGION_HEIGHT / 2;
+	if (testbit(FeatureMaskBits::ROAD_N, planet->Landblocks[planet->idx(RegionX, RegionY)].Features)) {
+		for (int y = 0; y < mid_y; ++y) {
+			for (int x = mid_x - 2; x < mid_x + 2; ++x) {
+				const int z = GroundZ(x, y);
+				const int idx = mapidx(x, y, z);
+				TileVegetationType[idx] = 0;
+				TileMaterial[idx] = brick_mat_id;
+				setbit(regiondefs::tile_flags::CONSTRUCTION, TileFlags[idx]);
+				if (TreeId[idx] > 0) TreeId[idx] = 0;
+				if (TileType[idx] == regiondefs::tile_type::TREE_TRUNK) TileType[idx] = regiondefs::tile_type::FLOOR;
+			}
+		}
+	}
+
+	if (testbit(FeatureMaskBits::ROAD_S, planet->Landblocks[planet->idx(RegionX, RegionY)].Features)) {
+		for (int y = mid_y; y < nfu::REGION_HEIGHT-1; ++y) {
+			for (int x = mid_x - 2; x < mid_x + 2; ++x) {
+				const int z = GroundZ(x, y);
+				const int idx = mapidx(x, y, z);
+				TileVegetationType[idx] = 0;
+				TileMaterial[idx] = brick_mat_id;
+				setbit(regiondefs::tile_flags::CONSTRUCTION, TileFlags[idx]);
+				if (TreeId[idx] > 0) TreeId[idx] = 0;
+				if (TileType[idx] == regiondefs::tile_type::TREE_TRUNK) TileType[idx] = regiondefs::tile_type::FLOOR;
+			}
+		}
+	}
+
+	if (testbit(FeatureMaskBits::ROAD_W, planet->Landblocks[planet->idx(RegionX, RegionY)].Features)) {
+		for (int y = mid_y-2; y < mid_y+2; ++y) {
+			for (int x = 0; x < mid_x; ++x) {
+				const int z = GroundZ(x, y);
+				const int idx = mapidx(x, y, z);
+				TileVegetationType[idx] = 0;
+				TileMaterial[idx] = brick_mat_id;
+				setbit(regiondefs::tile_flags::CONSTRUCTION, TileFlags[idx]);
+				if (TreeId[idx] > 0) TreeId[idx] = 0;
+				if (TileType[idx] == regiondefs::tile_type::TREE_TRUNK) TileType[idx] = regiondefs::tile_type::FLOOR;
+			}
+		}
+	}
+
+	if (testbit(FeatureMaskBits::ROAD_E, planet->Landblocks[planet->idx(RegionX, RegionY)].Features)) {
+		for (int y = mid_y - 2; y < mid_y + 2; ++y) {
+			for (int x = mid_x; x < nfu::REGION_WIDTH - 1; ++x) {
+				const int z = GroundZ(x, y);
+				const int idx = mapidx(x, y, z);
+				TileVegetationType[idx] = 0;
+				TileMaterial[idx] = brick_mat_id;
+				setbit(regiondefs::tile_flags::CONSTRUCTION, TileFlags[idx]);
+				if (TreeId[idx] > 0) TreeId[idx] = 0;
+				if (TileType[idx] == regiondefs::tile_type::TREE_TRUNK) TileType[idx] = regiondefs::tile_type::FLOOR;
+			}
 		}
 	}
 }
