@@ -292,7 +292,9 @@ public:
 	void add_building(FString tag, const int x, const int y, const int z, const size_t &civ_owner) noexcept;
 	int CreateSettler(const int x, const int y, const int z, RandomNumberGenerator * rng, int shift_id) noexcept;
 	TArray<FString> get_event_candidates(const int &age, const TArray<FString> &past) noexcept;
-	void BuildRoads();
+	void BuildRoads(TSet<int> &used_tiles);
+	void BuildFarms(RandomNumberGenerator *rng, TSet<int> &used_tiles);
+	void BuildMines(RandomNumberGenerator *rng, TSet<int> &used_tiles);
 
 	void decorate_item_categories(int &item, TBitArray<> &categories) noexcept;
 	void spawn_item_in_container(const int container_id, const FString &tag, const std::size_t &material, uint8_t quality, uint8_t wear, int creator_id, FString creator_name) noexcept;

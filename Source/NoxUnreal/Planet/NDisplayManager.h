@@ -65,6 +65,9 @@ struct FNLayer
 
 	UPROPERTY(VisibleAnywhere)
 	FFoliage foliage;
+
+	UPROPERTY(VisibleAnywhere)
+	TArray<UStaticMeshComponent *> StaticMeshes;
 };
 
 USTRUCT(BlueprintType)
