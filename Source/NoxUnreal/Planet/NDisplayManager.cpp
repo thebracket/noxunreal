@@ -435,9 +435,9 @@ void ANDisplayManager::onZChange() {
 					Chunks[chunk].layers[layer].foliage.tree1->SetVisibility(true);
 					Chunks[chunk].layers[layer].foliage.tree2->SetVisibility(true);
 					Chunks[chunk].layers[layer].foliage.grass1->SetVisibility(true);
-					for (auto &sm : Chunks[chunk].layers[layer].StaticMeshes) {
-						sm->SetVisibility(true);
-					}
+				}
+				for (auto &sm : Chunks[chunk].layers[layer].StaticMeshes) {
+					sm->SetVisibility(true);
 				}
 			}
 			else {
@@ -447,9 +447,9 @@ void ANDisplayManager::onZChange() {
 					Chunks[chunk].layers[layer].foliage.tree1->SetVisibility(false);
 					Chunks[chunk].layers[layer].foliage.tree2->SetVisibility(false);
 					Chunks[chunk].layers[layer].foliage.grass1->SetVisibility(false);
-					for (auto &sm : Chunks[chunk].layers[layer].StaticMeshes) {
-						sm->SetVisibility(false);
-					}
+				}
+				for (auto &sm : Chunks[chunk].layers[layer].StaticMeshes) {
+					sm->SetVisibility(false);
 				}
 			}
 		}
