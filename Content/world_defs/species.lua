@@ -110,3 +110,14 @@ government_types = {
         base_relationship_mod = 5
     }    
 }
+
+unit_types = {
+    militia = {
+        name = "Peasant Militia",
+        cost = 50,
+        attack_strength = 1,
+        defense_strength = 1,
+        max_size = 25,
+        tech_level = 1
+    }
+}

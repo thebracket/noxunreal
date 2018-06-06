@@ -55,6 +55,7 @@ void NRaws::LoadGameTables() {
 	ReadSpeciesTypes();
 	ReadCreatureTypes();
 	ReadGovernmentTypes();
+	ReadUnitTypes();
 }
 
 void NRaws::InitLua() {
@@ -1223,4 +1224,40 @@ void NRaws::ReadGovernmentTypes() {
 	}
 
 	government_defs.Sort([](auto &a, auto &b) { return a.tag < b.tag; });
+}
+
+void NRaws::ReadUnitTypes() {
+	using namespace rawdefs;
+
+	lua_getglobal(lua_state, "unit_types");
+	lua_pushnil(lua_state);
+
+	while (lua_next(lua_state, -2) != 0)
+	{
+		FString key = lua_tostring(lua_state, -2);
+
+		raw_unit_t b;
+		b.tag = key;
+
+		lua_pushstring(lua_state, TCHAR_TO_ANSI(*key));
+		lua_gettable(lua_state, -2);
+		while (lua_next(lua_state, -2) != 0) {
+			FString field = lua_tostring(lua_state, -2);
+
+			if (field == "name") b.name = lua_tostring(lua_state, -1);
+			if (field == "cost") b.cost = lua_tonumber(lua_state, -1);
+			if (field == "attack_strength") b.attack_strength = lua_tonumber(lua_state, -1);
+			if (field == "defense_strength") b.defense_strength = lua_tonumber(lua_state, -1);
+			if (field == "max_size") b.max_size = lua_tonumber(lua_state, -1);
+			if (field == "tech_level") b.tech_level = lua_tonumber(lua_state, -1);
+
+			lua_pop(lua_state, 1);
+		}
+
+		unit_defs.Emplace(b);
+
+		lua_pop(lua_state, 1);
+	}
+
+	unit_defs.Sort([](auto &a, auto &b) { return a.tag < b.tag; });
 }

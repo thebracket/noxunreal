@@ -193,6 +193,9 @@ struct FArmy {
 
 	UPROPERTY(BlueprintReadOnly)
 	TArray<FUnit> units;
+
+	UPROPERTY(BlueprintReadOnly)
+	int victories = 0;
 };
 
 USTRUCT(BlueprintType)
@@ -204,6 +207,9 @@ struct FNCivilization {
 
 	UPROPERTY(BlueprintReadOnly)
 	int GovernmentIndex;
+
+	UPROPERTY(BlueprintReadOnly)
+	int TechLevel = 1;
 
 	UPROPERTY(BlueprintReadOnly)
 	int StartX;

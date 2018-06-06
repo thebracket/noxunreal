@@ -1235,7 +1235,7 @@ void UNPlanet::RunWorldgenYear() {
 		settlement.Value.LumberStock += addedLumber;
 		settlement.Value.MineralStock += addedMinerals;
 
-		if (settlement.Value.FoodStock > settlement.Value.size * 10) {
+		if (settlement.Value.FoodStock > settlement.Value.size * 10 && settlement.Value.size < 15) {
 			settlement.Value.FoodStock = 1;
 			++settlement.Value.size;
 		}
@@ -1345,10 +1345,6 @@ void UNPlanet::RunWorldgenYear() {
 		if (settlement.Value.LumberStock > 0) civilizations[settlement.Value.Civilization].LumberWealth += ((float)settlement.Value.LumberStock * TaxRate);
 		if (settlement.Value.MineralStock > 0) civilizations[settlement.Value.Civilization].MineralWealth += ((float)settlement.Value.MineralStock * TaxRate);
 		civilizations[settlement.Value.Civilization].CashWealth += ((float)settlement.Value.CashStock * TaxRate);
-
-		FString wealth;
-		wealth.AppendInt(civilizations[settlement.Value.Civilization].CashWealth);
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, wealth);
 	}
 
 	// Dead settlement removal
@@ -1364,6 +1360,8 @@ void UNPlanet::RunWorldgenYear() {
 						Landblocks[idx(sx, sy)].OwnerCiv = -1;
 						resetbit(FeatureMaskBits::HUTS, Landblocks[idx(sx, sy)].Features);
 						resetbit(FeatureMaskBits::FARM, Landblocks[idx(sx, sy)].Features);
+						resetbit(FeatureMaskBits::LUMBER, Landblocks[idx(sx, sy)].Features);
+						resetbit(FeatureMaskBits::MINE, Landblocks[idx(sx, sy)].Features);
 					}
 				}
 			}
@@ -1380,13 +1378,198 @@ void UNPlanet::RunWorldgenYear() {
 		if (n_settlements == 0) {
 			civ.Extinct = true;
 			// TODO: What housekeeping do we need here?
+			for (auto &lb : Landblocks) {
+				if (lb.OwnerCiv == id) lb.OwnerCiv = -1;
+			}
 		}
 		else {
+			if (civ.armies.Num() > 0 && civ.Relations.Num() > 0) {
+				// Consider fighting!
+				for (auto &OtherCivID : civ.Relations) {
+					if (OtherCivID.Value < 0) {
+						// We don't like them - can we atttack?
+						if (civilizations[OtherCivID.Key].Relations.Contains(id)) {
+							civilizations[OtherCivID.Key].Relations[id] -= 25;
+						}
+						else {
+							civilizations[OtherCivID.Key].Relations.Add(id, -100);
+						}
+
+
+						int OurStrength = 0;
+						int OurCount = 0;
+						for (const auto &army : civ.armies) {
+							for (const auto &unit : army.units) {
+								OurStrength += (unit.CurrentStrength * raws->unit_defs[unit.UnitType].attack_strength);
+								OurCount += unit.CurrentStrength;
+							}
+						}
+
+						int TheirStrength = 0;
+						int TheirCount = 0;
+						for (const auto &army : civilizations[OtherCivID.Key].armies) {
+							for (const auto &unit : army.units) {
+								TheirStrength += (unit.CurrentStrength * raws->unit_defs[unit.UnitType].defense_strength);
+								TheirCount = unit.CurrentStrength;
+							}
+						}
+
+						if (OurStrength > TheirStrength) {
+							GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Launching an attack"));
+							OurStrength += rng.RollDice(2, 100);
+							TheirStrength += rng.RollDice(2, 100);
+							for (const auto &s : settlements) {
+								if (s.Value.Civilization == OtherCivID.Key && testbit(FeatureMaskBits::PALLISADE, Landblocks[idx(s.Value.x, s.Value.y)].Features)) TheirStrength += 5;
+							}
+
+							if (OurStrength > TheirStrength * 2) {
+								// Total Massacre
+								GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Total Victory!"));
+								civilizations[OtherCivID.Key].armies.Empty(); // They all died!
+								civ.CashWealth += civilizations[OtherCivID.Key].CashWealth / 2;
+								civ.LumberWealth += civilizations[OtherCivID.Key].LumberWealth / 2;
+								civ.MineralWealth += civilizations[OtherCivID.Key].MineralWealth / 2;
+								civilizations[OtherCivID.Key].CashWealth = 0;
+								civilizations[OtherCivID.Key].LumberWealth = 0;
+								civilizations[OtherCivID.Key].MineralWealth = 0;
+								civilizations[OtherCivID.Key].Extinct = true;
+
+								for (auto &s : settlements) {
+									if (s.Value.Civilization == OtherCivID.Key) {
+										s.Value.size--;
+										if (s.Value.size > 0) {
+											s.Value.Civilization = id;
+											s.Value.CashStock /= 2;
+											s.Value.FoodStock /= 2;
+											s.Value.MineralStock /= 2;
+										}
+									}
+								}
+							}
+							else if (OurStrength > TheirStrength) {
+								// Victory
+								GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Victory"));
+								for (auto &army : civilizations[OtherCivID.Key].armies) {
+									for (auto &unit : army.units) {
+										unit.CurrentStrength /= 2;
+										unit.CurrentStrength -= 2;
+									}
+								}
+							}
+							else if (OurStrength * 2 < TheirStrength) {
+								// Total defeat
+								GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Complete Loss"));
+								civ.armies.Empty(); // They all died!
+							}
+							else {
+								// Loss
+								GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Defeat"));
+								for (auto &army : civ.armies) {
+									for (auto &unit : army.units) {
+										unit.CurrentStrength /= 2;
+										unit.CurrentStrength -= 2;
+									}
+								}
+							}
+
+							FString result;
+							result.Append("Attacker: ");
+							result.AppendInt(OurStrength);
+							result.Append(", Defender: ");
+							result.AppendInt(TheirStrength);
+							GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, result);
+						}
+					}
+					else if (OtherCivID.Value > 100) {
+						// Consider merging; if we're twice as rich as them, we take over!
+						if (civ.CashWealth > civilizations[OtherCivID.Key].CashWealth * 2) {
+							GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Civ merger"));
+							for (auto &a : civilizations[OtherCivID.Key].armies) {
+								civ.armies.Emplace(a);
+							}
+							civilizations[OtherCivID.Key].armies.Empty();
+							civ.CashWealth += civilizations[OtherCivID.Key].CashWealth;
+							civ.LumberWealth += civilizations[OtherCivID.Key].LumberWealth;
+							civ.MineralWealth += civilizations[OtherCivID.Key].MineralWealth;
+							for (auto &lb : Landblocks) {
+								if (lb.OwnerCiv == OtherCivID.Key) lb.OwnerCiv = id;
+							}
+							for (auto &s : settlements) {
+								if (s.Value.Civilization == OtherCivID.Key) s.Value.Civilization = id;
+							}
+						}
+					}
+				}
+			}
+
 			if (civ.armies.Num() > 0) {
 				// Iterate armies and restock/expand if needed
+				for (auto &army : civ.armies) {
+					for (auto &unit : army.units) {
+						const auto cost = raws->unit_defs[unit.UnitType].cost;
+						while (unit.CurrentStrength < unit.MaxStrength && civ.CashWealth > cost) {
+							civ.CashWealth -= cost;
+							unit.CurrentStrength++;
+						}
+					}
+
+					if (army.units.Num() < 5) {
+						TArray<TPair<int, int>> AvailableUnits; // Cost / Index
+						AvailableUnits.Empty();
+						for (int i = 0; i < raws->unit_defs.Num(); ++i) {
+							if (raws->unit_defs[i].tech_level == civ.TechLevel && raws->unit_defs[i].cost < civ.CashWealth) {
+								AvailableUnits.Emplace(TPair<int, int>(raws->unit_defs[i].cost, i));
+							}
+						}
+
+						if (AvailableUnits.Num() > 0) {
+							const int unitRoll = AvailableUnits.Num() == 1 ? 0 : rng.RollDice(1, AvailableUnits.Num()) - 1;
+							if (AvailableUnits[unitRoll].Key < civ.CashWealth) {
+								FUnit unit;
+								unit.UnitType = AvailableUnits[unitRoll].Value;
+								unit.MaxStrength = raws->unit_defs[unit.UnitType].max_size;
+								unit.CurrentStrength = 1;
+								civ.CashWealth -= AvailableUnits[unitRoll].Key;
+								while (civ.CashWealth > AvailableUnits[unitRoll].Key && unit.CurrentStrength < unit.MaxStrength) {
+									civ.CashWealth -= AvailableUnits[unitRoll].Key;
+									++unit.CurrentStrength;
+								}
+								army.units.Emplace(unit);
+							}
+						}
+					}
+				}
+
 			}
 			if (civ.armies.Num() < n_settlements) {
 				// Consider buying an army
+				TArray<TPair<int, int>> AvailableUnits; // Cost / Index
+				AvailableUnits.Empty();
+				for (int i = 0; i < raws->unit_defs.Num(); ++i) {
+					if (raws->unit_defs[i].tech_level == civ.TechLevel && raws->unit_defs[i].cost < civ.CashWealth) {
+						AvailableUnits.Emplace(TPair<int, int>( raws->unit_defs[i].cost, i ));
+					}
+				}
+
+				if (AvailableUnits.Num() > 0) {
+					FArmy army;
+					for (int i = 0; i < 5; ++i) {
+						const int unitRoll = AvailableUnits.Num() == 1 ? 0 : rng.RollDice(1, AvailableUnits.Num()) - 1;
+						if (AvailableUnits[unitRoll].Key < civ.CashWealth) {
+							FUnit unit;
+							unit.UnitType = AvailableUnits[unitRoll].Value;
+							unit.MaxStrength = raws->unit_defs[unit.UnitType].max_size;
+							unit.CurrentStrength = 1;
+							civ.CashWealth -= AvailableUnits[unitRoll].Key;
+							while (civ.CashWealth > AvailableUnits[unitRoll].Key && unit.CurrentStrength < unit.MaxStrength) {
+								civ.CashWealth -= AvailableUnits[unitRoll].Key;
+								++unit.CurrentStrength;
+							}
+							army.units.Emplace(unit);
+						}
+					}
+					civ.armies.Emplace(army);
+				}
 			}
 		}
 

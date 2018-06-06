@@ -368,6 +368,19 @@ namespace rawdefs {
 		int black_market = 0;
 		int base_relationship_mod = 0;
 	};
+
+	/*
+	* Defines world-gen level units
+	*/
+	struct raw_unit_t {
+		FString tag;
+		FString name;
+		int cost;
+		int attack_strength;
+		int defense_strength;
+		int max_size;
+		int tech_level;
+	};
 }
 
 
@@ -519,6 +532,7 @@ public:
 	TMap<FString, rawdefs::raw_species_t> species_defs;
 	TMap<FString, rawdefs::raw_creature_t> creature_defs;
 	TArray<rawdefs::raw_government_t> government_defs;
+	TArray<rawdefs::raw_unit_t> unit_defs;
 
 	void ReadMaterialTypes();
 	void ReadClothing();
@@ -533,6 +547,7 @@ public:
 	void ReadSpeciesTypes();
 	void ReadCreatureTypes();
 	void ReadGovernmentTypes();
+	void ReadUnitTypes();
 
 	// Templatey Stuff
 	inline void call_functor_key(const TMap<FString, const TFunction<void()>> &parser, const FString &field, const FString &table) {
