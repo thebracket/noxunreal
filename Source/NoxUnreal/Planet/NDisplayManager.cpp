@@ -714,9 +714,10 @@ void ANDisplayManager::InitialLights() {
 			UPointLightComponent * pl = NewObject<UPointLightComponent>(this, FName(*lightName));
 			const float mx = (pos.x + 0.5f) * WORLD_SCALE;
 			const float my = (pos.y + 0.5f) * WORLD_SCALE;
-			const float mz = (pos.z + 0.5f) * WORLD_SCALE;
+			const float mz = (pos.z + 0.75f) * WORLD_SCALE;
 			pl->SetWorldLocation(FVector(mx, my, mz));
 			pl->RegisterComponent();
+			pl->SetIntensity(10000.0f);
 		}
 	});
 }
