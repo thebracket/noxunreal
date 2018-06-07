@@ -4,6 +4,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "../Public/NoxGameInstance.h"
 #include "GameInputManager.h"
+#include "../BEngine/bittools.h"
+#include "NRegion.h"
+#include "../Raws/NRaws.h"
+#include "../BEngine/BECS.h"
 
 constexpr float WORLD_SCALE = 200.0f;
 

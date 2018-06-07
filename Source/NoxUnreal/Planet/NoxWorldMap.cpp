@@ -3,6 +3,8 @@
 #include "NoxWorldMap.h"
 #include "../Public/NoxGameInstance.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "../BEngine/bittools.h"
+#include "../Raws/NRaws.h"
 
 constexpr float zscaler = 0.0f;
 

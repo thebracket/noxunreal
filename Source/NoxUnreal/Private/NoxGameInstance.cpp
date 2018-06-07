@@ -1,6 +1,10 @@
 // (c) 2016 - Present, Bracket Productions
 
 #include "NoxGameInstance.h"
+#include "../Raws/NRaws.h"
+#include "../Planet/NPlanet.h"
+#include "../Planet/NRegion.h"
+#include "../BEngine/BECS.h"
 
 
 NRaws * UNoxGameInstance::GetRaws() {

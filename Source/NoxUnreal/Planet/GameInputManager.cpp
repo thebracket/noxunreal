@@ -4,6 +4,9 @@
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Runtime/Engine/Classes/Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "../BEngine/BECS.h"
+#include "../Raws/NRaws.h"
+#include "constants.h"
 
 // Sets default values
 AGameInputManager::AGameInputManager()

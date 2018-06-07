@@ -4,6 +4,11 @@
 #include "../Public/NoxGameInstance.h"
 #include "../Planet/NDisplayManager.h"
 #include "../Raws/NRaws.h"
+#include "bittools.h"
+#include "../Planet/constants.h"
+#include "../Planet/regiondefs.h"
+#include "../Planet/NRegion.h"
+#include "../Planet/NPlanet.h"
 
 UNPlanet * planet;
 UNRegion * region;

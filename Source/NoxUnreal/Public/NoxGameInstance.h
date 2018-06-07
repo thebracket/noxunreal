@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
-#include "../Raws/NRaws.h"
-#include "../Planet/NPlanet.h"
-#include "../Planet/NRegion.h"
-#include "../BEngine/BECS.h"
 #include "NoxGameInstance.generated.h"
+
+class NRaws;
+class UNPlanet;
+class UNRegion;
+class UBECS;
 
 /**
  * 

@@ -4,6 +4,7 @@
 #include "../Raws/NRaws.h"
 #include "../Public/NoxGameInstance.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "../BEngine/bittools.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
