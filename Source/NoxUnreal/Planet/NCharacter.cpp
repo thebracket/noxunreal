@@ -67,7 +67,7 @@ void ANCharacter::RefreshModels() {
 	auto species = ecs->ecs.GetComponent<species_t>(id);
 
 	// Add model 49 - base
-	AddModel(49, -2, species->skin_color.Value);
+	AddModel(49, -2, species->skin_color.color);
 
 	// Add hair
 	int hair_vox;
@@ -80,7 +80,7 @@ void ANCharacter::RefreshModels() {
 	case TRIANGLE: hair_vox = 55; break;
 	default: hair_vox = 0;
 	}
-	if (hair_vox > 0) AddModel(hair_vox, -1, species->hair_color.Value);
+	if (hair_vox > 0) AddModel(hair_vox, -1, species->hair_color.color);
 
 	// Add items
 	ecs->ecs.Each<item_t, item_carried_t>([this](int &item_id, item_t &item, item_carried_t &carried) {

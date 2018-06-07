@@ -82,10 +82,15 @@ struct unbuild_t {
 	std::size_t building_id;
 };
 
+struct guard_designation_t {
+	bool active = false;
+	position_t guardpost;
+};
+
 struct designations_t {
 
 	TMap<size_t, position_t> chopping;
-	TArray<TPair<bool, position_t>> guard_points;
+	TArray<guard_designation_t> guard_points;
 	TArray<unbuild_t> deconstructions;
 	TArray<size_t> levers_to_pull;
 	int current_power = 10;
@@ -152,9 +157,14 @@ struct farm_cycle_t {
 	std::size_t seed_id = 0;
 };
 
+struct harvest_designation_t {
+	bool active = false;
+	position_t pos;
+};
+
 struct farming_designations_t {
 
-	TArray<TPair<bool, position_t>> harvest;
+	TArray<harvest_designation_t> harvest;
 	TMap<int, farm_cycle_t> farms;
 };
 
@@ -171,9 +181,14 @@ struct reaction_input_t {
 	}
 };
 
+struct building_task_component_id {
+	int id;
+	bool ready;
+};
+
 struct building_designation_t {
 	int x, y, z;
-	TArray<TPair<size_t, bool>> component_ids;
+	TArray<building_task_component_id> component_ids;
 
 	FString name;
 	FString tag;
@@ -183,15 +198,30 @@ struct building_designation_t {
 	int building_entity = 0;
 };
 
+struct build_order_t {
+	int number;
+	FString tag;
+};
+
+struct standing_build_order_t {
+	FString item;
+	int number;
+	FString reaction;
+};
+
 struct building_designations_t {
 
-	TArray<building_designation_t> buildings;
-	TArray<TPair<int, FString>> build_orders;
-	TMap<FString, TPair<int, FString>> standing_build_orders; // Item, <#/Reaction>
+	TArray<build_order_t> build_orders;
+	TArray<standing_build_order_t> standing_build_orders; // Item, <#/Reaction>
 };
 
 struct architecture_designations_t {
 	TMap<int, uint8_t> architecture;
+};
+
+struct building_built_from_t {
+	FString tag;
+	int material;
 };
 
 struct building_t {
@@ -204,7 +234,7 @@ struct building_t {
 	FString tag;
 	int width = 0, height = 0;
 	bool complete = false;
-	TArray<TPair<FString, size_t>> built_with;
+	TArray<building_built_from_t> built_with;
 	size_t civ_owner = 0;
 	uint8_t max_hit_points = 10;
 	uint8_t hit_points = 10;
@@ -444,14 +474,19 @@ enum sexuality_t { HETEROSEXUAL, HOMOSEXUAL, BISEXUAL };
 enum hair_color_t { WHITE_HAIR, BROWN_HAIR, BLACK_HAIR, BLONDE_HAIR, RED_HAIR };
 enum hair_style_t { BALD, SHORT_HAIR, LONG_HAIR, PIGTAILS, MOHAWK, BALDING, TRIANGLE };
 
+struct named_color_pair_t {
+	FString name;
+	FNColor color;
+};
+
 struct species_t {
 	FString tag = "";
 	std::size_t index = 0;
 	gender_t gender;
 	sexuality_t sexuality;
 	hair_style_t hair_style;
-	TPair<FString, FNColor> skin_color;
-	TPair<FString, FNColor> hair_color;
+	named_color_pair_t skin_color;
+	named_color_pair_t hair_color;
 	float height_cm;
 	float weight_kg;
 	bool bearded;

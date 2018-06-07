@@ -1143,7 +1143,8 @@ int UNRegion::CreateSettler(const int x, const int y, const int z, RandomNumberG
 	// Hair/etc. this should be made more realistic one day!
 	species.base_male_glyph = species_def->base_male_glyph;
 	species.base_female_glyph = species_def->base_female_glyph;
-	species.skin_color = species_def->skin_colors[rng->RollDice(1, species_def->skin_colors.Num()) - 1];
+	const auto col = species_def->skin_colors[rng->RollDice(1, species_def->skin_colors.Num()) - 1];
+	species.skin_color = named_color_pair_t{ col.Get<0>(), col.Get<1>() };
 
 	species.bearded = false;
 	if (species.gender == MALE)
@@ -1159,7 +1160,8 @@ int UNRegion::CreateSettler(const int x, const int y, const int z, RandomNumberG
 		}
 	}
 
-	species.hair_color = species_def->hair_colors[rng->RollDice(1, species_def->hair_colors.Num()) - 1];
+	const auto hcol = species_def->hair_colors[rng->RollDice(1, species_def->hair_colors.Num()) - 1];
+	species.hair_color = named_color_pair_t{ hcol.Get<0>(), hcol.Get<1>() };
 
 	species.hair_style = BALD;
 	if (species.gender == MALE)

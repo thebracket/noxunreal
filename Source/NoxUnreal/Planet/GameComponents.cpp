@@ -118,11 +118,11 @@ FString species_t::weight_lbs() {
 }
 
 FString species_t::ethnicity() {
-	return skin_color.Key;
+	return skin_color.name;
 }
 
 FString species_t::hair_color_str() {
-	const FString base = hair_color.Key;
+	const FString base = hair_color.name;
 	FString result = "";
 
 	for (std::size_t i = 0; i<base.Len(); ++i) {
