@@ -25,6 +25,117 @@ void RegionInitialize(TArray<CONTENTS> &container, const CONTENTS Initial) {
 	}
 }
 
+int UNRegion::mapidx(const int &x, const int &y, const int &z) noexcept {
+	return (z * nfu::REGION_HEIGHT * nfu::REGION_WIDTH) + (y * nfu::REGION_WIDTH) + x;
+}
+
+TTuple<int, int, int> UNRegion::idxmap(int idx) noexcept {
+	int z = idx / (nfu::REGION_HEIGHT * nfu::REGION_WIDTH);
+	idx -= (z * nfu::REGION_WIDTH * nfu::REGION_HEIGHT);
+
+	int y = idx / nfu::REGION_WIDTH;
+	idx -= (y * nfu::REGION_WIDTH);
+
+	int x = idx;
+
+	return TTuple<int, int, int>(x, y, z);
+}
+
+void UNRegion::SetTileType(const int idx, const uint8_t type) {
+	TileType[idx] = type;
+}
+
+void UNRegion::SetTileMaterial(const int idx, const size_t material) {
+	TileMaterial[idx] = material;
+}
+
+void UNRegion::reveal(const int idx) {
+	setbit(regiondefs::tile_flags::REVEALED, TileFlags[idx]);
+}
+
+void UNRegion::SetWaterLevel(const int idx, const uint32_t level) {
+	WaterLevel[idx] = level;
+}
+
+void UNRegion::SetVegType(const int idx, const uint8_t type) {
+	TileVegetationType[idx] = type;
+}
+
+void UNRegion::SetVegHp(const int idx, const uint8_t hp) {
+	VegetationHitPoints[idx] = hp;
+}
+
+void UNRegion::SetVegTicker(const int idx, const uint16_t ticker) {
+	TileVegetationTicker[idx] = ticker;
+}
+
+void UNRegion::SetVegLifecycle(const int idx, const uint8_t lifecycle) {
+	TileVegetationLifecycle[idx] = lifecycle;
+}
+
+bool UNRegion::flag(const int idx, const int flag) {
+	return testbit(flag, TileFlags[idx]);
+}
+
+int UNRegion::GroundZ(const int x, const int y) {
+	int z = nfu::REGION_DEPTH - 1;
+	bool hit_ground = false;
+	while (!hit_ground) {
+		const auto idx = mapidx(x, y, z);
+		if (TileType[idx] == regiondefs::tile_type::SOLID) {
+			hit_ground = true;
+			++z;
+		}
+		else {
+			--z;
+		}
+		if (z == 1) hit_ground = true;
+	}
+	return z;
+}
+
+bool UNRegion::CanSeeSky(const int &x, const int &y, const int &z) noexcept {
+	auto result = true;
+
+	auto Z = z;
+	while (Z < nfu::REGION_DEPTH) {
+		if (flag(mapidx(x, y, Z), regiondefs::tile_flags::SOLID)) result = false;
+		Z++;
+	}
+	return result;
+}
+
+void UNRegion::set_tile_type(const int idx, const uint8_t type) {
+	if (idx < 0 || idx > nfu::REGION_TILES_COUNT) return;
+	TileType[idx] = type;
+}
+
+void UNRegion::set_tile(const int idx, const uint8_t type, const bool solid, const bool opaque,
+	const std::size_t material, const uint8_t water, const bool remove_vegetation,
+	const bool construction)
+{
+	set_tile_type(idx, type);
+	if (solid) {
+		setbit(regiondefs::tile_flags::SOLID, TileFlags[idx]);
+	}
+	else
+	{
+		resetbit(regiondefs::tile_flags::SOLID, TileFlags[idx]);
+	}
+	if (opaque)
+	{
+		setbit(regiondefs::tile_flags::OPAQUE_TILE, TileFlags[idx]);
+	}
+	else
+	{
+		resetbit(regiondefs::tile_flags::OPAQUE_TILE, TileFlags[idx]);
+	}
+	SetTileMaterial(idx, material);
+	if (remove_vegetation) TileVegetationType[idx] = 0;
+	WaterLevel[idx] = water;
+	if (construction) setbit(regiondefs::tile_flags::CONSTRUCTION, TileFlags[idx]);
+}
+
 void UNRegion::SetupEmptyRegion() {
 	RegionInitialize<uint8>(TileType, 0);
 	RegionInitialize<uint16>(TileMaterial, 0);

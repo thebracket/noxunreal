@@ -39,124 +39,22 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	int BiomeIndex = 0;
 
-	/*
-	* Calculate the array index of an x/y/z position.
-	*/
-	inline int mapidx(const int &x, const int &y, const int &z) noexcept {
-		return (z * nfu::REGION_HEIGHT * nfu::REGION_WIDTH) + (y * nfu::REGION_WIDTH) + x;
-	}
-
-	inline TTuple<int, int, int> idxmap(int idx) noexcept {
-		int z = idx / (nfu::REGION_HEIGHT * nfu::REGION_WIDTH);
-		idx -= (z * nfu::REGION_WIDTH * nfu::REGION_HEIGHT);
-
-		int y = idx / nfu::REGION_WIDTH;
-		idx -= (y * nfu::REGION_WIDTH);
-
-		int x = idx;
-
-		return TTuple<int, int, int>(x, y, z);
-	}
-
-	inline void SetTileType(const int idx, const uint8_t type) {
-		TileType[idx] = type;
-	}
-
-	inline void SetTileMaterial(const int idx, const size_t material) {
-		TileMaterial[idx] = material;
-	}
-
-	inline void reveal(const int idx) {
-		setbit(regiondefs::tile_flags::REVEALED, TileFlags[idx]);
-	}
-
-	inline void SetWaterLevel(const int idx, const uint32_t level) {
-		WaterLevel[idx] = level;
-	}
-
-	/* Set the vegetation type index for a cell. */
-	inline void SetVegType(const int idx, const uint8_t type) {
-		TileVegetationType[idx] = type;
-	}
-
-	/* Set the vegetation hit points for a cell. */
-	inline void SetVegHp(const int idx, const uint8_t hp) {
-		VegetationHitPoints[idx] = hp;
-	}
-
-	/* Set the vegetation tick counter for a cell. */
-	inline void SetVegTicker(const int idx, const uint16_t ticker) {
-		TileVegetationTicker[idx] = ticker;
-	}
-
-	/* Set the vegetation lifecycle state for a cell. */
-	inline void SetVegLifecycle(const int idx, const uint8_t lifecycle) {
-		TileVegetationLifecycle[idx] = lifecycle;
-	}
-
-	inline bool flag(const int idx, const int flag) {
-		return testbit(flag, TileFlags[idx]);
-	}
-
-	/* Find ground-level (Z) for a given X/Y pair */
-	inline int GroundZ(const int x, const int y) {
-		int z = nfu::REGION_DEPTH - 1;
-		bool hit_ground = false;
-		while (!hit_ground) {
-			const auto idx = mapidx(x, y, z);
-			if (TileType[idx] == regiondefs::tile_type::SOLID) {
-				hit_ground = true;
-				++z;
-			}
-			else {
-				--z;
-			}
-			if (z == 1) hit_ground = true;
-		}
-		return z;
-	}
-
-	inline bool CanSeeSky(const int &x, const int &y, const int &z) noexcept {
-		auto result = true;
-
-		auto Z = z;
-		while (Z < nfu::REGION_DEPTH) {
-			if (flag(mapidx(x, y, Z), regiondefs::tile_flags::SOLID)) result = false;
-			Z++;
-		}
-		return result;
-	}
-
-	inline void set_tile_type(const int idx, const uint8_t type) {
-		if (idx < 0 || idx > nfu::REGION_TILES_COUNT) return;
-		TileType[idx] = type;
-	}
-
-	inline void set_tile(const int idx, const uint8_t type, const bool solid, const bool opaque,
-		const std::size_t material, const uint8_t water, const bool remove_vegetation,
-		const bool construction) 
-	{
-		set_tile_type(idx, type);
-		if (solid) {
-			setbit(regiondefs::tile_flags::SOLID, TileFlags[idx]);
-		}
-		else
-		{
-			resetbit(regiondefs::tile_flags::SOLID, TileFlags[idx]);
-		}
-		if (opaque)
-		{
-			setbit(regiondefs::tile_flags::OPAQUE_TILE, TileFlags[idx]);
-		}
-		else
-		{
-			resetbit(regiondefs::tile_flags::OPAQUE_TILE, TileFlags[idx]);
-		}
-		SetTileMaterial(idx, material);
-		if (remove_vegetation) TileVegetationType[idx] = 0;
-		WaterLevel[idx] = water;
-		if (construction) setbit(regiondefs::tile_flags::CONSTRUCTION, TileFlags[idx]);
-	}
+	int mapidx(const int &x, const int &y, const int &z) noexcept;
+	TTuple<int, int, int> idxmap(int idx) noexcept;
+	
+	void SetTileType(const int idx, const uint8_t type);
+	void SetTileMaterial(const int idx, const size_t material);
+	void reveal(const int idx);
+	void SetWaterLevel(const int idx, const uint32_t level);
+	void SetVegType(const int idx, const uint8_t type);
+	void SetVegHp(const int idx, const uint8_t hp);
+	void SetVegTicker(const int idx, const uint16_t ticker);
+	void SetVegLifecycle(const int idx, const uint8_t lifecycle);
+	bool flag(const int idx, const int flag);
+	int GroundZ(const int x, const int y);
+	bool CanSeeSky(const int &x, const int &y, const int &z) noexcept;
+	void set_tile_type(const int idx, const uint8_t type);
+	void set_tile(const int idx, const uint8_t type, const bool solid, const bool opaque, const std::size_t material, const uint8_t water, const bool remove_vegetation, const bool construction);
 
 	TArray<chunk_t> Chunks;
 	TBitArray<> DirtyChunks;
