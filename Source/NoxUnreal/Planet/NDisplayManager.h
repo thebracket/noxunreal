@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../Public/NoxGameInstance.h"
 #include "ProceduralMeshComponent.h"
 #include "Runtime/Engine/Classes/Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "NCharacter.h"
@@ -116,6 +115,11 @@ struct FUnitListDisplaySettler {
 	UPROPERTY(BlueprintReadOnly)
 	bool isHunter = false;
 };
+
+class NRaws;
+class UBECS;
+class UNPlanet;
+class UNRegion;
 
 UCLASS()
 class NOXUNREAL_API ANDisplayManager : public AActor

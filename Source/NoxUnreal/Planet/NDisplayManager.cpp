@@ -2,6 +2,7 @@
 
 #include "NDisplayManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "../Public/NoxGameInstance.h"
 #include "GameInputManager.h"
 
 constexpr float WORLD_SCALE = 200.0f;
